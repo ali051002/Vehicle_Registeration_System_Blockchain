@@ -12,4 +12,4 @@ The project aims to create a decentralized, tamper-proof vehicle registration sy
 
 ---
 
-This project is part of our Final Year Project developed using the MERN stack (MongoDB, Express, React, Node.js) and Solidity for smart contracts.
+
