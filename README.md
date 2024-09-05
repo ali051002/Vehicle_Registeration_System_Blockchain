@@ -1,4 +1,4 @@
-# Vehicle Registration System on Blockchain
+# SecureChain - Vehicle Registration System on Blockchain
 
 A decentralized vehicle registration system using blockchain technology built with the MERN stack and Solidity. This system ensures secure and transparent vehicle registration and ownership transfer.
 
