@@ -3,18 +3,21 @@ import AuthContext from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const SignInPage = () => {
-  const { login } = useContext(AuthContext);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);  // Get login function from AuthContext
+  const [email, setEmail] = useState('');  // State for email input
+  const [password, setPassword] = useState('');  // State for password input
+  const [error, setError] = useState(null);  // State for error messages
+  const navigate = useNavigate();  // Hook to programmatically navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Call login from AuthContext, passing email and password
       await login(email, password);
-      navigate('/dashboard');  // Navigate to user dashboard after successful login
+      // On successful login, navigate to dashboard
+      navigate('/dashboard');
     } catch (err) {
+      // Set error message if login fails
       setError('Invalid email or password');
     }
   };

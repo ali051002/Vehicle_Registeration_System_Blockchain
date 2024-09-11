@@ -1,20 +1,33 @@
-import React, { useState, useContext } from 'react';
-import AuthContext from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate for navigation
 
-const SignupPage = () => {
-  const { register } = useContext(AuthContext);
+const SignUpPage = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [ethereumAddress, setEthereumAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [addressDetails, setAddressDetails] = useState('');
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  
+  const navigate = useNavigate();  // Initialize the useNavigate hook
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await register({ username, email, password });
-      navigate('/signin');  // Navigate to login page after successful registration
+      const response = await axios.post('http://localhost:8085/api/user', {
+        name: username,
+        email,
+        password,
+        ethereumAddress,
+        phoneNumber,
+        addressDetails
+      });
+      if (response.status === 201) {
+        alert('User created successfully.');
+        navigate('/signin');  // Navigate to the Sign-In page
+      }
     } catch (err) {
       setError('Registration failed. Please try again.');
     }
@@ -42,11 +55,29 @@ const SignupPage = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button type="submit">Register</button>
+        <input
+          type="text"
+          placeholder="Ethereum Address"
+          value={ethereumAddress}
+          onChange={(e) => setEthereumAddress(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Phone Number"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Address Details"
+          value={addressDetails}
+          onChange={(e) => setAddressDetails(e.target.value)}
+        />
+        <button type="submit">Sign Up</button>
         {error && <p>{error}</p>}
       </form>
     </div>
   );
 };
 
-export default SignupPage;
+export default SignUpPage;

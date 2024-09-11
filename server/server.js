@@ -1,22 +1,26 @@
 const express = require('express');
+const cors = require('cors');
+const userRoutes = require('./routes/userRoutes'); // Ensure this path is correct
+
 const app = express();
-const userRoutes = require('./routes/userRoutes');
-const vehicleRoutes = require('./routes/vehicleRoutes');
-const transactionRoutes = require('./routes/transactionRoutes');
-const ownershipTransferRoutes = require('./routes/ownershipTransferRoutes');
+const PORT = process.env.PORT || 8085;
 
-require('dotenv').config();
+// Enable CORS
+app.use(cors({
+    origin: 'http://localhost:3000', // Make sure this matches your frontend URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
 
+// Middleware to parse JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', userRoutes);
-app.use('/api', vehicleRoutes);
-app.use('/api', transactionRoutes);
-app.use('/api', ownershipTransferRoutes);
+// Define routes
+app.use('/api', userRoutes);  // Ensure the correct path here for user routes
 
-const PORT = process.env.PORT || 8085;
-
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
