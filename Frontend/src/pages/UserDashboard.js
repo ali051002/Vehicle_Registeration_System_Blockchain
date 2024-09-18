@@ -1,18 +1,20 @@
-// src/pages/UserDashboard.js
-import React from 'react';
+import React, { useContext } from 'react';
 import './UserDashboard.css'; // Import CSS file for styling
+import AuthContext from '../context/AuthContext'; 
 
 const UserDashboard = () => {
+  const { user } = useContext(AuthContext); 
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-background">
         <div className="user-profile">
           <div className="profile-card">
             <div className="profile-pic">
-              <span className="profile-initial">A</span>
+              <span className="profile-initial">{user?.name[0]}</span> {/* Display the first letter of the user's name */}
             </div>
-            <h2>Alisa Lautner</h2>
-            <p>@alisa.lala</p>
+            <h2>{user?.name || 'User Name'}</h2> 
+            <p>@{user?.email || 'user.email'}</p> 
             <button className="profile-btn">Edit profile</button>
             <button className="profile-btn">Share</button>
           </div>
