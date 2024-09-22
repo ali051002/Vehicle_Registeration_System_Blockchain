@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import AuthContext from '../context/AuthContext'; // Import AuthContext for user data
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 
-const AdminDashboard = () => {
+const GovernmentOfficialDashboard = () => {
   const { user, logout } = useContext(AuthContext); // Access the logged-in user data and logout function
   const navigate = useNavigate(); // useNavigate for programmatic navigation
 
@@ -15,51 +15,45 @@ const AdminDashboard = () => {
     <div className="bg-gray-100 min-h-screen p-8">
       <div className="bg-white p-10 rounded-lg shadow-lg">
         <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-[#DC5F00]">👤 ADMIN DASHBOARD</h2>
+          <h2 className="text-4xl font-bold text-[#DC5F00]">🏛 GOVERNMENT OFFICIAL DASHBOARD</h2>
           <div className="mt-4">
-            <p className="text-xl text-gray-700">Name: {user?.name || 'Admin Name'}</p>
-            <p className="text-xl text-gray-700">Email: {user?.email || 'admin@example.com'}</p>
+            <p className="text-xl text-gray-700">Name: {user?.name || 'Official Name'}</p>
+            <p className="text-xl text-gray-700">Email: {user?.email || 'official@example.com'}</p>
           </div>
         </div>
 
-        {/* Admin Statistics Section */}
+        {/* Government Statistics Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           <div className="bg-[#DC5F00] text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Total number of registered vehicles
+            Total number of vehicle inspections
           </div>
           <div className="bg-blue-600 text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Number of approved/rejected registration trips
+            Pending government approvals
           </div>
           <div className="bg-green-500 text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Number of pending vehicle registrations
+            Number of approved vehicle registrations
           </div>
           <div className="bg-green-600 text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Number of pending ownership transfers
+            Number of rejected vehicle registrations
           </div>
           <div className="bg-green-700 text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Number of successful ownership transfers
-          </div>
-          <div className="bg-green-700 text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Number of active users
+            Number of inspections scheduled
           </div>
           <div className="bg-blue-600 text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Number of approved/rejected ownership transfers
-          </div>
-          <div className="bg-[#DC5F00] text-white p-6 rounded-lg text-center font-bold shadow-lg">
-            Total number of registered vehicles
+            Number of ownership transfers processed
           </div>
         </div>
 
-        {/* Admin Management Section */}
+        {/* Government Management Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-teal-400 text-white p-6 rounded-lg text-center font-bold shadow-lg cursor-pointer hover:scale-105 transition-transform">
-            Vehicle Registration Management
+            Manage Vehicle Inspections
           </div>
           <div className="bg-orange-500 text-white p-6 rounded-lg text-center font-bold shadow-lg cursor-pointer hover:scale-105 transition-transform">
-            User Management
+            Manage Government Approvals
           </div>
           <div className="bg-[#DC5F00] text-white p-6 rounded-lg text-center font-bold shadow-lg cursor-pointer hover:scale-105 transition-transform">
-            Ownership Transfer Management
+            Manage Ownership Transfers
           </div>
         </div>
 
@@ -77,4 +71,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default GovernmentOfficialDashboard;

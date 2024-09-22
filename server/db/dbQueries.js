@@ -33,9 +33,6 @@ const getUserByEmail = async (email) => {
 
 // Login User
 const loginUser = async (email, password) => {
-    const pool = await poolPromise;
-    
-    // Fetch the user by email
     const user = await getUserByEmail(email);
     if (!user) {
         throw new Error('Invalid email or password');
@@ -50,13 +47,18 @@ const loginUser = async (email, password) => {
     // Generate JWT token if credentials are correct
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Return token and user data
+    // Return token and user data including role
     return {
         token,
         user: {
             id: user._id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            role: user.role,  // Include role in the response
+            ethereumAddress: user.ethereumAddress,
+            phoneNumber: user.phoneNumber,
+            addressDetails: user.addressDetails,
+            profilePicture: user.profilePicture
         }
     };
 };

@@ -5,46 +5,49 @@ import axios from 'axios';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);    // User state to store logged-in user info
+  const [loading, setLoading] = useState(true);  // Loading state to track authentication status
 
+  // Effect to load user profile if token exists in localStorage
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      axios.get('http://localhost:8085/api/profile')
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;  // Set token in axios headers
+      axios.get('http://localhost:8085/api/profile')  // Fetch user profile
         .then((response) => {
-          setUser(response.data);
+          setUser(response.data);  // Set user data on successful response
         })
         .catch((error) => {
           console.error('Failed to fetch user profile', error);
-          logout();
+          logout();  // Logout if fetching profile fails (invalid token, etc.)
         });
     }
-    setLoading(false);
+    setLoading(false);  // Stop loading after the profile check
   }, []);
 
+  // Function to handle login
   const login = async (email, password) => {
     try {
       const response = await axios.post('http://localhost:8085/api/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-      setUser(response.data.user);
-      return response.data.user;
+      localStorage.setItem('token', response.data.token);  // Store token in localStorage
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;  // Set token in axios
+      setUser(response.data.user);  // Set user data (including role) after successful login
+      return response.data.user;  // Return user object
     } catch (error) {
-      throw new Error(error.response?.data?.msg || 'Login failed');
+      throw new Error(error.response?.data?.msg || 'Login failed');  // Throw an error if login fails
     }
   };
 
+  // Function to handle logout
   const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
+    localStorage.removeItem('token');  // Remove token from localStorage
+    delete axios.defaults.headers.common['Authorization'];  // Remove token from axios headers
+    setUser(null);  // Reset user state to null
   };
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {!loading && children}
+      {!loading && children}  {/* Only render children when not loading */}
     </AuthContext.Provider>
   );
 };

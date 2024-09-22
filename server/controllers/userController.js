@@ -7,13 +7,14 @@ const createUserController = async (req, res) => {
             name: req.body.name,
             email: req.body.email,
             password: req.body.password,  // Raw password, will be hashed in dbQueries.js
-            role: req.body.role || 'user',
+            role: req.body.role || 'user',  // Default role as 'user' if not provided
             ethereumAddress: req.body.ethereumAddress,
             phoneNumber: req.body.phoneNumber,
             addressDetails: req.body.addressDetails,
             profilePicture: req.body.profilePicture || ''
         };
 
+        // Call createUser function from dbQueries to create a new user
         const result = await createUser(userData);
         res.status(201).json({
             msg: "User created successfully",
@@ -32,7 +33,7 @@ const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Call the login function with email and password
+        // Call the loginUser function with email and password
         const result = await loginUser(email, password);
 
         // Return the token and user information
