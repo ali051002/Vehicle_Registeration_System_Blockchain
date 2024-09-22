@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { BiUser, BiLockAlt } from 'react-icons/bi';
 import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
+import { motion } from 'framer-motion';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState('');
@@ -39,10 +40,30 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#EEEEEE]">
-      <div className="bg-[#686D76] bg-opacity-75 p-10 rounded-xl shadow-lg flex flex-col items-center w-full max-w-2xl mx-4 animate-fadeIn">
-        <h2 className="text-4xl font-bold text-[#EEEEEE] mb-6 text-center" style={{ fontFamily: 'monospace' }}>Create Your Account</h2>
+      <motion.div
+        className="bg-[#686D76] bg-opacity-75 p-10 rounded-xl shadow-lg flex flex-col items-center w-full max-w-2xl mx-4 animate-fadeIn"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeInOut' }}
+      >
+        <motion.h2
+          className="text-4xl font-bold text-[#EEEEEE] mb-6 text-center"
+          style={{ fontFamily: 'monospace' }}
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+        >
+          Create Your Account
+        </motion.h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <motion.form
+          onSubmit={handleSubmit}
+          className="w-full grid grid-cols-1 md:grid-cols-2 gap-6"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
+        >
           <InputField icon={<BiUser />} type="text" placeholder="Username" value={username} onChange={setUsername} />
           <InputField icon={<AiOutlineMail />} type="email" placeholder="Email" value={email} onChange={setEmail} />
           <InputField icon={<BiLockAlt />} type="password" placeholder="Password" value={password} onChange={setPassword} />
@@ -51,7 +72,12 @@ export default function SignUpPage() {
           <InputField icon={<BiUser />} type="text" placeholder="Address Details" value={addressDetails} onChange={setAddressDetails} />
 
           {/* Role selection dropdown */}
-          <div className="relative col-span-full">
+          <motion.div
+            className="relative col-span-full"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: 'easeInOut' }}
+          >
             <label className="text-[#EEEEEE] font-semibold mb-2 block">Select Role</label>
             <select
               value={role}
@@ -62,27 +88,39 @@ export default function SignUpPage() {
               <option value="admin">Admin</option>
               <option value="government official">Government Official</option>
             </select>
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
             type="submit"
             className="col-span-full w-full p-4 bg-[#DC5F00] text-white rounded-lg hover:bg-[#FFFFFF] hover:text-[#DC5F00] transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Sign Up
-          </button>
-        </form>
+          </motion.button>
+        </motion.form>
 
-        <div className="mt-6 text-center w-full">
+        <motion.div
+          className="mt-6 text-center w-full"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        >
           <a href="/signin" className="text-gray-300 hover:text-white underline transition duration-300 ease-in-out">Already have an account? Sign In</a>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
 
 function InputField({ icon, type, placeholder, value, onChange }) {
   return (
-    <div className="relative group">
+    <motion.div
+      className="relative group"
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, ease: 'easeInOut' }}
+    >
       <span className="absolute left-3 top-3 text-gray-400 group-hover:text-white transition duration-300 ease-in-out">{icon}</span>
       <input
         type={type}
@@ -91,6 +129,6 @@ function InputField({ icon, type, placeholder, value, onChange }) {
         onChange={(e) => onChange(e.target.value)}
         className="w-full pl-12 p-4 bg-gray-700 text-white rounded-lg border border-gray-600 group-hover:border-gray-400 transition duration-300 ease-in-out"
       />
-    </div>
+    </motion.div>
   );
 }

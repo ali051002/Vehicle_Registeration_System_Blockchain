@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AiOutlineMenu } from 'react-icons/ai';
 import { FaCheckCircle, FaShieldAlt, FaClock } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const cars = [
   { thumbnail: '', bigCar: '' },
@@ -70,43 +71,35 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Hero Section */}
-      <section className="w-full flex flex-col lg:flex-row justify-between items-center min-h-screen gap-10 max-container bg-gray-100 px-6 lg:px-20">
+      {/* Hero Section with Framer Motion Animation */}
+      <motion.section
+        className="w-full flex flex-col lg:flex-row justify-between items-center min-h-screen gap-10 max-container bg-gray-100 px-6 lg:px-20"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+      >
         {/* Text Section */}
-        <div className="lg:w-1/2 flex flex-col justify-center items-start">
-          <p className="text-xl font-serif text-[#DC5F00]">
-            Secure Shift Vehicle Registration
-          </p>
+        <motion.div
+          className="lg:w-1/2 flex flex-col justify-center items-start"
+          initial={{ opacity: 0, x: -100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <p className="text-xl font-serif text-[#DC5F00]">Secure Shift Vehicle Registration</p>
           <h1 className="mt-6 font-bold text-4xl lg:text-6xl max-sm:text-[48px] max-sm:leading-[56px]">
-            <span className="relative z-10 pr-10 text-[#373A40]">
-              A New Era of Vehicle Registration
-            </span>
+            <span className="relative z-10 pr-10 text-[#373A40]">A New Era of Vehicle Registration</span>
             <br />
             <span className="text-[#DC5F00] inline-block mt-3">Explore the System</span>
           </h1>
-          <p className="text-gray-600 text-lg leading-8 mt-6 mb-10 max-w-md">
-            Discover our secure and transparent vehicle registration system,
-            powered by blockchain technology.
-          </p>
+        </motion.div>
 
-          <button className="bg-[#DC5F00] text-white py-3 px-6 rounded-lg hover:bg-black transition duration-300">
-            Register Now
-          </button>
-
-          <div className="flex justify-start items-start flex-wrap w-full mt-10 gap-16">
-            <div>
-              <p className="text-4xl font-bold">100+</p>
-              <p className="text-gray-600">Vehicles Registered</p>
-            </div>
-            <div>
-              <p className="text-4xl font-bold">50+</p>
-              <p className="text-gray-600">Trusted Partners</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Car Image Section */}
-        <div className="lg:w-1/2 flex flex-col justify-center items-center">
+        {/* Car Image Section with Framer Motion Animation */}
+        <motion.div
+          className="lg:w-1/2 flex flex-col justify-center items-center"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+        >
           <img
             src={bigCarImg}
             alt="car collection"
@@ -119,15 +112,13 @@ export default function LandingPage() {
                 <img
                   src={image.thumbnail}
                   alt={`car ${index + 1}`}
-                  className={`w-16 h-16 object-cover border-2 rounded-lg ${
-                    bigCarImg === image.bigCar ? "border-[#DC5F00]" : "border-transparent"
-                  }`}
+                  className={`w-16 h-16 object-cover border-2 rounded-lg ${bigCarImg === image.bigCar ? "border-[#DC5F00]" : "border-transparent"}`}
                 />
               </div>
             ))}
           </div>
-        </div>
-      </section>  
+        </motion.div>
+      </motion.section>
 
       {/* Introduction Section */}
       <section className="introduction-section text-center py-10 bg-[#DC5F00]">
@@ -143,31 +134,40 @@ export default function LandingPage() {
           <h2 className="text-4xl font-bold text-center mb-12 text-[#DC5F00]">Our Key Features</h2>
           <div className="flex justify-center flex-wrap gap-8">
             {/* Feature Card 1 */}
-            <div className="flex-1 sm:w-[350px] sm:min-w-[350px] w-full bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-all">
+            <motion.div
+              className="flex-1 sm:w-[350px] sm:min-w-[350px] w-full bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-all"
+              whileHover={{ scale: 1.05 }}
+            >
               <div className="w-12 h-12 flex justify-center items-center bg-[#DC5F00] rounded-full">
                 <FaCheckCircle className="text-white w-6 h-6" />
               </div>
               <h3 className="mt-5 text-2xl font-bold text-gray-900">Enhanced Trust</h3>
               <p className="mt-3 text-lg text-gray-600">With transparent and secure data management, gain the trust of all stakeholders.</p>
-            </div>
+            </motion.div>
 
             {/* Feature Card 2 */}
-            <div className="flex-1 sm:w-[350px] sm:min-w-[350px] w-full bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-all">
+            <motion.div
+              className="flex-1 sm:w-[350px] sm:min-w-[350px] w-full bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-all"
+              whileHover={{ scale: 1.05 }}
+            >
               <div className="w-12 h-12 flex justify-center items-center bg-[#DC5F00] rounded-full">
                 <FaShieldAlt className="text-white w-6 h-6" />
               </div>
               <h3 className="mt-5 text-2xl font-bold text-gray-900">Reduced Fraud</h3>
               <p className="mt-3 text-lg text-gray-600">Blockchain technology significantly reduces the risk of fraud and data manipulation.</p>
-            </div>
+            </motion.div>
 
             {/* Feature Card 3 */}
-            <div className="flex-1 sm:w-[350px] sm:min-w-[350px] w-full bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-all">
+            <motion.div
+              className="flex-1 sm:w-[350px] sm:min-w-[350px] w-full bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-all"
+              whileHover={{ scale: 1.05 }}
+            >
               <div className="w-12 h-12 flex justify-center items-center bg-[#DC5F00] rounded-full">
                 <FaClock className="text-white w-6 h-6" />
               </div>
               <h3 className="mt-5 text-2xl font-bold text-gray-900">Improved Efficiency</h3>
               <p className="mt-3 text-lg text-gray-600">Automated processes and decentralized validation lead to faster and more reliable registration services.</p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
