@@ -3,7 +3,7 @@ const cors = require('cors');
 const userRoutes = require('./routes/userRoutes'); // Ensure this path is correct
 
 const app = express();
-const PORT = process.env.PORT || 8085;
+const PORT = process.env.PORT;
 
 // Enable CORS
 app.use(cors({

@@ -174,22 +174,33 @@ export default function LandingPage() {
 
       {/* Join Us Section */}
       <section className="bg-gray-100 py-16">
-        <div className="max-w-7xl mx-auto px-4 flex items-stretch gap-12">
-          {/* Text on the Right */}
-          <div className="flex-1 flex flex-col justify-between">
-            <div className="flex flex-col justify-center h-full">
-              <h2 className="text-5xl font-bold text-[#DC5F00] leading-tight mb-4">
-                Let's Work Together
-              </h2>
-              <p className="text-gray-600 text-lg leading-loose max-w-md">
-                Join us in transforming vehicle registration.
-                <br />
-                Sign up today and experience the benefits of a secure and efficient system!
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+  <div className="max-w-7xl mx-auto px-4 flex items-stretch gap-12">
+    {/* Image on the Left */}
+    
+
+    {/* Text on the Right */}
+    <div className="flex-1 flex flex-col justify-between">
+      <div className="flex flex-col justify-center h-full">
+        <h2 className="text-5xl font-bold text-[#DC5F00] leading-tight mb-4">
+          Let's Work Together
+        </h2>
+        <p className="text-gray-600 text-lg leading-loose max-w-md">
+          Join us in transforming vehicle registration.
+          <br />
+          Sign up today and experience the benefits of a secure and efficient system!
+        </p>
+      </div>
+    </div>
+    <div className="flex-1 flex justify-center items-center">
+      <img
+        src="/handshake.png"
+        alt="Handshake"
+        className="object-contain w-full max-w-sm"
+      />
+    </div>
+  </div>
+</section>
+
 
       {/* Footer Section */}
       <footer className="footer bg-[#DC5F00] text-white p-4 text-center">
