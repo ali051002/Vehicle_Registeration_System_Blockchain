@@ -1,8 +1,9 @@
+// /pages/AuditLogs.js
 import React, { useState } from 'react';
 import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
 
-const GovernmentDashboard = () => {
+const AuditLogs = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -46,47 +47,20 @@ const GovernmentDashboard = () => {
             <span>Platform</span>
             <span>About us</span>
             <span>Contact</span>
+            <button onClick={handleLogout} className="text-sm hover:bg-[#DC5F00]">
+              <FaSignOutAlt /> Logout
+            </button>
           </div>
         </div>
 
-        {/* Dashboard content */}
+        {/* Empty content area */}
         <div className="p-6 bg-[#EEEEEE] min-h-screen">
-        <h1 className="text-4xl font-bold text-black flex items-center space-x-4 ">
-    <span>🏛</span>
-    <span>GOVERNMENT DASHBOARD</span>
-</h1>
-
-
-// GovernmentOfficialDashboard.js
-<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
-  {[
-    { title: 'Pending Registrations', description: 'View and approve pending vehicle registrations.', href: '/pending-registrations' },
-    { title: 'Ownership Transfers', description: 'Manage vehicle ownership transfer approvals.', href: '/ownership-transfers' },
-    { title: 'Vehicle Registry', description: 'View the total registered vehicles with details.', href: '/vehicle-registry' },
-    { title: 'Audit Logs', description: 'View transaction history and audit logs.', href: '/audit-logs' },  // Ensure this points to the correct route
-  ].map((item, index) => (
-    <div key={index} className="p-6 bg-[#EEEEEE] rounded-lg shadow-lg transition-all duration-300">
-      <h3 className="mb-2 text-lg font-bold text-gray-800">{item.title}</h3>
-      <p className="mb-4 text-gray-600">{item.description}</p>
-      <button
-        onClick={() => navigate(item.href)}  // Navigate to the correct page
-        className="px-4 py-2 text-white rounded-md bg-[#DC5F00] hover:bg-[#DC5F00] transition-all duration-300"
-      >
-        View Details
-      </button>
-    </div>
-  ))}
-</div>
-
-  
-</div>
-
-            
-          </div>
+          <h2 className="text-4xl font-bold">Audit Logs</h2>
+          <p className="mt-4 text-gray-600">This space will show audit logs and related information.</p>
         </div>
-      
-    
+      </div>
+    </div>
   );
 };
 
-export default GovernmentDashboard;
+export default AuditLogs;
