@@ -3,15 +3,16 @@ import { AiOutlineMenu } from 'react-icons/ai';
 import { FaCheckCircle, FaShieldAlt, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
+// Define the images array
 const cars = [
-  { thumbnail: '', bigCar: '' },
-  { thumbnail: '', bigCar: '' },
-  { thumbnail: '', bigCar: '' }
+  { thumbnail: '/image-10000x6500.jpg', bigCar: '/image-10000x6500.jpg' },
+  { thumbnail: '/image-10000x6500.jpg', bigCar: '/image-10000x6500.jpg' },
+  { thumbnail: '/image-10000x6500.jpg', bigCar: '/image-10000x6500.jpg' }
 ];
 
 export default function LandingPage() {
   const [navOpen, setNavOpen] = useState(false);
-  const [bigCarImg, setBigCarImg] = useState(cars[0].bigCar);
+  const [bigCarImg, setBigCarImg] = useState(cars[0].bigCar);  // Initialize with car1-Photoroom.png
 
   const toggleNav = () => {
     setNavOpen(!navOpen);
@@ -101,7 +102,7 @@ export default function LandingPage() {
           transition={{ duration: 0.8 }}
         >
           <img
-            src={bigCarImg}
+            src={bigCarImg}  // This will show car1-Photoroom.png by default
             alt="car collection"
             className="object-contain relative z-10 w-full max-w-[600px] h-auto"
           />
@@ -110,7 +111,7 @@ export default function LandingPage() {
             {cars.map((image, index) => (
               <div key={index} className="cursor-pointer" onClick={() => setBigCarImg(image.bigCar)}>
                 <img
-                  src={image.thumbnail}
+                  src={image.thumbnail}  // Thumbnail image for car1-Photoroom.png
                   alt={`car ${index + 1}`}
                   className={`w-16 h-16 object-cover border-2 rounded-lg ${bigCarImg === image.bigCar ? "border-[#DC5F00]" : "border-transparent"}`}
                 />
@@ -119,14 +120,6 @@ export default function LandingPage() {
           </div>
         </motion.div>
       </motion.section>
-
-      {/* Introduction Section */}
-      <section className="introduction-section text-center py-10 bg-[#DC5F00]">
-        <h2 className="text-3xl font-bold text-white">Introduction</h2>
-        <p className="text-white mt-4 max-w-2xl mx-auto">
-          Our system integrates blockchain technology to ensure data integrity, reduce fraud, and improve the overall efficiency of the vehicle registration process.
-        </p>
-      </section>
 
       {/* Features Section */}
       <section className="bg-gray-100 py-16">
@@ -209,3 +202,6 @@ export default function LandingPage() {
     </div>
   );
 }
+    
+  ;
+

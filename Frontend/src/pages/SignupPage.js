@@ -12,7 +12,7 @@ export default function SignUpPage() {
   const [ethereumAddress, setEthereumAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [addressDetails, setAddressDetails] = useState('');
-  const [role, setRole] = useState('user');  // Default role
+  const [role, setRole] = useState('user');
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ export default function SignUpPage() {
         ethereumAddress,
         phoneNumber,
         addressDetails,
-        role  // Send the selected role to the backend
+        role
       });
       if (response.status === 201) {
         alert('User created successfully.');
@@ -39,21 +39,34 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#EEEEEE]">
-      <motion.div
-        className="bg-[#686D76] bg-opacity-75 p-10 rounded-xl shadow-lg flex flex-col items-center w-full max-w-2xl mx-4 animate-fadeIn"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeInOut' }}
-      >
+    <div className="min-h-screen flex">
+      {/* Left side with image and vertical text */}
+      <div className="relative w-1/2 overflow-hidden">
+        <img
+          src="/laptop.jpg"
+          alt="Laptop and glasses"
+          className="object-cover w-full h-full"
+        />
+        <div className="absolute inset-y-0 right-0 w-24 flex items-center justify-center bg-[#EADFB4] bg-opacity-80">
+          <div className="text-[60px] font-bold uppercase leading-none" style={{ writingMode: 'vertical-rl', textOrientation: 'upright' }}>
+            <span className="text-[#F38120]">SIGN</span>
+            <span className="text-[#EEEEEE]"> UP</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right side with form */}
+      <div className="w-1/2 bg-[#EEEEEE] flex flex-col justify-center px-12 py-8">
         <motion.h2
-          className="text-4xl font-bold text-[#EEEEEE] mb-6 text-center"
+          className="text-4xl font-bold text-[#F38120] mb-6 text-center"
           style={{ fontFamily: 'monospace' }}
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: 'easeOut' }}
-        >
-          Create Your Account
+          >
+          Sign Up
+        
+          
         </motion.h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         
@@ -71,18 +84,17 @@ export default function SignUpPage() {
           <InputField icon={<AiOutlinePhone />} type="text" placeholder="Phone Number" value={phoneNumber} onChange={setPhoneNumber} />
           <InputField icon={<BiUser />} type="text" placeholder="Address Details" value={addressDetails} onChange={setAddressDetails} />
 
-          {/* Role selection dropdown */}
           <motion.div
             className="relative col-span-full"
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: 'easeInOut' }}
           >
-            <label className="text-[#EEEEEE] font-semibold mb-2 block">Select Role</label>
+            <label className="text-[#686D76] font-semibold mb-2 block">Select Role</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full p-3 bg-gray-700 text-white rounded-lg border border-gray-600 hover:border-gray-400 transition duration-300 ease-in-out"
+              className="w-full p-3 bg-gray-200 text-black rounded-lg border border-gray-400"
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
@@ -92,7 +104,7 @@ export default function SignUpPage() {
 
           <motion.button
             type="submit"
-            className="col-span-full w-full p-4 bg-[#DC5F00] text-white rounded-lg hover:bg-[#FFFFFF] hover:text-[#DC5F00] transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+            className="col-span-full w-full p-4 bg-[#F38120] text-white rounded-lg hover:bg-[#FFFFFF] hover:text-[#DC5F00] transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -106,9 +118,9 @@ export default function SignUpPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
-          <a href="/signin" className="text-gray-300 hover:text-white underline transition duration-300 ease-in-out">Already have an account? Sign In</a>
+          <a href="/signin" className="text-gray-600 hover:text-black underline transition duration-300 ease-in-out">Already a member? Log In</a>
         </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -121,13 +133,13 @@ function InputField({ icon, type, placeholder, value, onChange }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, ease: 'easeInOut' }}
     >
-      <span className="absolute left-3 top-3 text-gray-400 group-hover:text-white transition duration-300 ease-in-out">{icon}</span>
+      <span className="absolute left-3 top-3 text-gray-500">{icon}</span>
       <input
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-12 p-4 bg-gray-700 text-white rounded-lg border border-gray-600 group-hover:border-gray-400 transition duration-300 ease-in-out"
+        className="w-full pl-12 p-4 bg-gray-100 text-black rounded-lg border border-gray-300 focus:border-[#DC5F00] focus:outline-none transition duration-300 ease-in-out"
       />
     </motion.div>
   );
