@@ -1,3 +1,4 @@
+import { color } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
 import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
@@ -48,6 +49,7 @@ const VehicleListItem = ({ vehicle, owner }) => {
 const PendingRegistrationsDetails = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingRegistrations, setPendingRegistrations] = useState([]);
+  const [isAnimating, setIsAnimating] = useState(true);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -97,10 +99,36 @@ const PendingRegistrationsDetails = () => {
     };
 
     fetchPendingRegistrations();
+
+    // Stop the animation after 3 seconds
+    const timer = setTimeout(() => {
+      setIsAnimating(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-r from-[#EADFB4] to-[#F38120]"> 
+    <div className="bg-[##EADFB4] flex h-screen overflow-hidden relative ">
+      <div
+        className="absolute inset-0 z-[-1]"
+        style={{
+          backgroundcolor: 'bg-[##EADFB4] ',
+          backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
+          animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
+        }}
+      />
+      <style jsx>{`
+        @keyframes slide {
+          0% {
+            transform: translateX(-25%);
+          }
+          100% {
+            transform: translateX(0); /* Ends with no translation */
+          }
+        }
+      `}</style>
+
       {/* Sidebar */}
       <div 
         className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex flex-col justify-between`}
@@ -140,7 +168,7 @@ const PendingRegistrationsDetails = () => {
       {/* Main content */}
       <div className={`flex-1 overflow-x-hidden overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {/* Top Navbar */}
-        <div className="sticky top-0 z-20 flex items-center justify-between w-full h-16 px-4">
+        <div className="sticky top-0 z-20 flex items-center justify-between w-full h-16 px-4 bg-white bg-opacity-50">
           <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>
           <div className="flex items-center space-x-4 text-[#373A40]">
             <span>Platform</span>
