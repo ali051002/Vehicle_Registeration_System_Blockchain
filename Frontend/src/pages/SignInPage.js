@@ -4,27 +4,54 @@ import { AiOutlineMail } from 'react-icons/ai';
 import { BiLockAlt } from 'react-icons/bi';
 import { motion } from 'framer-motion';
 import AuthContext from '../context/AuthContext';
+import Swal from 'sweetalert2';  // Import SweetAlert2
+import 'sweetalert2/dist/sweetalert2.min.css'; // Import SweetAlert2 styles
 
 export default function SignInPage() {
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation: Check if email or password is empty
+    if (!email || !password) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'Both email and password fields are required.',
+        icon: 'error',
+        confirmButtonColor: '#F38120',
+      });
+      return; // Prevent form submission if fields are empty
+    }
+
     try {
       const user = await login(email, password);
-      if (user.role === 'admin') {
-        navigate('/admin-dashboard');
-      } else if (user.role === 'government official') {
-        navigate('/government-official-dashboard');
-      } else {
-        navigate('/user-dashboard');
-      }
+      Swal.fire({
+        title: 'Login Successful',
+        text: `Welcome, ${user.role}! Redirecting to your dashboard...`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false,
+        willClose: () => {
+          if (user.role === 'admin') {
+            navigate('/admin-dashboard');
+          } else if (user.role === 'government official') {
+            navigate('/government-official-dashboard');
+          } else {
+            navigate('/user-dashboard');
+          }
+        }
+      });
     } catch (err) {
-      setError('Invalid email or password');
+      Swal.fire({
+        title: 'Error!',
+        text: 'Invalid email or password',
+        icon: 'error',
+        confirmButtonColor: '#F38120',
+      });
     }
   };
 
@@ -56,14 +83,13 @@ export default function SignInPage() {
         >
           Sign In
         </motion.h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        
+
         <motion.form
           onSubmit={handleSubmit}
           className="w-full grid grid-cols-1 gap-6"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeInOut' }}
+          transition={{ duration: 0.6, easeInOut: 'easeInOut' }}
         >
           <InputField icon={<AiOutlineMail />} type="email" placeholder="Email" value={email} onChange={setEmail} />
           <InputField icon={<BiLockAlt />} type="password" placeholder="Password" value={password} onChange={setPassword} />
@@ -82,7 +108,7 @@ export default function SignInPage() {
           className="mt-6 text-center w-full"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
+          transition={{ duration: 0.8, easeOut: 'easeOut' }}
         >
           <a href="/signup" className="text-gray-600 hover:text-black underline transition duration-300 ease-in-out">Don't have an account? Sign Up</a>
         </motion.div>
@@ -97,7 +123,7 @@ function InputField({ icon, type, placeholder, value, onChange }) {
       className="relative group"
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.6, ease: 'easeInOut' }}
+      transition={{ duration: 0.6, easeInOut: 'easeInOut' }}
     >
       <span className="absolute left-3 top-3 text-gray-500">{icon}</span>
       <input

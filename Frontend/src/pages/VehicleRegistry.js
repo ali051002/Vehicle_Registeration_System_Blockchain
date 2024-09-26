@@ -1,4 +1,3 @@
-// /pages/VehicleRegistry.js
 import React, { useState } from 'react';
 import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
@@ -9,6 +8,10 @@ const VehicleRegistry = () => {
 
   const handleLogout = () => {
     navigate('/signin');
+  };
+
+  const handleHomeClick = () => {
+    navigate('/government-official-dashboard'); // Redirect to Government Official Dashboard
   };
 
   return (
@@ -24,8 +27,15 @@ const VehicleRegistry = () => {
           </button>
         </div>
         <nav className="mt-8 space-y-4">
+          {/* Home button with redirection to Government Official Dashboard */}
+          <button
+            onClick={handleHomeClick}
+            className="flex items-center px-4 py-2 text-sm hover:bg-[#DC5F00]"
+          >
+            <FaHome className="w-5 h-5" />
+            {sidebarOpen && <span className="ml-4">Home</span>}
+          </button>
           {[
-            { icon: FaHome, text: 'Home', href: '/home' },
             { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
             { icon: FaBell, text: 'Notifications', href: '/notifications' },
             { icon: FaCog, text: 'Settings', href: '/settings' },
@@ -53,7 +63,7 @@ const VehicleRegistry = () => {
           </div>
         </div>
 
-        {/* Empty content area */}
+        {/* Content area */}
         <div className="p-6 bg-[#EEEEEE] min-h-screen">
           <h2 className="text-4xl font-bold">Vehicle Registry</h2>
           <p className="mt-4 text-gray-600">This space will show vehicle registry details and actions.</p>
