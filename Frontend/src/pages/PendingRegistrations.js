@@ -37,7 +37,7 @@ const VehicleListItem = ({ vehicle, owner }) => {
               Approve
             </button>
             <button className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-colors duration-300">
-              Disapprove
+              Reject
             </button>
           </div>
         </div>
