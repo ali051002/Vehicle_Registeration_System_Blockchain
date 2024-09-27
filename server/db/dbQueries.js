@@ -63,8 +63,15 @@ const loginUser = async (email, password) => {
     };
 };
 
+const getAllVehicles = async () => {
+    const pool = await poolPromise;
+    return pool.request().execute('sp_GetAllVehicles');
+};
+
 module.exports = {
     createUser,
     getUserByEmail,
-    loginUser
+    loginUser,
+    getAllVehicles
+    
 };

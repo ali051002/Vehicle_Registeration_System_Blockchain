@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes'); // Ensure this path is correct
+const vehicleRoute = require('./routes/vehicleRoutes')
 
 const app = express();
 const PORT = process.env.PORT;
@@ -18,7 +19,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Define routes
-app.use('/api', userRoutes);  // Ensure the correct path here for user routes
+app.use('/api', userRoutes);
+app.use('/api', vehicleRoute);  // Ensure the correct path here for user routes
 
 // Start the server
 app.listen(PORT, () => {

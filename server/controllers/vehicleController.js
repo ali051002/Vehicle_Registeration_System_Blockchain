@@ -4,6 +4,7 @@ const { getAllVehicles, getVehicleById, getVehiclesByOwner, createVehicle, updat
 const fetchAllVehicles = async (req, res) => {
     try {
         const result = await getAllVehicles();
+        console.log('get vehicles api hit')
         res.status(200).json(result.recordset);
     } catch (err) {
         res.status(500).json({ msg: err.message });
