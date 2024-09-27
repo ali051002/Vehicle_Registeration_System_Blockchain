@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine } from 'react-icons/fa';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Import axios for API requests
 
 const VehicleRegistry = () => {
@@ -27,6 +27,11 @@ const VehicleRegistry = () => {
     navigate('/signin');
   };
 
+  // Function to handle Home click
+  const handleHomeClick = () => {
+    navigate('/government-official-dashboard'); // Redirect to government-official-dashboard
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#EEEEEE]">
       {/* Sidebar */}
@@ -41,15 +46,19 @@ const VehicleRegistry = () => {
         </div>
         <nav className="mt-8 space-y-4">
           {[
-            { icon: FaHome, text: 'Home', href: '/home' },
+            { icon: FaHome, text: 'Home', onClick: handleHomeClick },
             { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
             { icon: FaBell, text: 'Notifications', href: '/notifications' },
             { icon: FaCog, text: 'Settings', href: '/settings' },
           ].map((item, index) => (
-            <Link key={index} to={item.href} className="flex items-center px-4 py-2 text-sm hover:bg-[#DC5F00]">
+            <div
+              key={index}
+              onClick={item.onClick} // Use onClick handler for Home
+              className="flex items-center px-4 py-2 text-sm hover:bg-[#DC5F00] cursor-pointer"
+            >
               <item.icon className="w-5 h-5" />
               {sidebarOpen && <span className="ml-4">{item.text}</span>}
-            </Link>
+            </div>
           ))}
         </nav>
       </div>
