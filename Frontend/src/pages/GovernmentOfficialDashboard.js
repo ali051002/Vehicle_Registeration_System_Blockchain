@@ -9,7 +9,7 @@ const GovernmentDashboard = () => {
 
   const handleLogout = () => {
     // Clear any stored session (localStorage or sessionStorage)
-    localStorage.removeItem('authToken'); // Assuming you're storing the JWT token
+    sessionStorage.removeItem('authToken'); // Assuming you're storing the JWT token
     sessionStorage.clear(); // Clear session storage if any
 
     // Optionally, make an API call to your backend to invalidate the session (e.g., logout endpoint)
