@@ -1,4 +1,3 @@
-import { color } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
 import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
@@ -54,6 +53,10 @@ const PendingRegistrationsDetails = () => {
 
   const handleLogout = () => {
     navigate('/signin');
+  };
+
+  const handleHomeClick = () => {
+    navigate('/government-official-dashboard'); // Redirect to government-official-dashboard
   };
 
   useEffect(() => {
@@ -141,8 +144,15 @@ const PendingRegistrationsDetails = () => {
             </button>
           </div>
           <nav className="mt-8 space-y-4">
+            {/* Home button with redirection to Government Official Dashboard */}
+            <button
+              onClick={handleHomeClick}
+              className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
+            >
+              <FaHome className="w-5 h-5" />
+              {sidebarOpen && <span className="ml-4">Home</span>}
+            </button>
             {[
-              { icon: FaHome, text: 'Home', href: '/home' },
               { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
               { icon: FaBell, text: 'Notifications', href: '/notifications' },
               { icon: FaCog, text: 'Settings', href: '/settings' },

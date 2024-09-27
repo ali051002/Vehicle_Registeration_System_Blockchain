@@ -8,7 +8,20 @@ const GovernmentDashboard = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate('/signin');
+    // Clear any stored session (localStorage or sessionStorage)
+    localStorage.removeItem('authToken'); // Assuming you're storing the JWT token
+    sessionStorage.clear(); // Clear session storage if any
+
+    // Optionally, make an API call to your backend to invalidate the session (e.g., logout endpoint)
+    // Example: axios.post('/api/logout') if needed
+
+    navigate('/signin');  // Redirect to sign-in after logout
+  };
+
+  const handleHomeClick = () => {
+    // Perform logout and navigate to the landing page
+    handleLogout();
+    navigate('/');  // Assuming the landing page is at "/"
   };
 
   useEffect(() => {
@@ -54,8 +67,16 @@ const GovernmentDashboard = () => {
             </button>
           </div>
           <nav className="mt-8 space-y-4">
+            {/* Home button with logout and redirection */}
+            <button
+              onClick={handleHomeClick}
+              className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
+            >
+              <FaHome className="w-5 h-5" />
+              {sidebarOpen && <span className="ml-4">Home</span>}
+            </button>
+            {/* Other navigation items */}
             {[
-              { icon: FaHome, text: 'Home', href: '/home' },
               { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
               { icon: FaBell, text: 'Notifications', href: '/notifications' },
               { icon: FaCog, text: 'Settings', href: '/settings' },
