@@ -8,7 +8,7 @@ const createUserController = async (req, res) => {
             email: req.body.email,
             password: req.body.password,  // Raw password, will be hashed in dbQueries.js
             role: req.body.role || 'user',  // Default role as 'user' if not provided
-            ethereumAddress: req.body.ethereumAddress,
+            cnic: req.body.cnic,
             phoneNumber: req.body.phoneNumber,
             addressDetails: req.body.addressDetails,
             profilePicture: req.body.profilePicture || ''
@@ -90,12 +90,12 @@ const fetchUserById = async (req, res) => {
 
 // Update User
 const modifyUser = async (req, res) => {
-    const { UserId, Name, Email, Password, Role, EthereumAddress, PhoneNumber, AddressDetails, ProfilePicture } = req.body;
+    const { UserId, Name, Email, Password, Role, cnic, PhoneNumber, AddressDetails, ProfilePicture } = req.body;
     if (!UserId) {
         return res.status(400).json({ msg: "User ID is required" });
     }
     try {
-        await updateUser(UserId, Name, Email, Password, Role, EthereumAddress, PhoneNumber, AddressDetails, ProfilePicture);
+        await updateUser(UserId, Name, Email, Password, Role, cnic, PhoneNumber, AddressDetails, ProfilePicture);
         res.status(200).json({ msg: "User updated successfully" });
     } catch (err) {
         res.status(500).json({ msg: err.message });

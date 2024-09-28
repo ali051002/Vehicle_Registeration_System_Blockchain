@@ -14,7 +14,7 @@ const createUser = async (userData) => {
         .input('Email', sql.NVarChar(100), userData.email)
         .input('Password', sql.NVarChar(256), hashedPassword)  // Store the hashed password
         .input('Role', sql.NVarChar(50), userData.role)
-        .input('EthereumAddress', sql.NVarChar(100), userData.ethereumAddress)
+        .input('cnic', sql.NVARCHAR(15), userData.cnic)
         .input('PhoneNumber', sql.NVarChar(20), userData.phoneNumber)
         .input('AddressDetails', sql.NVarChar(255), userData.addressDetails)
         .input('ProfilePicture', sql.NVarChar(255), userData.profilePicture)
@@ -55,7 +55,7 @@ const loginUser = async (email, password) => {
             name: user.name,
             email: user.email,
             role: user.role,  // Include role in the response
-            ethereumAddress: user.ethereumAddress,
+            cnic: user.cnic,
             phoneNumber: user.phoneNumber,
             addressDetails: user.addressDetails,
             profilePicture: user.profilePicture
@@ -86,7 +86,7 @@ const getUserById = async (userId) => {
 };
 
 // Update user
-const updateUser = async (UserId, Name, Email, Password, Role, EthereumAddress, PhoneNumber, AddressDetails, ProfilePicture) => {
+const updateUser = async (UserId, Name, Email, Password, Role, cnic, PhoneNumber, AddressDetails, ProfilePicture) => {
     const pool = await poolPromise;
     return pool.request()
         .input('UserId', sql.UniqueIdentifier, UserId)
@@ -94,7 +94,7 @@ const updateUser = async (UserId, Name, Email, Password, Role, EthereumAddress, 
         .input('Email', sql.NVarChar(100), Email)
         .input('Password', sql.NVarChar(256), Password)
         .input('Role', sql.NVarChar(50), Role)
-        .input('EthereumAddress', sql.NVarChar(100), EthereumAddress)
+        .input('cnic', sql.NVarChar(100), cnic)
         .input('PhoneNumber', sql.NVarChar(20), PhoneNumber)
         .input('AddressDetails', sql.NVarChar(255), AddressDetails)
         .input('ProfilePicture', sql.NVarChar(255), ProfilePicture)
@@ -128,6 +128,14 @@ const getVehiclesByOwner = async (ownerId) => {
         .input('OwnerId', sql.UniqueIdentifier, ownerId)
         .execute('sp_GetVehiclesByOwner');
 };
+
+const getVehiclesByOwnerCNIC = async (cnic) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('CNIC', sql.NVarChar(15), cnic)
+        .execute('GetVehicleByOwnerCNIC');
+};
+
 
 const createVehicle = async (params) => {
     const pool = await poolPromise;
@@ -175,18 +183,53 @@ const deleteVehicle = async (vehicleId) => {
         .execute('sp_DeleteVehicle');
 };
 
-// Ownership Transfer Queries
-const transferOwnership = async (VehicleId, CurrentOwnerId, NewOwnerId, TransferFee, BlockchainTransactionId, Comments) => {
+const getTransactions = async (transactionStatus, transactionType) => {
     const pool = await poolPromise;
     return pool.request()
-        .input('VehicleId', sql.UniqueIdentifier, VehicleId)
-        .input('CurrentOwnerId', sql.UniqueIdentifier, CurrentOwnerId)
-        .input('NewOwnerId', sql.UniqueIdentifier, NewOwnerId)
-        .input('TransferFee', sql.Decimal(18, 2), TransferFee)
-        .input('BlockchainTransactionId', sql.NVarChar(100), BlockchainTransactionId)
-        .input('Comments', sql.NVarChar(sql.Max), Comments)
-        .execute('sp_TransferOwnership');
+        .input('TransactionStatus', sql.NVarChar(50), transactionStatus)
+        .input('TransactionType', sql.NVarChar(50), transactionType)
+        .execute('GetTransactions');
 };
+
+const requestVehicleRegistration = async (ownerId, make, model, year, color, chassisNumber, engineNumber) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('OwnerId', sql.UniqueIdentifier, ownerId)
+        .input('Make', sql.NVarChar(100), make)
+        .input('Model', sql.NVarChar(100), model)
+        .input('Year', sql.Int, year)
+        .input('Color', sql.NVarChar(50), color)
+        .input('ChassisNumber', sql.NVarChar(100), chassisNumber)
+        .input('EngineNumber', sql.NVarChar(100), engineNumber)
+        .execute('RequestVehicleRegistration');
+};
+
+const approveVehicleRegistration = async (transactionId, approvedBy, registrationNumber) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('TransactionId', sql.UniqueIdentifier, transactionId)
+        .input('ApprovedBy', sql.UniqueIdentifier, approvedBy)
+        .input('RegistrationNumber', sql.NVarChar(50), registrationNumber)
+        .execute('ApproveVehicleRegistration');
+};
+
+const requestOwnershipTransfer = async (vehicleId, currentOwnerId, newOwnerCnic, transferFee) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('VehicleId', sql.UniqueIdentifier, vehicleId)
+        .input('CurrentOwnerId', sql.UniqueIdentifier, currentOwnerId)
+        .input('NewOwnerCnic', sql.NVarChar(15), newOwnerCnic)
+        .input('TransferFee', sql.Decimal(18, 2), transferFee)
+        .execute('RequestOwnershipTransfer');
+};
+
+const approveOwnershipTransfer = async (transactionId) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('TransactionId', sql.UniqueIdentifier, transactionId)
+        .execute('ApproveOwnershipTransfer');
+};
+
 
 module.exports = {
     createUser,
@@ -200,8 +243,13 @@ module.exports = {
     getAllVehicles,
     getVehicleById,
     getVehiclesByOwner,
+    getVehiclesByOwnerCNIC,
     createVehicle,
     updateVehicle,
     deleteVehicle,
-    transferOwnership
+    getTransactions,
+    requestVehicleRegistration,
+    approveVehicleRegistration,
+    requestOwnershipTransfer,
+    approveOwnershipTransfer
 };

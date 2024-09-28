@@ -4,7 +4,11 @@ const {
     getVehiclesByOwner,
     createVehicle,
     updateVehicle,
-    deleteVehicle
+    deleteVehicle,
+    requestVehicleRegistration,
+    approveVehicleRegistration,
+    requestOwnershipTransfer,
+    approveOwnershipTransfer
 } = require('../db/dbQueries');
 
 // Get All Vehicles
@@ -48,6 +52,21 @@ const fetchVehiclesByOwner = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
+
+// Get Vehicles by Owner's CNIC
+const fetchVehiclesByOwnerCNIC = async (req, res) => {
+    const { cnic } = req.body;
+    if (!cnic) {
+        return res.status(400).json({ msg: "CNIC is required" });
+    }
+    try {
+        const result = await getVehiclesByOwnerCNIC(cnic);
+        res.status(200).json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
 
 // Create Vehicle
 const addVehicle = async (req, res) => {
@@ -153,11 +172,81 @@ const removeVehicle = async (req, res) => {
     }
 };
 
+
+
+// Request vehicle registration
+const registerVehicle = async (req, res) => {
+    const { ownerId, make, model, year, color, chassisNumber, engineNumber } = req.body;
+
+    try {
+        const result = await requestVehicleRegistration(ownerId, make, model, year, color, chassisNumber, engineNumber);
+        res.status(200).json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+
+
+
+
+// Approve vehicle registration
+const approveRegistration = async (req, res) => {
+    const { transactionId, approvedBy, registrationNumber } = req.body;
+
+    try {
+        await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
+        res.status(200).json({ msg: "Vehicle registration approved successfully." });
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+
+
+
+
+// Request ownership transfer
+const transferOwnership = async (req, res) => {
+    const { vehicleId, currentOwnerId, newOwnerCnic, transferFee } = req.body;
+
+    try {
+        await requestOwnershipTransfer(vehicleId, currentOwnerId, newOwnerCnic, transferFee);
+        res.status(200).json({ msg: "Ownership transfer requested successfully." });
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+
+
+
+// Approve ownership transfer
+const approveTransfer = async (req, res) => {
+    const { transactionId } = req.body;
+
+    try {
+        await approveOwnershipTransfer(transactionId);
+        res.status(200).json({ msg: "Ownership transfer approved successfully." });
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+
+
+
+
 module.exports = {
     fetchAllVehicles,
     fetchVehicleById,
     fetchVehiclesByOwner,
+    fetchVehiclesByOwnerCNIC,
     addVehicle,
     modifyVehicle,
-    removeVehicle
+    removeVehicle,
+    registerVehicle,
+    approveRegistration,
+    transferOwnership,
+    approveTransfer
 };

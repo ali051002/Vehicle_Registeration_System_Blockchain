@@ -1,9 +1,11 @@
-const { getAllTransactions } = require('../db/dbQueries');
+const { getTransactions } = require('../db/dbQueries');
 
-// Get All Transactions
-const fetchAllTransactions = async (req, res) => {
+// Fetch transactions based on status and type
+const fetchTransactions = async (req, res) => {
+    const { transactionStatus, transactionType } = req.body; 
+
     try {
-        const result = await getAllTransactions();
+        const result = await getTransactions(transactionStatus, transactionType);
         res.status(200).json(result.recordset);
     } catch (err) {
         res.status(500).json({ msg: err.message });
@@ -11,5 +13,5 @@ const fetchAllTransactions = async (req, res) => {
 };
 
 module.exports = {
-    fetchAllTransactions
+    fetchTransactions,
 };

@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes'); // Ensure this path is correct
 const vehicleRoute = require('./routes/vehicleRoutes');
-const ownershipTransferRoute = require('./routes/ownershipTransferRoutes');
 const transactionRoute = require('./routes/transactionRoutes');
 
 const app = express();
@@ -22,8 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Define routes
 app.use('/api', userRoutes);
-app.use('/api', vehicleRoute);  // Ensure the correct path here for user routes
-app.use('/api', ownershipTransferRoute);
+app.use('/api', vehicleRoute);
 app.use('/api', transactionRoute); 
 // Start the server
 app.listen(PORT, () => {
