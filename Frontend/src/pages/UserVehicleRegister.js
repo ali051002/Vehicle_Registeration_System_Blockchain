@@ -14,6 +14,10 @@ export default function UserVehicleRegister() {
     navigate('/signin'); 
   };
 
+  const handleNavigateHome = () => {
+    navigate('/user-dashboard'); // Navigate to UserDashboard.js
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsAnimating(false);
@@ -56,17 +60,22 @@ export default function UserVehicleRegister() {
             </button>
           </div>
           <nav className="mt-8 space-y-4">
-            {[
-              { icon: FaHome, text: 'Home', href: '/home' },
-              { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
-              { icon: FaBell, text: 'Notifications', href: '/notifications' },
-              { icon: FaCog, text: 'Settings', href: '/settings' },
-            ].map((item, index) => (
-              <Link key={index} to={item.href} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
-                <item.icon className="w-5 h-5" />
-                {sidebarOpen && <span className="ml-4">{item.text}</span>}
-              </Link>
-            ))}
+            <button onClick={handleNavigateHome} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+              <FaHome className="w-5 h-5" />
+              {sidebarOpen && <span className="ml-4">Home</span>}
+            </button>
+            <Link to="/dashboard" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+              <FaChartLine className="w-5 h-5" />
+              {sidebarOpen && <span className="ml-4">Dashboard</span>}
+            </Link>
+            <Link to="/notifications" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+              <FaBell className="w-5 h-5" />
+              {sidebarOpen && <span className="ml-4">Notifications</span>}
+            </Link>
+            <Link to="/settings" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+              <FaCog className="w-5 h-5" />
+              {sidebarOpen && <span className="ml-4">Settings</span>}
+            </Link>
           </nav>
         </div>
         <div className="mb-4 px-4">
@@ -123,13 +132,13 @@ export default function UserVehicleRegister() {
                 />
               </div>
 
-              {/* Registration Date */}
+              {/* Request Date */}
               <div>
-                <label htmlFor="registrationDate" className="block text-lg font-medium text-[#373A40]">Registration Date</label>
+                <label htmlFor="requestDate" className="block text-lg font-medium text-[#373A40]">Request Date</label>
                 <input 
                   type="date" 
-                  id="registrationDate" 
-                  name="registrationDate" 
+                  id="requestDate" 
+                  name="requestDate" 
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                   pattern="\d{4}-\d{2}-\d{2}" 

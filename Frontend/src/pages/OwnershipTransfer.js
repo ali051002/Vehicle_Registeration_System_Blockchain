@@ -12,7 +12,7 @@ const OwnershipTransfer = () => {
   };
 
   const handleHomeClick = () => {
-    navigate('/government-official-dashboard'); // Redirect to Government Official Dashboard
+    navigate('/user-dashboard'); // Redirect to User Dashboard
   };
 
   useEffect(() => {
@@ -108,7 +108,7 @@ const OwnershipTransfer = () => {
             </button>
           </div>
           <nav className="mt-8 space-y-4">
-            {/* Home button with redirection to Government Official Dashboard */}
+            {/* Home button with redirection to User Dashboard */}
             <button
               onClick={handleHomeClick}
               className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
@@ -116,11 +116,9 @@ const OwnershipTransfer = () => {
               <FaHome className="w-5 h-5" />
               {sidebarOpen && <span className="ml-4">Home</span>}
             </button>
-            {[
-              { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
+            {[{ icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
               { icon: FaBell, text: 'Notifications', href: '/notifications' },
-              { icon: FaCog, text: 'Settings', href: '/settings' },
-            ].map((item, index) => (
+              { icon: FaCog, text: 'Settings', href: '/settings' }].map((item, index) => (
               <Link
                 key={index}
                 to={item.href}
