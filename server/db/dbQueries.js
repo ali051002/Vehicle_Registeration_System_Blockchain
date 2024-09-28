@@ -104,6 +104,50 @@ const deleteUser = async (userId) => {
         .execute('sp_DeleteUser');
 };
 
+const getAllUsers = async () => {
+    const pool = await poolPromise;
+    return pool.request().execute('sp_GetAllUsers');
+};
+
+const getUserByName = async (userName) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('UserName', sql.NVarChar(255), userName)
+        .execute('sp_GetUserByName');
+};
+
+const getUserById = async (userId) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('UserId', sql.UniqueIdentifier, userId)
+        .execute('sp_GetUserById');
+};
+
+const updateUser = async (UserId, Name, Email, Password, Role, EthereumAddress, PhoneNumber, AddressDetails, ProfilePicture) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('UserId', sql.UniqueIdentifier, UserId)
+        .input('Name', sql.NVarChar(100), Name)
+        .input('Email', sql.NVarChar(100), Email)
+        .input('Password', sql.NVarChar(256), Password)
+        .input('Role', sql.NVarChar(50), Role)
+        .input('EthereumAddress', sql.NVarChar(100), EthereumAddress)
+        .input('PhoneNumber', sql.NVarChar(20), PhoneNumber)
+        .input('AddressDetails', sql.NVarChar(255), AddressDetails)
+        .input('ProfilePicture', sql.NVarChar(255), ProfilePicture)
+        .execute('sp_UpdateUser');
+};
+
+const deleteUser = async (userId) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('UserId', sql.UniqueIdentifier, userId)
+        .execute('sp_DeleteUser');
+};
+
+
+
+// Vehicle Queries
 const getAllVehicles = async () => {
     const pool = await poolPromise;
     return pool.request().execute('sp_GetAllVehicles');
@@ -198,18 +242,6 @@ module.exports = {
     createUser,
     getUserByEmail,
     loginUser,
-    getAllVehicles,
-    getVehicleById,
-    getVehiclesByOwner,
-    createVehicle,
-    updateVehicle,
-    deleteVehicle,
-    getAllTransactions,
-    getAllOwnershipTransfers,
-    transferOwnership,
-    getAllUsers,
-    getUserByName,
-    getUserById,
-    updateUser,
-    deleteUser  
+    getAllVehicles
+    
 };

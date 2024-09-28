@@ -1,10 +1,17 @@
-const { getAllVehicles, getVehicleById, getVehiclesByOwner, createVehicle, updateVehicle, deleteVehicle } = require('../db/dbQueries');
+const {
+    getAllVehicles,
+    getVehicleById,
+    getVehiclesByOwner,
+    createVehicle,
+    updateVehicle,
+    deleteVehicle
+} = require('../db/dbQueries');
 
 // Get All Vehicles
 const fetchAllVehicles = async (req, res) => {
     try {
         const result = await getAllVehicles();
-        console.log('get vehicles api hit')
+        console.log('get vehicles API hit');
         res.status(200).json(result.recordset);
     } catch (err) {
         res.status(500).json({ msg: err.message });
@@ -30,7 +37,7 @@ const fetchVehicleById = async (req, res) => {
 
 // Get Vehicles by Owner
 const fetchVehiclesByOwner = async (req, res) => {
-    const ownerId = req.query.ownerId;
+    const { ownerId } = req.body;
     if (!ownerId) {
         return res.status(400).json({ msg: "Owner ID is required" });
     }
@@ -44,9 +51,42 @@ const fetchVehiclesByOwner = async (req, res) => {
 
 // Create Vehicle
 const addVehicle = async (req, res) => {
-    const { RegistrationNumber, OwnerId, Make, Model, Year, Color, ChassisNumber, EngineNumber, RegistrationDate, BlockchainTransactionId, Status, InsuranceDetails, InspectionReports } = req.body;
+    const {
+        RegistrationNumber,
+        OwnerId,
+        Make,
+        Model,
+        Year,
+        Color,
+        ChassisNumber,
+        EngineNumber,
+        RegistrationDate,
+        BlockchainTransactionId,
+        Status,
+        InsuranceDetails,
+        InspectionReports
+    } = req.body;
+
+    if (!RegistrationNumber || !OwnerId || !Make || !Model || !Year || !Color || !ChassisNumber || !EngineNumber || !RegistrationDate) {
+        return res.status(400).json({ msg: "All required fields must be provided" });
+    }
+
     try {
-        await createVehicle({ RegistrationNumber, OwnerId, Make, Model, Year, Color, ChassisNumber, EngineNumber, RegistrationDate, BlockchainTransactionId, Status, InsuranceDetails, InspectionReports });
+        await createVehicle({
+            RegistrationNumber,
+            OwnerId,
+            Make,
+            Model,
+            Year,
+            Color,
+            ChassisNumber,
+            EngineNumber,
+            RegistrationDate,
+            BlockchainTransactionId,
+            Status,
+            InsuranceDetails,
+            InspectionReports
+        });
         res.status(201).json({ msg: "Vehicle created successfully" });
     } catch (err) {
         res.status(500).json({ msg: err.message });
@@ -55,12 +95,44 @@ const addVehicle = async (req, res) => {
 
 // Update Vehicle
 const modifyVehicle = async (req, res) => {
-    const { VehicleId, RegistrationNumber, OwnerId, Make, Model, Year, Color, ChassisNumber, EngineNumber, RegistrationDate, BlockchainTransactionId, Status, InsuranceDetails, InspectionReports } = req.body;
+    const {
+        VehicleId,
+        RegistrationNumber,
+        OwnerId,
+        Make,
+        Model,
+        Year,
+        Color,
+        ChassisNumber,
+        EngineNumber,
+        RegistrationDate,
+        BlockchainTransactionId,
+        Status,
+        InsuranceDetails,
+        InspectionReports
+    } = req.body;
+
     if (!VehicleId) {
         return res.status(400).json({ msg: "Vehicle ID is required" });
     }
+
     try {
-        await updateVehicle(VehicleId, RegistrationNumber, OwnerId, Make, Model, Year, Color, ChassisNumber, EngineNumber, RegistrationDate, BlockchainTransactionId, Status, InsuranceDetails, InspectionReports);
+        await updateVehicle(
+            VehicleId,
+            RegistrationNumber,
+            OwnerId,
+            Make,
+            Model,
+            Year,
+            Color,
+            ChassisNumber,
+            EngineNumber,
+            RegistrationDate,
+            BlockchainTransactionId,
+            Status,
+            InsuranceDetails,
+            InspectionReports
+        );
         res.status(200).json({ msg: "Vehicle updated successfully" });
     } catch (err) {
         res.status(500).json({ msg: err.message });
