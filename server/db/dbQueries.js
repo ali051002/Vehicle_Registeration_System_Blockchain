@@ -63,11 +63,13 @@ const loginUser = async (email, password) => {
     };
 };
 
+// Get all users
 const getAllUsers = async () => {
     const pool = await poolPromise;
     return pool.request().execute('sp_GetAllUsers');
 };
 
+// Get user by name
 const getUserByName = async (userName) => {
     const pool = await poolPromise;
     return pool.request()
@@ -75,6 +77,7 @@ const getUserByName = async (userName) => {
         .execute('sp_GetUserByName');
 };
 
+// Get user by ID
 const getUserById = async (userId) => {
     const pool = await poolPromise;
     return pool.request()
@@ -82,6 +85,7 @@ const getUserById = async (userId) => {
         .execute('sp_GetUserById');
 };
 
+// Update user
 const updateUser = async (UserId, Name, Email, Password, Role, EthereumAddress, PhoneNumber, AddressDetails, ProfilePicture) => {
     const pool = await poolPromise;
     return pool.request()
@@ -97,55 +101,13 @@ const updateUser = async (UserId, Name, Email, Password, Role, EthereumAddress, 
         .execute('sp_UpdateUser');
 };
 
+// Delete user
 const deleteUser = async (userId) => {
     const pool = await poolPromise;
     return pool.request()
         .input('UserId', sql.UniqueIdentifier, userId)
         .execute('sp_DeleteUser');
 };
-
-const getAllUsers = async () => {
-    const pool = await poolPromise;
-    return pool.request().execute('sp_GetAllUsers');
-};
-
-const getUserByName = async (userName) => {
-    const pool = await poolPromise;
-    return pool.request()
-        .input('UserName', sql.NVarChar(255), userName)
-        .execute('sp_GetUserByName');
-};
-
-const getUserById = async (userId) => {
-    const pool = await poolPromise;
-    return pool.request()
-        .input('UserId', sql.UniqueIdentifier, userId)
-        .execute('sp_GetUserById');
-};
-
-const updateUser = async (UserId, Name, Email, Password, Role, EthereumAddress, PhoneNumber, AddressDetails, ProfilePicture) => {
-    const pool = await poolPromise;
-    return pool.request()
-        .input('UserId', sql.UniqueIdentifier, UserId)
-        .input('Name', sql.NVarChar(100), Name)
-        .input('Email', sql.NVarChar(100), Email)
-        .input('Password', sql.NVarChar(256), Password)
-        .input('Role', sql.NVarChar(50), Role)
-        .input('EthereumAddress', sql.NVarChar(100), EthereumAddress)
-        .input('PhoneNumber', sql.NVarChar(20), PhoneNumber)
-        .input('AddressDetails', sql.NVarChar(255), AddressDetails)
-        .input('ProfilePicture', sql.NVarChar(255), ProfilePicture)
-        .execute('sp_UpdateUser');
-};
-
-const deleteUser = async (userId) => {
-    const pool = await poolPromise;
-    return pool.request()
-        .input('UserId', sql.UniqueIdentifier, userId)
-        .execute('sp_DeleteUser');
-};
-
-
 
 // Vehicle Queries
 const getAllVehicles = async () => {
@@ -213,18 +175,7 @@ const deleteVehicle = async (vehicleId) => {
         .execute('sp_DeleteVehicle');
 };
 
-// Transaction Queries
-const getAllTransactions = async () => {
-    const pool = await poolPromise;
-    return pool.request().execute('sp_GetAllTransactions');
-};
-
 // Ownership Transfer Queries
-const getAllOwnershipTransfers = async () => {
-    const pool = await poolPromise;
-    return pool.request().execute('sp_GetAllOwnershipTransfers');
-};
-
 const transferOwnership = async (VehicleId, CurrentOwnerId, NewOwnerId, TransferFee, BlockchainTransactionId, Comments) => {
     const pool = await poolPromise;
     return pool.request()
@@ -237,11 +188,20 @@ const transferOwnership = async (VehicleId, CurrentOwnerId, NewOwnerId, Transfer
         .execute('sp_TransferOwnership');
 };
 
-
 module.exports = {
     createUser,
     getUserByEmail,
     loginUser,
-    getAllVehicles
-    
+    getAllUsers,
+    getUserByName,
+    getUserById,
+    updateUser,
+    deleteUser,
+    getAllVehicles,
+    getVehicleById,
+    getVehiclesByOwner,
+    createVehicle,
+    updateVehicle,
+    deleteVehicle,
+    transferOwnership
 };
