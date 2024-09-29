@@ -1,4 +1,12 @@
-const { createUser, loginUser,getAllUsers, getUserByName, getUserById, updateUser, deleteUser} = require('../db/dbQueries');
+const { 
+    createUser, 
+    loginUser, 
+    getAllUsers, 
+    getUserByName, 
+    getUserById, 
+    updateUser, 
+    deleteUser 
+} = require('../db/dbQueries');
 
 // Create User Controller (Signup)
 const createUserController = async (req, res) => {
@@ -6,15 +14,14 @@ const createUserController = async (req, res) => {
         const userData = {
             name: req.body.name,
             email: req.body.email,
-            password: req.body.password,  // Raw password, will be hashed in dbQueries.js
-            role: req.body.role || 'user',  // Default role as 'user' if not provided
+            password: req.body.password,
+            role: req.body.role || 'user',
             cnic: req.body.cnic,
             phoneNumber: req.body.phoneNumber,
             addressDetails: req.body.addressDetails,
             profilePicture: req.body.profilePicture || ''
         };
 
-        // Call createUser function from dbQueries to create a new user
         const result = await createUser(userData);
         res.status(201).json({
             msg: "User created successfully",
@@ -32,29 +39,24 @@ const createUserController = async (req, res) => {
 const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // Call the loginUser function with email and password
         const result = await loginUser(email, password);
-
-        // Return the token and user information
         res.status(200).json(result);
     } catch (err) {
-        // Return error if login fails
         res.status(400).json({ msg: err.message });
     }
 };
 
-// Get All Users
+// Get All Users Controller
 const fetchAllUsers = async (req, res) => {
     try {
         const result = await getAllUsers();
-        res.status(200).json(result.recordset);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
 };
 
-// Get User by Name
+// Get User by Name Controller
 const fetchUserByName = async (req, res) => {
     const userName = req.query.name;
     if (!userName) {
@@ -62,16 +64,16 @@ const fetchUserByName = async (req, res) => {
     }
     try {
         const result = await getUserByName(userName);
-        if (result.recordset.length === 0) {
+        if (!result) {
             return res.status(404).json({ msg: "User not found" });
         }
-        res.status(200).json(result.recordset);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
 };
 
-// Get User by ID
+// Get User by ID Controller
 const fetchUserById = async (req, res) => {
     const userId = req.params.id;
     if (!userId) {
@@ -79,16 +81,16 @@ const fetchUserById = async (req, res) => {
     }
     try {
         const result = await getUserById(userId);
-        if (result.recordset.length === 0) {
+        if (!result) {
             return res.status(404).json({ msg: "User not found" });
         }
-        res.status(200).json(result.recordset[0]);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
 };
 
-// Update User
+// Update User Controller
 const modifyUser = async (req, res) => {
     const { UserId, Name, Email, Password, Role, cnic, PhoneNumber, AddressDetails, ProfilePicture } = req.body;
     if (!UserId) {
@@ -102,7 +104,7 @@ const modifyUser = async (req, res) => {
     }
 };
 
-// Delete User
+// Delete User Controller
 const removeUser = async (req, res) => {
     const userId = req.params.id;
     if (!userId) {
@@ -115,7 +117,6 @@ const removeUser = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
-
 
 module.exports = {
     createUserController,

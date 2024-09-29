@@ -11,7 +11,7 @@ export default function SignUpPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [ethereumAddress, setEthereumAddress] = useState('');
+  const [cnic, setCnic] = useState('');  // Replace Ethereum Address with CNIC
   const [phoneNumber, setPhoneNumber] = useState('');
   const [addressDetails, setAddressDetails] = useState('');
   const [role, setRole] = useState('user');
@@ -22,10 +22,11 @@ export default function SignUpPage() {
   // Validation regex patterns
   const namePattern = /^[A-Za-z.\s]+$/;
   const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  const ethereumPattern = /^0x[a-fA-F0-9]{40}$/;
+  const cnicPattern = /^\d{5}-\d{7}-\d{1}$/;  // CNIC format: XXXXX-XXXXXXX-X
 
+  // Validate form fields
   const validateForm = () => {
-    if (!username || !email || !password || !ethereumAddress || !phoneNumber || !addressDetails) {
+    if (!username || !email || !password || !cnic || !phoneNumber || !addressDetails) {
       setError('All fields are required.');
       return false;
     }
@@ -40,17 +41,19 @@ export default function SignUpPage() {
       return false;
     }
 
-    if (!ethereumPattern.test(ethereumAddress)) {
-      setError('Ethereum address must start with 0x followed by 40 hexadecimal characters.');
+    if (!cnicPattern.test(cnic)) {
+      setError('CNIC must be in XXXXX-XXXXXXX-X format.');
       return false;
     }
 
     return true;
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate the form before making the request
     if (!validateForm()) return;
 
     try {
@@ -58,7 +61,7 @@ export default function SignUpPage() {
         name: username,
         email,
         password,
-        ethereumAddress,
+        cnic,  // CNIC instead of Ethereum Address
         phoneNumber,
         addressDetails,
         role,
@@ -79,7 +82,7 @@ export default function SignUpPage() {
             no-repeat
           `,
         }).then(() => {
-          navigate('/signin');
+          navigate('/signin'); // Redirect to sign-in page after successful registration
         });
       }
     } catch (err) {
@@ -124,6 +127,7 @@ export default function SignUpPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, easeInOut: 'easeInOut' }}
         >
+          {/* Username Input Field */}
           <InputField
             icon={<BiUser />}
             type="text"
@@ -131,6 +135,8 @@ export default function SignUpPage() {
             value={username}
             onChange={setUsername}
           />
+          
+          {/* Email Input Field */}
           <InputField
             icon={<AiOutlineMail />}
             type="email"
@@ -138,6 +144,8 @@ export default function SignUpPage() {
             value={email}
             onChange={setEmail}
           />
+          
+          {/* Password Input Field */}
           <InputField
             icon={<BiLockAlt />}
             type="password"
@@ -145,13 +153,17 @@ export default function SignUpPage() {
             value={password}
             onChange={setPassword}
           />
+          
+          {/* CNIC Input Field */}
           <InputField
             icon={<AiOutlineMail />}
             type="text"
-            placeholder="Ethereum Address"
-            value={ethereumAddress}
-            onChange={setEthereumAddress}
+            placeholder="CNIC (XXXXX-XXXXXXX-X)"
+            value={cnic}
+            onChange={setCnic}
           />
+          
+          {/* Phone Number Input Field */}
           <InputField
             icon={<AiOutlinePhone />}
             type="text"
@@ -159,6 +171,8 @@ export default function SignUpPage() {
             value={phoneNumber}
             onChange={setPhoneNumber}
           />
+          
+          {/* Address Details Input Field */}
           <InputField
             icon={<BiUser />}
             type="text"
@@ -167,6 +181,7 @@ export default function SignUpPage() {
             onChange={setAddressDetails}
           />
 
+          {/* Role Selector */}
           <motion.div
             className="relative col-span-full"
             initial={{ opacity: 0, x: -50 }}
@@ -187,6 +202,7 @@ export default function SignUpPage() {
             </select>
           </motion.div>
 
+          {/* Submit Button */}
           <motion.button
             type="submit"
             className="col-span-full w-full p-4 bg-[#F38120] text-white rounded-lg hover:bg-[#FFFFFF] hover:text-[#DC5F00] transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
@@ -215,6 +231,7 @@ export default function SignUpPage() {
   );
 }
 
+// InputField Component for Reusability
 function InputField({ icon, type, placeholder, value, onChange }) {
   return (
     <motion.div

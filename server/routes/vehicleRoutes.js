@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const vehicleController = require('../controllers/vehicleController');
 
-// Register vehicle
+// Register a vehicle
 router.post('/registerVehicle', vehicleController.registerVehicle);
 
 // Approve vehicle registration
@@ -21,18 +21,18 @@ router.get('/vehicles', vehicleController.fetchAllVehicles);
 router.get('/vehicle/:id', vehicleController.fetchVehicleById);
 
 // Get vehicles by owner
-router.get('/vehiclesByOwner', vehicleController.fetchVehiclesByOwner);
+router.post('/vehiclesByOwner', vehicleController.fetchVehiclesByOwner);
 
 // Get vehicles by owner's CNIC
-router.get('/vehiclesByOwnerCNIC', vehicleController.fetchVehiclesByOwnerCNIC);
+router.post('/vehiclesByOwnerCNIC', vehicleController.fetchVehiclesByOwnerCNIC);
 
-// Create vehicle
+// Create a new vehicle
 router.post('/vehicle', vehicleController.addVehicle);
 
-// Update vehicle
+// Update a vehicle
 router.put('/vehicle', vehicleController.modifyVehicle);
 
-// Delete vehicle
+// Delete a vehicle
 router.delete('/vehicle/:id', vehicleController.removeVehicle);
 
 module.exports = router;

@@ -8,7 +8,8 @@ const {
     requestVehicleRegistration,
     approveVehicleRegistration,
     requestOwnershipTransfer,
-    approveOwnershipTransfer
+    approveOwnershipTransfer,
+    getVehiclesByOwnerCNIC
 } = require('../db/dbQueries');
 
 // Get All Vehicles
@@ -16,7 +17,7 @@ const fetchAllVehicles = async (req, res) => {
     try {
         const result = await getAllVehicles();
         console.log('get vehicles API hit');
-        res.status(200).json(result.recordset);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
@@ -30,10 +31,10 @@ const fetchVehicleById = async (req, res) => {
     }
     try {
         const result = await getVehicleById(vehicleId);
-        if (result.recordset.length === 0) {
+        if (!result) {
             return res.status(404).json({ msg: "Vehicle not found" });
         }
-        res.status(200).json(result.recordset[0]);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
@@ -47,7 +48,7 @@ const fetchVehiclesByOwner = async (req, res) => {
     }
     try {
         const result = await getVehiclesByOwner(ownerId);
-        res.status(200).json(result.recordset);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
@@ -61,50 +62,50 @@ const fetchVehiclesByOwnerCNIC = async (req, res) => {
     }
     try {
         const result = await getVehiclesByOwnerCNIC(cnic);
-        res.status(200).json(result.recordset);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
 };
 
-
 // Create Vehicle
 const addVehicle = async (req, res) => {
     const {
-        RegistrationNumber,
-        OwnerId,
-        Make,
-        Model,
-        Year,
-        Color,
-        ChassisNumber,
-        EngineNumber,
-        RegistrationDate,
-        BlockchainTransactionId,
-        Status,
-        InsuranceDetails,
-        InspectionReports
+        registrationNumber,
+        ownerId,
+        make,
+        model,
+        year,
+        color,
+        chassisNumber,
+        engineNumber,
+        registrationDate,
+        blockchainTransactionId,
+        status,
+        insuranceDetails,
+        inspectionReports
     } = req.body;
 
-    if (!RegistrationNumber || !OwnerId || !Make || !Model || !Year || !Color || !ChassisNumber || !EngineNumber || !RegistrationDate) {
+    // Required fields validation based on the database schema
+    if (!registrationNumber || !ownerId || !make || !model || !year || !chassisNumber || !engineNumber || !registrationDate || !status) {
         return res.status(400).json({ msg: "All required fields must be provided" });
     }
 
     try {
         await createVehicle({
-            RegistrationNumber,
-            OwnerId,
-            Make,
-            Model,
-            Year,
-            Color,
-            ChassisNumber,
-            EngineNumber,
-            RegistrationDate,
-            BlockchainTransactionId,
-            Status,
-            InsuranceDetails,
-            InspectionReports
+            registrationNumber,
+            ownerId,
+            make,
+            model,
+            year,
+            color, // Optional field
+            chassisNumber,
+            engineNumber,
+            registrationDate,
+            blockchainTransactionId, // Optional field
+            status,
+            insuranceDetails, // Optional field
+            inspectionReports // Optional field
         });
         res.status(201).json({ msg: "Vehicle created successfully" });
     } catch (err) {
@@ -115,42 +116,44 @@ const addVehicle = async (req, res) => {
 // Update Vehicle
 const modifyVehicle = async (req, res) => {
     const {
-        VehicleId,
-        RegistrationNumber,
-        OwnerId,
-        Make,
-        Model,
-        Year,
-        Color,
-        ChassisNumber,
-        EngineNumber,
-        RegistrationDate,
-        BlockchainTransactionId,
-        Status,
-        InsuranceDetails,
-        InspectionReports
+        vehicleId,
+        registrationNumber,
+        ownerId,
+        make,
+        model,
+        year,
+        color,
+        chassisNumber,
+        engineNumber,
+        registrationDate,
+        blockchainTransactionId,
+        status,
+        insuranceDetails,
+        inspectionReports
     } = req.body;
 
-    if (!VehicleId) {
+    if (!vehicleId) {
         return res.status(400).json({ msg: "Vehicle ID is required" });
     }
 
     try {
         await updateVehicle(
-            VehicleId,
-            RegistrationNumber,
-            OwnerId,
-            Make,
-            Model,
-            Year,
-            Color,
-            ChassisNumber,
-            EngineNumber,
-            RegistrationDate,
-            BlockchainTransactionId,
-            Status,
-            InsuranceDetails,
-            InspectionReports
+            vehicleId,
+            {
+                registrationNumber,
+                ownerId,
+                make,
+                model,
+                year,
+                color,
+                chassisNumber,
+                engineNumber,
+                registrationDate,
+                blockchainTransactionId,
+                status,
+                insuranceDetails,
+                inspectionReports
+            }
         );
         res.status(200).json({ msg: "Vehicle updated successfully" });
     } catch (err) {
@@ -172,27 +175,29 @@ const removeVehicle = async (req, res) => {
     }
 };
 
-
-
 // Request vehicle registration
 const registerVehicle = async (req, res) => {
     const { ownerId, make, model, year, color, chassisNumber, engineNumber } = req.body;
 
+    if (!ownerId || !make || !model || !year || !color || !chassisNumber || !engineNumber) {
+        return res.status(400).json({ msg: "All required fields must be provided" });
+    }
+
     try {
         const result = await requestVehicleRegistration(ownerId, make, model, year, color, chassisNumber, engineNumber);
-        res.status(200).json(result.recordset);
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
 };
 
-
-
-
-
 // Approve vehicle registration
 const approveRegistration = async (req, res) => {
     const { transactionId, approvedBy, registrationNumber } = req.body;
+
+    if (!transactionId || !approvedBy || !registrationNumber) {
+        return res.status(400).json({ msg: "All required fields must be provided" });
+    }
 
     try {
         await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
@@ -202,13 +207,13 @@ const approveRegistration = async (req, res) => {
     }
 };
 
-
-
-
-
 // Request ownership transfer
 const transferOwnership = async (req, res) => {
     const { vehicleId, currentOwnerId, newOwnerCnic, transferFee } = req.body;
+
+    if (!vehicleId || !currentOwnerId || !newOwnerCnic || !transferFee) {
+        return res.status(400).json({ msg: "All required fields must be provided" });
+    }
 
     try {
         await requestOwnershipTransfer(vehicleId, currentOwnerId, newOwnerCnic, transferFee);
@@ -218,12 +223,13 @@ const transferOwnership = async (req, res) => {
     }
 };
 
-
-
-
 // Approve ownership transfer
 const approveTransfer = async (req, res) => {
     const { transactionId } = req.body;
+
+    if (!transactionId) {
+        return res.status(400).json({ msg: "Transaction ID is required" });
+    }
 
     try {
         await approveOwnershipTransfer(transactionId);
@@ -232,10 +238,6 @@ const approveTransfer = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
-
-
-
-
 
 module.exports = {
     fetchAllVehicles,

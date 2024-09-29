@@ -1,21 +1,35 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { FaCarAlt, FaExchangeAlt, FaFileAlt, FaBars, FaHome, FaCog, FaSignOutAlt, FaBell, FaChartLine } from 'react-icons/fa';
-import AuthContext from '../context/AuthContext'; 
+import { FaBars, FaHome, FaChartLine, FaBell, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import AuthContext from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios'; // For API requests
+import Swal from 'sweetalert2'; // Import SweetAlert
 
 export default function UserVehicleRegister() {
-  const { user, logout } = useContext(AuthContext); 
-  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const { user, logout } = useContext(AuthContext);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(true);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    make: '',
+    model: '',
+    year: '',
+    color: '',
+    chassisNumber: '',
+    engineNumber: '',
+    registrationDate: '', // Assuming the date will be provided
+    blockchainTransactionId: null, // Set to null automatically
+    insuranceDetails: null, // Set to null automatically
+    inspectionReports: null, // Set to null automatically
+    status: 'Pending' // Set status to 'Pending' automatically
+  });
+  const [error, setError] = useState(null);
 
   const handleLogout = () => {
-    logout(); 
-    navigate('/signin'); 
-  };
-
-  const handleNavigateHome = () => {
-    navigate('/user-dashboard'); // Navigate to UserDashboard.js
+    logout();
+    navigate('/signin');
   };
 
   useEffect(() => {
@@ -25,6 +39,53 @@ export default function UserVehicleRegister() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Prepare the registration data
+    const vehicleData = {
+      ownerId: user.id, // Assuming logged-in user's ID
+      make: formData.make,
+      model: formData.model,
+      year: formData.year,
+      color: formData.color,
+      chassisNumber: formData.chassisNumber,
+      engineNumber: formData.engineNumber,
+      registrationDate: formData.registrationDate, // The user provides the registration date
+      blockchainTransactionId: null, // Automatically set to null
+      insuranceDetails: null, // Automatically set to null
+      inspectionReports: null, // Automatically set to null
+      status: 'Pending' // Set status to 'Pending'
+    };
+
+    try {
+      // Post formData to the API
+      const response = await axios.post('http://localhost:8085/api/registerVehicle', vehicleData);
+
+      if (response.status === 200) {
+        // Display SweetAlert notification
+        Swal.fire({
+          title: 'Vehicle Registered!',
+          text: 'Waiting for government approval.',
+          icon: 'info',
+          confirmButtonText: 'OK',
+        });
+        console.log('Vehicle registered:', response.data);
+      }
+    } catch (error) {
+      // Handle error
+      setError('There was an error registering the vehicle.');
+      console.error('Error:', error);
+    }
+  };
 
   return (
     <div className="flex h-screen overflow-hidden relative">
@@ -49,9 +110,7 @@ export default function UserVehicleRegister() {
       `}</style>
 
       {/* Sidebar */}
-      <div 
-        className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex flex-col justify-between bg-opacity-80`}
-      >
+      <div className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex flex-col justify-between bg-opacity-80`}>
         <div>
           <div className="flex items-center justify-between h-16 px-4">
             {sidebarOpen && <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>}
@@ -60,22 +119,17 @@ export default function UserVehicleRegister() {
             </button>
           </div>
           <nav className="mt-8 space-y-4">
-            <button onClick={handleNavigateHome} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
-              <FaHome className="w-5 h-5" />
-              {sidebarOpen && <span className="ml-4">Home</span>}
-            </button>
-            <Link to="/dashboard" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
-              <FaChartLine className="w-5 h-5" />
-              {sidebarOpen && <span className="ml-4">Dashboard</span>}
-            </Link>
-            <Link to="/notifications" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
-              <FaBell className="w-5 h-5" />
-              {sidebarOpen && <span className="ml-4">Notifications</span>}
-            </Link>
-            <Link to="/settings" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
-              <FaCog className="w-5 h-5" />
-              {sidebarOpen && <span className="ml-4">Settings</span>}
-            </Link>
+            {[
+              { icon: FaHome, text: 'Home', href: '/home' },
+              { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
+              { icon: FaBell, text: 'Notifications', href: '/notifications' },
+              { icon: FaCog, text: 'Settings', href: '/settings' },
+            ].map((item, index) => (
+              <Link key={index} to={item.href} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+                <item.icon className="w-5 h-5" />
+                {sidebarOpen && <span className="ml-4">{item.text}</span>}
+              </Link>
+            ))}
           </nav>
         </div>
         <div className="mb-4 px-4">
@@ -104,119 +158,108 @@ export default function UserVehicleRegister() {
         {/* Page Content */}
         <main className="bg-transparent p-6 lg:p-20 min-h-screen">
           <h1 className="text-4xl font-bold text-[#373A40] text-center mb-10">Vehicle Registration</h1>
-          
+
           {/* Registration Form */}
-          <form className="space-y-6 relative mx-auto bg-[#EADFB4] bg-opacity-30 backdrop-blur-sm p-8 rounded-lg shadow-lg w-[80%] lg:w-[60%] h-auto">
+          <form onSubmit={handleSubmit} className="space-y-6 relative mx-auto bg-[#EADFB4] bg-opacity-30 backdrop-blur-sm p-8 rounded-lg shadow-lg w-[80%] lg:w-[60%] h-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Vehicle Make */}
               <div>
                 <label htmlFor="make" className="block text-lg font-medium text-[#373A40]">Vehicle Make</label>
-                <input 
-                  type="text" 
-                  id="make" 
-                  name="make" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
+                <input
+                  type="text"
+                  id="make"
+                  name="make"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
+                  required
+                  value={formData.make}
+                  onChange={handleChange}
                 />
               </div>
-
-              {/* Vehicle Model */}
               <div>
                 <label htmlFor="model" className="block text-lg font-medium text-[#373A40]">Vehicle Model</label>
-                <input 
-                  type="text" 
-                  id="model" 
-                  name="model" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
+                <input
+                  type="text"
+                  id="model"
+                  name="model"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
+                  required
+                  value={formData.model}
+                  onChange={handleChange}
                 />
               </div>
-
-              {/* Request Date */}
               <div>
-                <label htmlFor="requestDate" className="block text-lg font-medium text-[#373A40]">Request Date</label>
-                <input 
-                  type="date" 
-                  id="requestDate" 
-                  name="requestDate" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
-                  pattern="\d{4}-\d{2}-\d{2}" 
-                  placeholder="yy/mm/dd"
+                <label htmlFor="year" className="block text-lg font-medium text-[#373A40]">Year of Manufacture</label>
+                <input
+                  type="number"
+                  id="year"
+                  name="year"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
+                  required
+                  value={formData.year}
+                  onChange={handleChange}
+                  min="1900" max={new Date().getFullYear()}
                 />
               </div>
-
-              {/* Engine Number */}
-              <div>
-                <label htmlFor="engineNumber" className="block text-lg font-medium text-[#373A40]">Engine Number</label>
-                <input 
-                  type="text" 
-                  id="engineNumber" 
-                  name="engineNumber" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
-                />
-              </div>
-
-              {/* License Plate */}
-              <div>
-                <label htmlFor="licensePlate" className="block text-lg font-medium text-[#373A40]">License Plate</label>
-                <input 
-                  type="text" 
-                  id="licensePlate" 
-                  name="licensePlate" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
-                />
-              </div>
-
-              {/* Color */}
               <div>
                 <label htmlFor="color" className="block text-lg font-medium text-[#373A40]">Color</label>
-                <input 
-                  type="text" 
-                  id="color" 
-                  name="color" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
+                <input
+                  type="text"
+                  id="color"
+                  name="color"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
+                  required
+                  value={formData.color}
+                  onChange={handleChange}
                 />
               </div>
-
-              {/* Chassis Number */}
               <div>
                 <label htmlFor="chassisNumber" className="block text-lg font-medium text-[#373A40]">Chassis Number</label>
-                <input 
-                  type="text" 
-                  id="chassisNumber" 
-                  name="chassisNumber" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
+                <input
+                  type="text"
+                  id="chassisNumber"
+                  name="chassisNumber"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
+                  required
+                  value={formData.chassisNumber}
+                  onChange={handleChange}
                 />
               </div>
-
-              {/* Year of Manufacture */}
               <div>
-                <label htmlFor="manufactureYear" className="block text-lg font-medium text-[#373A40]">Year of Manufacture</label>
-                <input 
-                  type="number" 
-                  id="manufactureYear" 
-                  name="manufactureYear" 
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
-                  required 
-                  min="1900" max={new Date().getFullYear()}
+                <label htmlFor="engineNumber" className="block text-lg font-medium text-[#373A40]">Engine Number</label>
+                <input
+                  type="text"
+                  id="engineNumber"
+                  name="engineNumber"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
+                  required
+                  value={formData.engineNumber}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="registrationDate" className="block text-lg font-medium text-[#373A40]">Registration Date</label>
+                <input
+                  type="date"
+                  id="registrationDate"
+                  name="registrationDate"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
+                  required
+                  value={formData.registrationDate}
+                  onChange={handleChange}
                 />
               </div>
             </div>
 
-            {/* Submit Button */}
             <div className="text-center mt-6">
-              <button 
-                type="submit" 
-                className="px-6 py-2 bg-[#F38120] text-white rounded-md hover:bg-[#DC5F00] transition-all duration-300">
+              <button
+                type="submit"
+                className="px-6 py-2 bg-[#F38120] text-white rounded-md hover:bg-[#DC5F00] transition-all duration-300"
+              >
                 Register Vehicle
               </button>
             </div>
           </form>
+
+          {error && <p className="text-red-500 mt-4">{error}</p>}
         </main>
       </div>
     </div>
