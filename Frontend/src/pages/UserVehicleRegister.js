@@ -2,8 +2,8 @@ import React, { useContext, useState, useEffect } from 'react';
 import { FaBars, FaHome, FaChartLine, FaBell, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import AuthContext from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios'; // For API requests
-import Swal from 'sweetalert2'; // Import SweetAlert
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default function UserVehicleRegister() {
   const { user, logout } = useContext(AuthContext);
@@ -19,11 +19,6 @@ export default function UserVehicleRegister() {
     color: '',
     chassisNumber: '',
     engineNumber: '',
-    registrationDate: '', // Assuming the date will be provided
-    blockchainTransactionId: null, // Set to null automatically
-    insuranceDetails: null, // Set to null automatically
-    inspectionReports: null, // Set to null automatically
-    status: 'Pending' // Set status to 'Pending' automatically
   });
   const [error, setError] = useState(null);
 
@@ -50,24 +45,30 @@ export default function UserVehicleRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Ensure all values are valid
+    if (!formData.make || !formData.model || !formData.year || !formData.chassisNumber || !formData.engineNumber) {
+      setError('Please fill all required fields');
+      return;
+    }
+
     // Prepare the registration data
     const vehicleData = {
       ownerId: user.id, // Assuming logged-in user's ID
       make: formData.make,
       model: formData.model,
-      year: formData.year,
-      color: formData.color,
+      year: parseInt(formData.year), // Parse year as integer
+      color: formData.color || null, // Set color to null if not provided
       chassisNumber: formData.chassisNumber,
       engineNumber: formData.engineNumber,
-      registrationDate: formData.registrationDate, // The user provides the registration date
-      blockchainTransactionId: null, // Automatically set to null
-      insuranceDetails: null, // Automatically set to null
-      inspectionReports: null, // Automatically set to null
-      status: 'Pending' // Set status to 'Pending'
+      status: 'Pending', // Automatically set status to pending
+      blockchainTransactionId: null, // Set to null
+      insuranceDetails: null, // Set to null
+      inspectionReports: null, // Set to null
+      registrationNumber: null, // Set to null
     };
 
     try {
-      // Post formData to the API
+      // Post the vehicle data to the API
       const response = await axios.post('http://localhost:8085/api/registerVehicle', vehicleData);
 
       if (response.status === 200) {
@@ -196,7 +197,6 @@ export default function UserVehicleRegister() {
                   required
                   value={formData.year}
                   onChange={handleChange}
-                  min="1900" max={new Date().getFullYear()}
                 />
               </div>
               <div>
@@ -206,7 +206,6 @@ export default function UserVehicleRegister() {
                   id="color"
                   name="color"
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  required
                   value={formData.color}
                   onChange={handleChange}
                 />
@@ -232,18 +231,6 @@ export default function UserVehicleRegister() {
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
                   required
                   value={formData.engineNumber}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="registrationDate" className="block text-lg font-medium text-[#373A40]">Registration Date</label>
-                <input
-                  type="date"
-                  id="registrationDate"
-                  name="registrationDate"
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  required
-                  value={formData.registrationDate}
                   onChange={handleChange}
                 />
               </div>
