@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { useNavigate, Link } from 'react-router-dom';
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Import Axios for API calls
 import Swal from 'sweetalert2'; // Import SweetAlert
+import SideNavBar from '../components/SideNavBar';  // Import SideNavBar
+import TopNavBar from '../components/TopNavBar';    // Import TopNavBar
 
 const PendingRegistrationsDetails = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,10 +14,6 @@ const PendingRegistrationsDetails = () => {
 
   const handleLogout = () => {
     navigate('/signin');
-  };
-
-  const handleHomeClick = () => {
-    navigate('/government-official-dashboard'); // Redirect to government-official-dashboard
   };
 
   const fetchPendingRegistrations = async () => {
@@ -138,13 +136,14 @@ const PendingRegistrationsDetails = () => {
   };
 
   return (
-    <div className="bg-[##EADFB4] flex h-screen overflow-hidden relative">
+    <div className="flex h-screen overflow-hidden relative">
+      {/* Background animation */}
       <div
         className="absolute inset-0 z-[-1]"
         style={{
-          backgroundColor: 'bg-[##EADFB4]',
+          backgroundColor: '#EADFB4',
           backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
+          //animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
         }}
       />
       <style jsx>{`
@@ -159,59 +158,12 @@ const PendingRegistrationsDetails = () => {
       `}</style>
 
       {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex flex-col justify-between`}
-      >
-        <div>
-          <div className="flex items-center justify-between h-16 px-4">
-            {sidebarOpen && <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>}
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-md hover:bg-white hover:bg-opacity-20 text-[#373A40]">
-              <FaBars />
-            </button>
-          </div>
-          <nav className="mt-8 space-y-4">
-            {/* Home button with redirection to Government Official Dashboard */}
-            <button
-              onClick={handleHomeClick}
-              className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
-            >
-              <FaHome className="w-5 h-5" />
-              {sidebarOpen && <span className="ml-4">Home</span>}
-            </button>
-            {[
-              { icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
-              { icon: FaBell, text: 'Notifications', href: '/notifications' },
-              { icon: FaCog, text: 'Settings', href: '/settings' },
-            ].map((item, index) => (
-              <Link key={index} to={item.href} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
-                <item.icon className="w-5 h-5" />
-                {sidebarOpen && <span className="ml-4">{item.text}</span>}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="mb-4 px-4">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
-          >
-            <FaSignOutAlt className="w-5 h-5" />
-            {sidebarOpen && <span className="ml-4">Logout</span>}
-          </button>
-        </div>
-      </div>
+      <SideNavBar logout={handleLogout} navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
       {/* Main content */}
       <div className={`flex-1 overflow-x-hidden overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {/* Top Navbar */}
-        <div className="sticky top-0 z-20 flex items-center justify-between w-full h-16 px-4 bg-white bg-opacity-50">
-          <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>
-          <div className="flex items-center space-x-4 text-[#373A40]">
-            <span>Platform</span>
-            <span>About us</span>
-            <span>Contact</span>
-          </div>
-        </div>
+        <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* Pending Registrations Section */}
         <div className="p-6 min-h-screen">

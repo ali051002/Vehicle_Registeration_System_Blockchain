@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine } from 'react-icons/fa';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import SideNavBar from '../components/SideNavBar';  // Import SideNavBar
+import TopNavBar from '../components/TopNavBar';    // Import TopNavBar
 
 const OwnershipTransfer = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,11 +13,10 @@ const OwnershipTransfer = () => {
   };
 
   const handleHomeClick = () => {
-    navigate('/user-dashboard'); // Redirect to User Dashboard
+    navigate('/user-dashboard');
   };
 
   useEffect(() => {
-    // Stop the animation after 3 seconds
     const timer = setTimeout(() => {
       setIsAnimating(false);
     }, 3000);
@@ -60,24 +60,24 @@ const OwnershipTransfer = () => {
     },
   ];
 
-  const [selectedFromOwner, setSelectedFromOwner] = useState(null);
-  const [selectedToOwner, setSelectedToOwner] = useState(null);
+  const [selectedOwner, setSelectedOwner] = useState(null);
+  const [listType, setListType] = useState(null); // To identify which list was clicked
 
-  const handleViewDetails = (fromOwnerId, toOwnerId) => {
-    const fromOwner = owners.find(o => o.id === fromOwnerId);
-    const toOwner = owners.find(o => o.id === toOwnerId);
-    setSelectedFromOwner(fromOwner);
-    setSelectedToOwner(toOwner);
+  const handleViewDetails = (ownerId, type) => {
+    const owner = owners.find(o => o.id === ownerId);
+    setSelectedOwner(owner);
+    setListType(type);
   };
 
   return (
     <div className="flex h-screen overflow-hidden relative">
+      {/* Background animation */}
       <div
         className="absolute inset-0 z-[-1]"
         style={{
           backgroundColor: '#EADFB4',
           backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
+          //animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
         }}
       />
       <style jsx>{`
@@ -92,69 +92,12 @@ const OwnershipTransfer = () => {
       `}</style>
 
       {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? 'w-64' : 'w-16'
-        } flex flex-col justify-between`}
-      >
-        <div>
-          <div className="flex items-center justify-between h-16 px-4">
-            {sidebarOpen && <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-md hover:bg-white hover:bg-opacity-20 text-[#373A40]"
-            >
-              <FaBars />
-            </button>
-          </div>
-          <nav className="mt-8 space-y-4">
-            {/* Home button with redirection to User Dashboard */}
-            <button
-              onClick={handleHomeClick}
-              className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
-            >
-              <FaHome className="w-5 h-5" />
-              {sidebarOpen && <span className="ml-4">Home</span>}
-            </button>
-            {[{ icon: FaChartLine, text: 'Dashboard', href: '/dashboard' },
-              { icon: FaBell, text: 'Notifications', href: '/notifications' },
-              { icon: FaCog, text: 'Settings', href: '/settings' }].map((item, index) => (
-              <Link
-                key={index}
-                to={item.href}
-                className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
-              >
-                <item.icon className="w-5 h-5" />
-                {sidebarOpen && <span className="ml-4">{item.text}</span>}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="mb-4 px-4">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]"
-          >
-            <FaSignOutAlt className="w-5 h-5" />
-            {sidebarOpen && <span className="ml-4">Logout</span>}
-          </button>
-        </div>
-      </div>
+      <SideNavBar logout={handleLogout} navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
       {/* Main content */}
       <div className={`flex-1 overflow-x-hidden overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {/* Top Navbar */}
-        <div className="sticky top-0 z-20 flex items-center justify-between w-full h-16 px-4 bg-white bg-opacity-50">
-          <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>
-          <div className="flex items-center space-x-4 text-[#373A40]">
-            <span>Platform</span>
-            <span>About us</span>
-            <span>Contact</span>
-            <button onClick={handleLogout} className="text-sm hover:bg-[#DC5F00]">
-              <FaSignOutAlt /> Logout
-            </button>
-          </div>
-        </div>
+        <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* Ownership Transfer Section */}
         <div className="p-6 min-h-screen">
@@ -162,17 +105,17 @@ const OwnershipTransfer = () => {
             Ownership Transfer Approvals
           </h1>
 
-          {/* List of Owners for Transfer */}
           <div className="flex justify-around">
-            <div className="w-1/3">
-              <h2 className="text-xl font-semibold mb-4">Transferred From</h2>
+            {/* Transferred From List */}
+            <div className="w-1/3 bg-white bg-opacity-30 backdrop-blur-sm border border-gray-300 p-4 rounded-lg">
+              <h2 className="text-xl font-semibold mb-4 text-center">Transferred From</h2>
               <ul className="space-y-4">
-                {owners.slice(0, 3).map((owner, index) => (
-                  <li key={index} className="flex justify-between items-center border p-2 rounded">
+                {owners.map((owner) => (
+                  <li key={owner.id} className="flex justify-between items-center border p-2 rounded bg-opacity-50">
                     <span>{owner.name}</span>
                     <button
                       className="bg-[#F38120] text-white px-4 py-2 rounded"
-                      onClick={() => handleViewDetails(owner.id, owners[index + 1]?.id)} // Simplified example
+                      onClick={() => handleViewDetails(owner.id, 'from')}
                     >
                       View Details
                     </button>
@@ -181,15 +124,16 @@ const OwnershipTransfer = () => {
               </ul>
             </div>
 
-            <div className="w-1/3">
-              <h2 className="text-xl font-semibold mb-4">Transferred To</h2>
+            {/* Transferred To List */}
+            <div className="w-1/3 bg-white bg-opacity-30 backdrop-blur-sm border border-gray-300 p-4 rounded-lg">
+              <h2 className="text-xl font-semibold mb-4 text-center">Transferred To</h2>
               <ul className="space-y-4">
-                {owners.slice(0, 3).map((owner, index) => (
-                  <li key={index} className="flex justify-between items-center border p-2 rounded">
+                {owners.map((owner) => (
+                  <li key={owner.id} className="flex justify-between items-center border p-2 rounded bg-opacity-50">
                     <span>{owner.name}</span>
                     <button
                       className="bg-[#F38120] text-white px-4 py-2 rounded"
-                      onClick={() => handleViewDetails(owners[index]?.id, owner.id)}
+                      onClick={() => handleViewDetails(owner.id, 'to')}
                     >
                       View Details
                     </button>
@@ -200,24 +144,17 @@ const OwnershipTransfer = () => {
           </div>
 
           {/* Display Owner and Vehicle Details */}
-          {selectedFromOwner && selectedToOwner && (
-            <div className="flex justify-around mt-8">
-              <div className="p-4 border rounded w-1/3">
-                <h2 className="text-xl font-semibold">Transferred From: {selectedFromOwner.name}</h2>
-                <p>Email: {selectedFromOwner.email}</p>
-                <p>Ethereum Address: {selectedFromOwner.ethereumAddress}</p>
+          {selectedOwner && (
+            <div className="mt-8 flex justify-center">
+              <div className="w-2/3 bg-white bg-opacity-30 backdrop-blur-sm border border-gray-300 p-4 rounded-lg">
+                <h2 className="text-xl font-semibold mb-4">
+                  {listType === 'from' ? 'Transferred From' : 'Transferred To'}: {selectedOwner.name}
+                </h2>
+                <p>Email: {selectedOwner.email}</p>
+                <p>Ethereum Address: {selectedOwner.ethereumAddress}</p>
                 <h3 className="text-lg font-semibold mt-4">Vehicle Details:</h3>
-                <p>Make: {vehicles.find(v => v.ownerId === selectedFromOwner.id)?.make}</p>
-                <p>Model: {vehicles.find(v => v.ownerId === selectedFromOwner.id)?.model}</p>
-              </div>
-
-              <div className="p-4 border rounded w-1/3">
-                <h2 className="text-xl font-semibold">Transferred To: {selectedToOwner.name}</h2>
-                <p>Email: {selectedToOwner.email}</p>
-                <p>Ethereum Address: {selectedToOwner.ethereumAddress}</p>
-                <h3 className="text-lg font-semibold mt-4">Vehicle Details:</h3>
-                <p>Make: {vehicles.find(v => v.ownerId === selectedToOwner.id)?.make}</p>
-                <p>Model: {vehicles.find(v => v.ownerId === selectedToOwner.id)?.model}</p>
+                <p>Make: {vehicles.find(v => v.ownerId === selectedOwner.id)?.make}</p>
+                <p>Model: {vehicles.find(v => v.ownerId === selectedOwner.id)?.model}</p>
               </div>
             </div>
           )}

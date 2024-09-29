@@ -1,7 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { FaBars, FaHome, FaCog, FaSignOutAlt, FaCarAlt, FaBell, FaChevronDown, FaChevronUp, FaExchangeAlt } from 'react-icons/fa';
+import { FaChevronDown, FaChevronUp, FaExchangeAlt } from 'react-icons/fa';
 import AuthContext from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import SideNavBar from '../components/SideNavBar'; // Importing SideNavBar
+import TopNavBar from '../components/TopNavBar';   // Importing TopNavBar
 
 const VehicleListItem = ({ vehicle, owner, onTransfer }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -105,7 +107,7 @@ export default function UserOwnershipTransfer() {
         style={{
           backgroundColor: '#EADFB4',
           backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
+          //animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
         }}
       />
       <style jsx>{`
@@ -120,23 +122,12 @@ export default function UserOwnershipTransfer() {
       `}</style>
 
       {/* Sidebar */}
-      <div 
-        className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${navOpen ? 'w-64' : 'w-16'} flex flex-col justify-between bg-[##EADFB4] bg-opacity-80`}
-      >
-        {/* Sidebar content (unchanged) */}
-      </div>
+      <SideNavBar logout={handleLogout} navOpen={navOpen} toggleNav={toggleNav} />
 
       {/* Main content */}
       <div className={`flex-1 overflow-x-hidden overflow-y-auto transition-all duration-300 ${navOpen ? 'ml-64' : 'ml-16'}`}>
         {/* Top Navbar */}
-        <div className="sticky top-0 z-20 flex items-center justify-between w-full h-16 px-4 bg-[#EADFB4] bg-opacity-80">
-          <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>
-          <div className="flex items-center space-x-4 text-[#373A40]">
-            <span>Platform</span>
-            <span>About us</span>
-            <span>Contact</span>
-          </div>
-        </div>
+        <TopNavBar toggleNav={toggleNav} />
 
         {/* Page Content */}
         <main className="bg-transparent p-6 lg:p-20 min-h-screen">
@@ -153,8 +144,6 @@ export default function UserOwnershipTransfer() {
             ))}
           </ul>
         </main>
-
-        
       </div>
     </div>
   );
