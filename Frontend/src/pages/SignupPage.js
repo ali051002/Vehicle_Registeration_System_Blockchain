@@ -96,7 +96,7 @@ export default function SignUpPage() {
       {/* Left side with image and vertical text */}
       <div className="relative w-1/2 overflow-hidden">
         <img
-          src="/laptop.jpg"
+          src="/bc1.jpg"
           alt="Laptop and glasses"
           className="object-cover w-full h-full"
         />

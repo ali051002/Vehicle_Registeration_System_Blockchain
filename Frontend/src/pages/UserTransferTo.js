@@ -4,9 +4,24 @@ import AuthContext from '../context/AuthContext';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 
 export default function UserTransferTo() {
-  const { user, logout } = useContext(AuthContext);
+  const {  logout } = useContext(AuthContext);
   const [navOpen, setNavOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(true);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    address: '',
+    phone: '',
+    cnic: '',
+    make: '',
+    model: '',
+    registrationDate: '',
+    engineNumber: '',
+    licensePlate: '',
+    color: '',
+    chassisNumber: '',
+    manufactureYear: ''
+  });
   const navigate = useNavigate();
   const { vehicleId } = useParams();
 
@@ -17,6 +32,25 @@ export default function UserTransferTo() {
   const handleLogout = () => {
     logout();
     navigate('/signin');
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const { cnic, chassisNumber, licensePlate } = formData;
+
+    if (!cnic || !chassisNumber || !licensePlate) {
+      alert('Please fill out all required fields (CNIC, Chassis Number, License Plate).');
+      return;
+    }
+
+    // Submit logic here
   };
 
   useEffect(() => {
@@ -35,7 +69,7 @@ export default function UserTransferTo() {
         style={{
           backgroundColor: '#EADFB4',
           backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
+          //animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
         }}
       />
       <style jsx>{`
@@ -102,8 +136,78 @@ export default function UserTransferTo() {
           <h1 className="text-4xl font-bold text-[#373A40] text-center mb-10">Transfer Vehicle (ID: {vehicleId})</h1>
           
           {/* Transfer Form */}
-          <form className="space-y-6 relative mx-auto bg-[#EADFB4] bg-opacity-30 backdrop-blur-sm p-8 rounded-lg shadow-lg w-[80%] lg:w-[60%] h-auto">
+          <form onSubmit={handleSubmit} className="space-y-6 relative mx-auto bg-[#EADFB4] bg-opacity-50 backdrop-blur-sm p-8 rounded-lg shadow-lg w-[80%] lg:w-[60%] h-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Name */}
+              <div>
+                <label htmlFor="name" className="block text-lg font-medium text-[#373A40]">Name</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  name="name" 
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
+                  required 
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-lg font-medium text-[#373A40]">Email</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  name="email" 
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
+                  required 
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <label htmlFor="address" className="block text-lg font-medium text-[#373A40]">Address</label>
+                <input 
+                  type="text" 
+                  id="address" 
+                  name="address" 
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
+                  required 
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label htmlFor="phone" className="block text-lg font-medium text-[#373A40]">Phone Number</label>
+                <input 
+                  type="text" 
+                  id="phone" 
+                  name="phone" 
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
+                  required 
+                />
+              </div>
+
+              {/* CNIC */}
+              <div>
+                <label htmlFor="cnic" className="block text-lg font-medium text-[#373A40]">CNIC <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  id="cnic" 
+                  name="cnic" 
+                  value={formData.cnic}
+                  onChange={handleChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
+                  required 
+                />
+              </div>
+
               {/* Vehicle Make */}
               <div>
                 <label htmlFor="make" className="block text-lg font-medium text-[#373A40]">Vehicle Make</label>
@@ -111,6 +215,8 @@ export default function UserTransferTo() {
                   type="text" 
                   id="make" 
                   name="make" 
+                  value={formData.make}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                 />
@@ -123,6 +229,8 @@ export default function UserTransferTo() {
                   type="text" 
                   id="model" 
                   name="model" 
+                  value={formData.model}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                 />
@@ -135,6 +243,8 @@ export default function UserTransferTo() {
                   type="date" 
                   id="registrationDate" 
                   name="registrationDate" 
+                  value={formData.registrationDate}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                 />
@@ -147,6 +257,8 @@ export default function UserTransferTo() {
                   type="text" 
                   id="engineNumber" 
                   name="engineNumber" 
+                  value={formData.engineNumber}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                 />
@@ -154,11 +266,13 @@ export default function UserTransferTo() {
 
               {/* License Plate */}
               <div>
-                <label htmlFor="licensePlate" className="block text-lg font-medium text-[#373A40]">License Plate</label>
+                <label htmlFor="licensePlate" className="block text-lg font-medium text-[#373A40]">License Plate <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   id="licensePlate" 
                   name="licensePlate" 
+                  value={formData.licensePlate}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                 />
@@ -171,6 +285,8 @@ export default function UserTransferTo() {
                   type="text" 
                   id="color" 
                   name="color" 
+                  value={formData.color}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                 />
@@ -178,11 +294,13 @@ export default function UserTransferTo() {
 
               {/* Chassis Number */}
               <div>
-                <label htmlFor="chassisNumber" className="block text-lg font-medium text-[#373A40]">Chassis Number</label>
+                <label htmlFor="chassisNumber" className="block text-lg font-medium text-[#373A40]">Chassis Number <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   id="chassisNumber" 
                   name="chassisNumber" 
+                  value={formData.chassisNumber}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                 />
@@ -195,6 +313,8 @@ export default function UserTransferTo() {
                   type="number" 
                   id="manufactureYear" 
                   name="manufactureYear" 
+                  value={formData.manufactureYear}
+                  onChange={handleChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]" 
                   required 
                   min="1900" max={new Date().getFullYear()}
@@ -212,8 +332,6 @@ export default function UserTransferTo() {
             </div>
           </form>
         </main>
-
-        
       </div>
     </div>
   );
