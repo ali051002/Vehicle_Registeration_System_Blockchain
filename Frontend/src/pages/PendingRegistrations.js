@@ -1,10 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Import Axios for API calls
-import Swal from 'sweetalert2'; // Import SweetAlert
-import SideNavBar from '../components/SideNavBar';  // Import SideNavBar
-import TopNavBar from '../components/TopNavBar';    // Import TopNavBar
+import axios from 'axios';
+import Swal from 'sweetalert2'; // For notifications
+import SideNavBar from '../components/SideNavBar'; // Importing SideNavBar component
+import TopNavBar from '../components/TopNavBar';   // Importing TopNavBar component
+
+// Vehicle List Item Component
+const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleDetails = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  return (
+    <li className="border-b border-gray-200 p-4 hover:bg-white hover:bg-opacity-20 transition-colors duration-300">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="font-semibold text-[#373A40]">{vehicle.make} {vehicle.model}</h3>
+          {/* Displaying ownerId as owner info is unavailable */}
+          <p className="text-[#373A40]">Owner ID: {vehicle.ownerId}</p>
+        </div>
+        <button onClick={toggleDetails} className="text-[#373A40] hover:text-gray-900">
+          {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+        </button>
+      </div>
+
+      {isExpanded && (
+        <div className="mt-4">
+          <p className="text-[#373A40]">Year: {vehicle.year}</p>
+          <p className="text-[#373A40]">Color: {vehicle.color}</p>
+          <p className="text-[#373A40]">Status: {vehicle.status}</p>
+          <p className="text-[#373A40]">Registration Number: {vehicle.registrationNumber}</p>
+          <p className="text-[#373A40]">Chassis Number: {vehicle.chassisNumber}</p>
+          <p className="text-[#373A40]">Engine Number: {vehicle.engineNumber}</p>
+          <p className="text-[#373A40]">Registration Date: {new Date(vehicle.registrationDate).toLocaleDateString()}</p>
+
+          <div className="mt-4 flex space-x-4">
+            <button
+              className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-colors duration-300"
+              onClick={() => onApprove(vehicle._id)}
+            >
+              Approve
+            </button>
+            <button
+              className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-colors duration-300"
+              onClick={() => onReject(vehicle._id)}
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+};
 
 const PendingRegistrationsDetails = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,8 +71,8 @@ const PendingRegistrationsDetails = () => {
   useEffect(() => {
     const fetchPendingRegistrations = async () => {
       try {
-        const response = await axios.get('http://localhost:8085/api/vehicles/pending'); // Adjust endpoint if necessary
-        setPendingRegistrations(response.data); // Assume that response.data contains the pending vehicles
+        const response = await axios.get('http://localhost:8085/api/vehicles/pending');
+        setPendingRegistrations(response.data); // Assume response.data contains the pending vehicles
       } catch (error) {
         console.error('Error fetching pending vehicles:', error);
       }
@@ -41,12 +92,11 @@ const PendingRegistrationsDetails = () => {
     try {
       const response = await axios.post('http://localhost:8085/api/vehicles/approve', {
         vehicleId,
-        status: 'Approved', // Send the status as "Approved"
+        status: 'Approved',
       });
 
       if (response.status === 200) {
         Swal.fire('Success', 'Vehicle registration approved!', 'success');
-        // Remove approved vehicle from the list
         setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== vehicleId));
       }
     } catch (error) {
@@ -60,12 +110,11 @@ const PendingRegistrationsDetails = () => {
     try {
       const response = await axios.post('http://localhost:8085/api/vehicles/reject', {
         vehicleId,
-        status: 'Rejected', // Send the status as "Rejected"
+        status: 'Rejected',
       });
 
       if (response.status === 200) {
         Swal.fire('Rejected', 'Vehicle registration rejected.', 'info');
-        // Remove rejected vehicle from the list
         setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== vehicleId));
       }
     } catch (error) {
@@ -82,7 +131,7 @@ const PendingRegistrationsDetails = () => {
         style={{
           backgroundColor: '#EADFB4',
           backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          //animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
+          animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
         }}
       />
       <style jsx>{`
@@ -91,7 +140,7 @@ const PendingRegistrationsDetails = () => {
             transform: translateX(-25%);
           }
           100% {
-            transform: translateX(0); /* Ends with no translation */
+            transform: translateX(0);
           }
         }
       `}</style>

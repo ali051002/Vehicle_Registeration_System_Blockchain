@@ -1,17 +1,19 @@
-// src/pages/UserMyVehicles.js
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import VehicleListItem from '../components/VehicleListItem';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
+import axios from 'axios';
 
 export default function UserMyVehicles() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
+  const [vehicles, setVehicles] = useState([]);
 
-  const vehicles = [
+  // Fallback vehicles for testing purposes
+  const fallbackVehicles = [
     {
       id: 1,
       make: 'Toyota',
@@ -51,10 +53,12 @@ export default function UserMyVehicles() {
     const fetchUserVehicles = async () => {
       if (user?.id) {
         try {
-          const response = await axios.get(`http://localhost:8085/api/vehicles/user/${user.id}`); // Fetch vehicles using the logged-in user's ID
-          setVehicles(response.data); // Set the fetched vehicles
+          const response = await axios.get(`http://localhost:8085/api/vehicles/user/${user.id}`);
+          console.log(response.data); // Logging fetched vehicles
+          setVehicles(response.data.length > 0 ? response.data : fallbackVehicles); // Use fallback if no data fetched
         } catch (error) {
           console.error('Error fetching user vehicles:', error);
+          setVehicles(fallbackVehicles); // Fallback in case of error
         }
       }
     };
@@ -62,7 +66,7 @@ export default function UserMyVehicles() {
     fetchUserVehicles();
 
     const timer = setTimeout(() => {
-      // some animation logic if needed
+      // Optional animation logic if needed
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -93,7 +97,7 @@ export default function UserMyVehicles() {
           <ul className="space-y-4">
             {vehicles.length > 0 ? (
               vehicles.map(vehicle => (
-                <VehicleListItem key={vehicle._id} vehicle={vehicle} owner={user} />
+                <VehicleListItem key={vehicle._id || vehicle.id} vehicle={vehicle} owner={user} />
               ))
             ) : (
               <p className="text-[#373A40] text-center">You do not own any vehicles.</p>
