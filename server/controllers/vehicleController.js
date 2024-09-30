@@ -9,19 +9,32 @@ const {
     approveVehicleRegistration,
     requestOwnershipTransfer,
     approveOwnershipTransfer,
-    getVehiclesByOwnerCNIC
+    getVehiclesByOwnerCNIC,
+    updateVehicleStatus,
+    getVehiclesByUserId // Add the update vehicle status function
 } = require('../db/dbQueries');
 
 // Get All Vehicles
 const fetchAllVehicles = async (req, res) => {
     try {
-        const result = await getAllVehicles();
+        const result = await getAllVehicles();  // Assuming getAllVehicles fetches all vehicles
+        const filteredVehicles = result.filter(vehicle => vehicle.status === 'Pending' || vehicle.status === 'Unregistered');
         console.log('get vehicles API hit');
-        res.status(200).json(result);
+        res.status(200).json(filteredVehicles);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
 };
+const fetchPendingVehicles = async (req, res) => {
+    try {
+        const allVehicles = await getAllVehicles();
+        const pendingVehicles = allVehicles.filter(vehicle => vehicle.status === 'Pending' || vehicle.status === 'Unregistered');
+        res.status(200).json(pendingVehicles);
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
 
 // Get Vehicle by ID
 const fetchVehicleById = async (req, res) => {
@@ -207,6 +220,48 @@ const approveRegistration = async (req, res) => {
     }
 };
 
+// Update vehicle status (Approve or Reject)
+const updateVehicleStatusController = async (req, res) => {
+    const { vehicleId, status } = req.body;
+
+    // Ensure both vehicleId and status are provided
+    if (!vehicleId || !status) {
+        return res.status(400).json({ msg: "Vehicle ID and Status are required" });
+    }
+
+    try {
+        // Call the function to update the vehicle status in the database
+        await updateVehicleStatus(vehicleId, status); // Assuming this updates the status
+        res.status(200).json({ msg: `Vehicle status updated to ${status}` });
+    } catch (error) {
+        console.error('Error updating vehicle status:', error.message);
+        res.status(500).json({ msg: "Failed to update vehicle status" });
+    }
+};
+
+const getRegisteredVehicles = async (req, res) => {
+    try {
+        const vehicles = await getAllVehicles(); // Fetch all vehicles
+        const registeredOrApprovedVehicles = vehicles.filter(vehicle => vehicle.status === 'Registered' || vehicle.status === 'Approved'); // Filter both registered and approved vehicles
+        res.status(200).json(registeredOrApprovedVehicles); // Return vehicles with either status
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+const getUserVehiclesController = async (req, res) => {
+    try {
+        const userId = req.params.id; // Get the user ID from the request parameters
+        const vehicles = await getVehiclesByUserId(userId); // Fetch vehicles by user ID
+        res.status(200).json(vehicles); // Respond with the vehicles
+    } catch (error) {
+        console.error('Error fetching vehicles for user:', error);
+        res.status(500).json({ message: 'Error fetching vehicles for user', error: error.message });
+    }
+};
+
+
+
 // Request ownership transfer
 const transferOwnership = async (req, res) => {
     const { vehicleId, currentOwnerId, newOwnerCnic, transferFee } = req.body;
@@ -249,6 +304,10 @@ module.exports = {
     removeVehicle,
     registerVehicle,
     approveRegistration,
+    updateVehicleStatusController, // Added vehicle status update controller
     transferOwnership,
-    approveTransfer
+    approveTransfer,
+    fetchPendingVehicles,
+    getRegisteredVehicles,
+    getUserVehiclesController // Add this function
 };

@@ -86,7 +86,8 @@ export default function SignUpPage() {
         });
       }
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      console.error('Error during registration:', err.response || err.message);
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     }
   };
 

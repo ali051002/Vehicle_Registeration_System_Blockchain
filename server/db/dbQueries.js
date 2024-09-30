@@ -9,18 +9,26 @@ const createUser = async (userData) => {
     // Hash the password before storing it in the database
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    return pool.request()
-        .input('Name', sql.NVarChar(100), userData.name)
-        .input('Email', sql.NVarChar(100), userData.email)
-        .input('Password', sql.NVarChar(256), hashedPassword)  // Store the hashed password
-        .input('Role', sql.NVarChar(50), userData.role)
-        .input('cnic', sql.NVARCHAR(15), userData.cnic)
-        .input('PhoneNumber', sql.NVarChar(20), userData.phoneNumber)
-        .input('AddressDetails', sql.NVarChar(255), userData.addressDetails)
-        .input('ProfilePicture', sql.NVarChar(255), userData.profilePicture)
-        .execute('sp_CreateUser');
-};
+    try {
+        // Execute the stored procedure and capture the result
+        const result = await pool.request()
+            .input('Name', sql.NVarChar(100), userData.name)
+            .input('Email', sql.NVarChar(100), userData.email)
+            .input('Password', sql.NVarChar(256), hashedPassword)  // Store the hashed password
+            .input('Role', sql.NVarChar(50), userData.role)
+            .input('cnic', sql.NVarChar(15), userData.cnic)
+            .input('PhoneNumber', sql.NVarChar(20), userData.phoneNumber)
+            .input('AddressDetails', sql.NVarChar(255), userData.addressDetails)
+            .input('ProfilePicture', sql.NVarChar(255), userData.profilePicture)
+            .execute('sp_CreateUser');
 
+        // Assuming the stored procedure returns the ID of the newly created user
+        return result.recordset[0].NewUserID;  // Adjust based on actual return structure
+    } catch (error) {
+        console.error('SQL Error:', error);
+        throw error;  // Rethrowing the error to be handled by the caller
+    }
+};
 // Fetch user by email (For login)
 const getUserByEmail = async (email) => {
     const pool = await poolPromise;
@@ -33,25 +41,30 @@ const getUserByEmail = async (email) => {
 
 // Login User
 const loginUser = async (email, password) => {
+    // Fetch the user by email
     const user = await getUserByEmail(email);
+    
+    // If the user does not exist, throw an error
     if (!user) {
         throw new Error('Invalid email or password');
     }
 
     // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
+    
+    // If passwords do not match, throw an error
     if (!isMatch) {
         throw new Error('Invalid email or password');
     }
 
     // Generate JWT token if credentials are correct
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Return token and user data including role
+    // Return token and user data including role and id
     return {
         token,
         user: {
-            id: user._id,
+            id: user.id,  // Ensure the user ID is included in the response
             name: user.name,
             email: user.email,
             role: user.role,  // Include role in the response
@@ -61,6 +74,13 @@ const loginUser = async (email, password) => {
             profilePicture: user.profilePicture
         }
     };
+};
+const updateVehicleStatus = async (vehicleId, status) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('VehicleId', sql.UniqueIdentifier, vehicleId) // This refers to the input ID, not the column name
+        .input('Status', sql.NVarChar(50), status)
+        .execute('sp_UpdateVehicleStatus');
 };
 
 // Get all users
@@ -111,9 +131,28 @@ const deleteUser = async (userId) => {
 
 // Vehicle Queries
 const getAllVehicles = async () => {
-    const pool = await poolPromise;
-    return pool.request().execute('sp_GetAllVehicles');
-};
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().execute('sp_GetAllVehicles'); // Stored procedure to get all vehicles
+      return result.recordset; // Ensure that this is returning an array
+    } catch (err) {
+      console.error('Error fetching all vehicles:', err);
+      throw err;
+    }
+  };
+  
+  const getVehiclesByUserId = async (userId) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request()
+        .input('UserId', userId)
+        .query('SELECT * FROM Vehicles WHERE ownerId = @UserId'); // Modify query as per your DB structure
+      return result.recordset;
+    } catch (error) {
+      console.error('Error fetching vehicles by user ID:', error);
+      throw error;
+    }
+  };
 
 const getVehicleById = async (vehicleId) => {
     const pool = await poolPromise;
@@ -231,6 +270,7 @@ const approveOwnershipTransfer = async (transactionId) => {
 };
 
 
+
 module.exports = {
     createUser,
     getUserByEmail,
@@ -251,5 +291,7 @@ module.exports = {
     requestVehicleRegistration,
     approveVehicleRegistration,
     requestOwnershipTransfer,
-    approveOwnershipTransfer
+    approveOwnershipTransfer,
+    updateVehicleStatus,
+    getVehiclesByUserId
 };

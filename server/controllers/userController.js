@@ -22,10 +22,10 @@ const createUserController = async (req, res) => {
             profilePicture: req.body.profilePicture || ''
         };
 
-        const result = await createUser(userData);
+        const userId = await createUser(userData);
         res.status(201).json({
             msg: "User created successfully",
-            data: result
+            userID: userId  // Sending back the user ID to the client if needed
         });
     } catch (error) {
         res.status(500).json({

@@ -1,12 +1,12 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { FaBars, FaHome, FaChartLine, FaBell, FaCog, FaSignOutAlt } from 'react-icons/fa';
-import AuthContext from '../context/AuthContext';
+import AuthContext from '../context/AuthContext'; // Import AuthContext
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import Swal from 'sweetalert2';
+import axios from 'axios'; // For API requests
+import Swal from 'sweetalert2'; // Import SweetAlert
 
 export default function UserVehicleRegister() {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext); // Get user from AuthContext
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(true);
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ export default function UserVehicleRegister() {
     chassisNumber: '',
     engineNumber: '',
   });
+
   const [error, setError] = useState(null);
 
   const handleLogout = () => {
@@ -45,31 +46,45 @@ export default function UserVehicleRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ensure all values are valid
-    if (!formData.make || !formData.model || !formData.year || !formData.chassisNumber || !formData.engineNumber) {
-      setError('Please fill all required fields');
+    // Log the user object to ensure it's available
+    console.log('User:', user);
+
+    // Ensure user is logged in and user object exists
+    if (!user || !user.id) {
+      setError('You must be logged in to register a vehicle.');
       return;
     }
 
-    // Prepare the registration data
+    // Validation to check if all required fields are provided
+    if (!formData.make || !formData.model || !formData.year || !formData.chassisNumber || !formData.engineNumber) {
+      setError('All fields must be filled out.');
+      return;
+    }
+
+    // Prepare the registration data, including ownerId from logged-in user
     const vehicleData = {
-      ownerId: user.id, // Assuming logged-in user's ID
+      ownerId: user.id, // Automatically include the logged-in user's ID
       make: formData.make,
       model: formData.model,
-      year: parseInt(formData.year), // Parse year as integer
-      color: formData.color || null, // Set color to null if not provided
+      year: parseInt(formData.year), // Ensure year is an integer
+      color: formData.color || null, // Optional color field
       chassisNumber: formData.chassisNumber,
-      engineNumber: formData.engineNumber,
-      status: 'Pending', // Automatically set status to pending
-      blockchainTransactionId: null, // Set to null
-      insuranceDetails: null, // Set to null
-      inspectionReports: null, // Set to null
-      registrationNumber: null, // Set to null
+      engineNumber: formData.engineNumber
     };
 
+    console.log('Vehicle Data being sent:', vehicleData);
+
     try {
-      // Post the vehicle data to the API
-      const response = await axios.post('http://localhost:8085/api/registerVehicle', vehicleData);
+      // Get the token from localStorage or AuthContext
+      const token = localStorage.getItem('token');
+
+      // Post formData to the API with Authorization header
+      const response = await axios.post('http://localhost:8085/api/registerVehicle', vehicleData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include Bearer token
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (response.status === 200) {
         // Display SweetAlert notification
@@ -80,11 +95,21 @@ export default function UserVehicleRegister() {
           confirmButtonText: 'OK',
         });
         console.log('Vehicle registered:', response.data);
+
+        // Reset form data after submission
+        setFormData({
+          make: '',
+          model: '',
+          year: '',
+          color: '',
+          chassisNumber: '',
+          engineNumber: '',
+        });
       }
     } catch (error) {
-      // Handle error
-      setError('There was an error registering the vehicle.');
-      console.error('Error:', error);
+      // Handle error and log the response for debugging
+      console.error('Error response from server:', error.response ? error.response.data : error.message);
+      setError('There was an error registering the vehicle. Please make sure all fields are filled.');
     }
   };
 

@@ -1,8 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { FaBars, FaHome, FaCog, FaBell, FaSignOutAlt, FaChartLine, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios'; // Import Axios for API calls
-import Swal from 'sweetalert2'; // Import SweetAlert
+import axios from 'axios';
+import Swal from 'sweetalert2'; // For notifications
+
+// Vehicle List Item Component
+const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleDetails = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  return (
+    <li className="border-b border-gray-200 p-4 hover:bg-white hover:bg-opacity-20 transition-colors duration-300">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="font-semibold text-[#373A40]">{vehicle.make} {vehicle.model}</h3>
+          {/* Owner information is not available; displaying ownerId */}
+          <p className="text-[#373A40]">Owner ID: {vehicle.ownerId}</p>
+        </div>
+        <button onClick={toggleDetails} className="text-[#373A40] hover:text-gray-900">
+          {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+        </button>
+      </div>
+
+      {isExpanded && (
+        <div className="mt-4">
+          <p className="text-[#373A40]">Year: {vehicle.year}</p>
+          <p className="text-[#373A40]">Color: {vehicle.color}</p>
+          <p className="text-[#373A40]">Status: {vehicle.status}</p>
+          <p className="text-[#373A40]">Registration Number: {vehicle.registrationNumber}</p>
+          <p className="text-[#373A40]">Chassis Number: {vehicle.chassisNumber}</p>
+          <p className="text-[#373A40]">Engine Number: {vehicle.engineNumber}</p>
+          <p className="text-[#373A40]">Registration Date: {new Date(vehicle.registrationDate).toLocaleDateString()}</p>
+
+          <div className="mt-4 flex space-x-4">
+            <button
+              className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-colors duration-300"
+              onClick={() => onApprove(vehicle._id)}
+            >
+              Approve
+            </button>
+            <button
+              className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-colors duration-300"
+              onClick={() => onReject(vehicle._id)}
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+};
 
 const PendingRegistrationsDetails = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,22 +66,22 @@ const PendingRegistrationsDetails = () => {
   };
 
   const handleHomeClick = () => {
-    navigate('/government-official-dashboard'); // Redirect to government-official-dashboard
+    navigate('/government-official-dashboard');
   };
 
-  const fetchPendingRegistrations = async () => {
-    try {
-      const response = await axios.get('http://localhost:8085/api/vehicle/pending-registrations');
-      setPendingRegistrations(response.data);
-    } catch (err) {
-      console.error('Error fetching pending registrations:', err);
-    }
-  };
-
+  // Fetch pending registrations
   useEffect(() => {
+    const fetchPendingRegistrations = async () => {
+      try {
+        const response = await axios.get('http://localhost:8085/api/vehicles/pending'); // Adjust endpoint if necessary
+        setPendingRegistrations(response.data); // Assume that response.data contains the pending vehicles
+      } catch (error) {
+        console.error('Error fetching pending vehicles:', error);
+      }
+    };
+
     fetchPendingRegistrations();
 
-    // Stop the animation after 3 seconds
     const timer = setTimeout(() => {
       setIsAnimating(false);
     }, 3000);
@@ -38,103 +89,42 @@ const PendingRegistrationsDetails = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const VehicleListItem = ({ vehicle, owner, fetchPendingRegistrations }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+  // Approve a vehicle registration
+  const handleApprove = async (vehicleId) => {
+    try {
+      const response = await axios.post('http://localhost:8085/api/vehicles/approve', {
+        vehicleId,
+        status: 'Approved', // Send the status as "Approved"
+      });
 
-    const toggleDetails = () => {
-      setIsExpanded(!isExpanded);
-    };
-
-    const handleApprove = async () => {
-      try {
-        const response = await axios.post('http://localhost:8085/api/vehicle/approve-registration', {
-          transactionId: vehicle._id
-        });
-
-        if (response.status === 200) {
-          Swal.fire({
-            title: 'Approved!',
-            text: 'The vehicle registration has been approved.',
-            icon: 'success',
-            confirmButtonText: 'OK'
-          });
-          fetchPendingRegistrations(); // Refresh the list
-        }
-      } catch (err) {
-        Swal.fire({
-          title: 'Error!',
-          text: 'Failed to approve registration.',
-          icon: 'error',
-          confirmButtonText: 'Try Again'
-        });
+      if (response.status === 200) {
+        Swal.fire('Success', 'Vehicle registration approved!', 'success');
+        // Remove approved vehicle from the list
+        setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== vehicleId));
       }
-    };
+    } catch (error) {
+      console.error('Error approving vehicle registration:', error);
+      Swal.fire('Error', 'Failed to approve vehicle registration', 'error');
+    }
+  };
 
-    const handleReject = async () => {
-      try {
-        const response = await axios.post('http://localhost:8085/api/vehicle/reject-registration', {
-          transactionId: vehicle._id
-        });
+  // Reject a vehicle registration
+  const handleReject = async (vehicleId) => {
+    try {
+      const response = await axios.post('http://localhost:8085/api/vehicles/reject', {
+        vehicleId,
+        status: 'Rejected', // Send the status as "Rejected"
+      });
 
-        if (response.status === 200) {
-          Swal.fire({
-            title: 'Rejected!',
-            text: 'The vehicle registration has been rejected.',
-            icon: 'info',
-            confirmButtonText: 'OK'
-          });
-          fetchPendingRegistrations(); // Refresh the list
-        }
-      } catch (err) {
-        Swal.fire({
-          title: 'Error!',
-          text: 'Failed to reject registration.',
-          icon: 'error',
-          confirmButtonText: 'Try Again'
-        });
+      if (response.status === 200) {
+        Swal.fire('Rejected', 'Vehicle registration rejected.', 'info');
+        // Remove rejected vehicle from the list
+        setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== vehicleId));
       }
-    };
-
-    return (
-      <li className="border-b border-gray-200 p-4 hover:bg-white hover:bg-opacity-20 transition-colors duration-300">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="font-semibold text-[#373A40]">{vehicle.make} {vehicle.model}</h3>
-            <p className="text-[#373A40]">Owner: {owner.name}</p>
-          </div>
-          <button onClick={toggleDetails} className="text-[#373A40] hover:text-gray-900">
-            {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-          </button>
-        </div>
-
-        {isExpanded && (
-          <div className="mt-4">
-            <p className="text-[#373A40]">Year: {vehicle.year}</p>
-            <p className="text-[#373A40]">Ethereum Address: {owner.ethereumAddress}</p>
-            <p className="text-[#373A40]">Status: {vehicle.status}</p>
-            <p className="text-[#373A40]">Registration Number: {vehicle.registrationNumber}</p>
-            <p className="text-[#373A40]">Chassis Number: {vehicle.chassisNumber}</p>
-            <p className="text-[#373A40]">Engine Number: {vehicle.engineNumber}</p>
-            <p className="text-[#373A40]">Registration Date: {vehicle.registrationDate}</p>
-
-            <div className="mt-4 flex space-x-4">
-              <button
-                className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-colors duration-300"
-                onClick={handleApprove}
-              >
-                Approve
-              </button>
-              <button
-                className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-colors duration-300"
-                onClick={handleReject}
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        )}
-      </li>
-    );
+    } catch (error) {
+      console.error('Error rejecting vehicle registration:', error);
+      Swal.fire('Error', 'Failed to reject vehicle registration', 'error');
+    }
   };
 
   return (
@@ -153,15 +143,13 @@ const PendingRegistrationsDetails = () => {
             transform: translateX(-25%);
           }
           100% {
-            transform: translateX(0);
+            transform: translateX(0); /* Ends with no translation */
           }
         }
       `}</style>
 
       {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex flex-col justify-between`}
-      >
+      <div className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-16'} flex flex-col justify-between`}>
         <div>
           <div className="flex items-center justify-between h-16 px-4">
             {sidebarOpen && <div className="navbar-logo text-sm font-serif text-[#373A40]">Secure Chain</div>}
@@ -222,10 +210,10 @@ const PendingRegistrationsDetails = () => {
           <ul className="bg-white bg-opacity-50 shadow-md rounded-lg divide-y divide-gray-200 mt-6">
             {pendingRegistrations.map((vehicleData) => (
               <VehicleListItem
-                key={vehicleData.vehicle._id}
-                vehicle={vehicleData.vehicle}
-                owner={vehicleData.owner}
-                fetchPendingRegistrations={fetchPendingRegistrations}
+                key={vehicleData._id}
+                vehicle={vehicleData}
+                onApprove={handleApprove}
+                onReject={handleReject}
               />
             ))}
           </ul>
