@@ -64,7 +64,7 @@ const loginUser = async (email, password) => {
     return {
         token,
         user: {
-            id: user.id,  // Ensure the user ID is included in the response
+            id: user._id,  // Ensure the user ID is included in the response
             name: user.name,
             email: user.email,
             role: user.role,  // Include role in the response
