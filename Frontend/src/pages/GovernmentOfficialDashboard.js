@@ -8,6 +8,8 @@ const GovernmentDashboard = () => {
   const [isAnimating, setIsAnimating] = useState(true);
   const navigate = useNavigate();
 
+  const userRole = 'governmentOfficial';  // Ensure correct role is passed
+
   const handleLogout = () => {
     sessionStorage.removeItem('authToken');
     sessionStorage.clear();
@@ -24,28 +26,22 @@ const GovernmentDashboard = () => {
 
   return (
     <div className="flex h-screen overflow-hidden relative">
-      {/* Background animation */}
+      {/* Background */}
       <div
         className="absolute inset-0 z-[-1]"
         style={{
           backgroundColor: '#DA0037',
           backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          
         }}
       />
-      <style jsx>{`
-        @keyframes slide {
-          0% {
-            transform: translateX(-25%);
-          }
-          100% {
-            transform: translateX(0);
-          }
-        }
-      `}</style>
 
       {/* Sidebar */}
-      <SideNavBar logout={handleLogout} navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} />
+      <SideNavBar
+        logout={handleLogout}
+        navOpen={sidebarOpen}
+        toggleNav={() => setSidebarOpen(!sidebarOpen)}
+        userRole={userRole}  // Pass the userRole prop as governmentOfficial
+      />
 
       {/* Main content */}
       <div className={`flex-1 overflow-x-hidden overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>

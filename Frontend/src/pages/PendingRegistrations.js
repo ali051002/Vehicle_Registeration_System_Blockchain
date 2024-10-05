@@ -131,7 +131,6 @@ const PendingRegistrationsDetails = () => {
         style={{
           backgroundColor: '#EADFB4',
           backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
         }}
       />
       <style jsx>{`
@@ -159,16 +158,21 @@ const PendingRegistrationsDetails = () => {
             Pending Registrations Details
           </h2>
 
-          <ul className="bg-white bg-opacity-50 shadow-md rounded-lg divide-y divide-gray-200 mt-6">
-            {pendingRegistrations.map((vehicleData) => (
-              <VehicleListItem
-                key={vehicleData._id}
-                vehicle={vehicleData}
-                onApprove={handleApprove}
-                onReject={handleReject}
-              />
-            ))}
-          </ul>
+          {/* Check if there are no pending registrations */}
+          {pendingRegistrations.length === 0 ? (
+            <p className="text-center text-gray-800 text-lg">No pending registrations available</p>
+          ) : (
+            <ul className="bg-white bg-opacity-50 shadow-md rounded-lg divide-y divide-gray-200 mt-6">
+              {pendingRegistrations.map((vehicleData) => (
+                <VehicleListItem
+                  key={vehicleData._id}
+                  vehicle={vehicleData}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                />
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

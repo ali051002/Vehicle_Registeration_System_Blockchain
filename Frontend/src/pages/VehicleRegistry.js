@@ -29,7 +29,26 @@ const VehicleRegistry = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#EEEEEE] relative">
+    <div className="flex h-screen overflow-hidden relative">
+      {/* Background animation */}
+      <div
+        className="absolute inset-0 z-[-1]"
+        style={{
+          backgroundColor: '#EADFB4',
+          backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
+        }}
+      />
+      <style jsx>{`
+        @keyframes slide {
+          0% {
+            transform: translateX(-25%);
+          }
+          100% {
+            transform: translateX(0);
+          }
+        }
+      `}</style>
+
       {/* Sidebar */}
       <SideNavBar logout={handleLogout} navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -39,15 +58,15 @@ const VehicleRegistry = () => {
         <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
         {/* Vehicle Data Content */}
-        <div className="p-6 bg-[#EEEEEE] min-h-screen">
+        <div className="p-6 min-h-screen">
           <h2 className="text-4xl font-bold">Vehicle Registry</h2>
-          <p className="mt-4 text-gray-600">Below is the list of registered and approved vehicles:</p>
+          <p className="mt-4 text-gray-800">Below is the list of registered and approved vehicles:</p>
 
           {/* Display vehicle data */}
           {vehicles.length > 0 ? (
             <ul className="mt-6 space-y-4">
               {vehicles.map((vehicle) => (
-                <li key={vehicle._id} className="p-4 bg-white rounded-lg shadow">
+                <li key={vehicle._id} className="p-4 bg-white bg-opacity-50 shadow-md">
                   <p><strong>Make:</strong> {vehicle.make}</p>
                   <p><strong>Model:</strong> {vehicle.model}</p>
                   <p><strong>Year:</strong> {vehicle.year}</p>
@@ -57,7 +76,7 @@ const VehicleRegistry = () => {
               ))}
             </ul>
           ) : (
-            <p className="mt-6 text-gray-500">No registered or approved vehicles available.</p>
+            <p className="mt-6 text-gray-800">No registered or approved vehicles available.</p>
           )}
         </div>
       </div>
