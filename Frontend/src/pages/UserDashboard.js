@@ -33,8 +33,8 @@ export default function UserDashboard() {
       <div
         className="absolute inset-0 z-[-1]"
         style={{
-          backgroundColor: '#EADFB4',
-          backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
+          backgroundColor: '#686D76',
+         // backgroundImage: 'linear-gradient(-60deg, #686D76 100%, )',
         }}
       />
 
@@ -63,7 +63,7 @@ export default function UserDashboard() {
               className="cursor-pointer p-6 bg-white bg-opacity-50 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <FaFileAlt className="text-[#F38120] w-10 h-10 mb-4" />
-              <h3 className="text-2xl font-bold text-[#F38120] mb-2">New Registration</h3>
+              <h3 className="text-2xl font-bold text-[#373A40] mb-2">New Registration</h3>
               <p className="text-gray-600">Register a new vehicle easily.</p>
             </div>
 
@@ -73,7 +73,7 @@ export default function UserDashboard() {
               className="cursor-pointer p-6 bg-white bg-opacity-50 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <FaExchangeAlt className="text-[#F38120] w-10 h-10 mb-4" />
-              <h3 className="text-2xl font-bold text-[#F38120] mb-2">Ownership Transfer</h3>
+              <h3 className="text-2xl font-bold text-[#373A40] mb-2">Ownership Transfer</h3>
               <p className="text-gray-600">Transfer vehicle ownership.</p>
             </div>
 
@@ -83,7 +83,7 @@ export default function UserDashboard() {
               className="cursor-pointer p-6 bg-white bg-opacity-50 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-sm mx-auto md:col-span-2 flex flex-col items-center"
             >
               <FaCarAlt className="text-[#F38120] w-10 h-10 mb-4" />
-              <h3 className="text-2xl font-bold text-[#F38120] mb-2">My Vehicles</h3>
+              <h3 className="text-2xl font-bold text-[#373A40/] mb-2">My Vehicles</h3>
               <p className="text-gray-600 text-center">View all your registered vehicles.</p>
             </div>
           </section>

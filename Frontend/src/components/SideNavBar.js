@@ -21,12 +21,12 @@ export default function SideNavBar({ logout, navOpen, toggleNav, userRole }) {
   return (
     <div
       className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out 
-      ${navOpen ? 'w-64' : 'w-16'} flex flex-col justify-between bg-[#EADFB4] bg-opacity-80`}
+      ${navOpen ? 'w-64' : 'w-16'} flex flex-col justify-between  `}
     >
       {/* Top Section with Hamburger Button */}
       <div>
         <div className="flex items-center justify-between h-16 px-4">
-          <button onClick={toggleNav} className="p-2 rounded-md hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+          <button onClick={toggleNav} className="p-2 rounded-md hover:bg-white hover:bg-opacity-20 text-[#F38120]">
             <FaBars />
           </button>
         </div>
@@ -34,19 +34,19 @@ export default function SideNavBar({ logout, navOpen, toggleNav, userRole }) {
         {/* Navigation Links */}
         <nav className="mt-8 space-y-4">
           {/* Dashboard Link */}
-          <Link to={getDashboardLink()} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+          <Link to={getDashboardLink()} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#F38120]">
             <FaHome className="w-5 h-5" />
             {navOpen && <span className="ml-4">Dashboard</span>}
           </Link>
 
           {/* Notifications */}
-          <Link to="/notifications" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+          <Link to="/notifications" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#F38120]">
             <FaBell className="w-5 h-5" />
             {navOpen && <span className="ml-4">Notifications</span>}
           </Link>
 
           {/* Settings */}
-          <Link to="/settings" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#373A40]">
+          <Link to="/settings" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#F38120]">
             <FaCog className="w-5 h-5" />
             {navOpen && <span className="ml-4">Settings</span>}
           </Link>
@@ -57,7 +57,7 @@ export default function SideNavBar({ logout, navOpen, toggleNav, userRole }) {
       <div className="mb-4">
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center w-full px-4 py-2 hover:bg-white hover:bg-opacity-20 text-[#373A40]"
+          className="flex items-center justify-center w-full px-4 py-2 hover:bg-white hover:bg-opacity-20 text-[#F38120]"
         >
           <FaSignOutAlt className="w-5 h-5" />
           {navOpen && <span className="ml-4">Logout</span>}

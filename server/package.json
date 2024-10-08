@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon node server.js"
+    "start": "nodemon server.js"
   },
   "author": "alisufyan",
   "license": "ISC",
@@ -14,7 +14,9 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "msnodesqlv8": "^4.2.1",
-    "mssql": "^11.0.1",
+    "mssql": "^11.0.1"
+  },
+  "devDependencies": {
     "nodemon": "^3.1.4"
   }
 }
