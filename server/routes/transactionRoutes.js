@@ -3,7 +3,12 @@ const router = express.Router();
 const transactionController = require('../controllers/transactionController');
 
 
-// Get transactions with optional filters for status and type
+/* Get transactions with optional filters for status and type(use) 
+{
+    "transactionStatus": "Pending/Approved",
+    "transactionType": "Registration/Ownership transfer"
+}
+*/    
 router.get('/transactions', transactionController.fetchTransactions);
 
 module.exports = router;

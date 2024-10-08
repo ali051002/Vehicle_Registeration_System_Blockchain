@@ -17,10 +17,8 @@ const {
 // Get All Vehicles
 const fetchAllVehicles = async (req, res) => {
     try {
-        const result = await getAllVehicles();  // Assuming getAllVehicles fetches all vehicles
-        const filteredVehicles = result.filter(vehicle => vehicle.status === 'Pending' || vehicle.status === 'Unregistered');
-        console.log('get vehicles API hit');
-        res.status(200).json(filteredVehicles);
+        const result = await getAllVehicles();
+        res.status(200).json(result);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
@@ -311,3 +309,4 @@ module.exports = {
     getRegisteredVehicles,
     getUserVehiclesController // Add this function
 };
+
