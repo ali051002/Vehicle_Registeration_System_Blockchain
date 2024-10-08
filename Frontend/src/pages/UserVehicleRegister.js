@@ -80,7 +80,7 @@ export default function UserVehicleRegister() {
       const token = localStorage.getItem('token');
 
       // Post formData to the API with Authorization header
-      const response = await axios.post('http://localhost:8085/api/registerVehicle', vehicleData, {
+      const response = await axios.post('http://localhost:8085/api/registerVehicleRequest', vehicleData, {
         headers: {
           Authorization: `Bearer ${token}`, // Include Bearer token
           'Content-Type': 'application/json',
