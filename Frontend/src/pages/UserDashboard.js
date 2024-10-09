@@ -1,21 +1,55 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { FaCarAlt, FaExchangeAlt, FaFileAlt } from 'react-icons/fa';
+import React, { useState, useContext } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaCarAlt, FaExchangeAlt, FaFileAlt, FaChevronRight, FaUser } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';  // Import AuthContext for logout
-import SideNavBar from '../components/SideNavBar';  // Import SideNavBar component
-import TopNavBar from '../components/TopNavBar';    // Import TopNavBar component
+import {AuthContext} from '../context/AuthContext';
+import SideNavBar from '../components/SideNavBar';
+import TopNavBar from '../components/TopNavBar';
+import UserProfile from '../components/UserProfile';
 
-export default function UserDashboard() {
-  const { logout } = useContext(AuthContext);  // Logout function from AuthContext
-  const [sidebarOpen, setSidebarOpen] = useState(false);  // Sidebar open/close state
-  const [isAnimating, setIsAnimating] = useState(true);  // Animation state for background
-  const navigate = useNavigate();  // Navigation hook
-  const userRole = 'user';  // Specify the user role for role-based routing in the SideNavBar
+const FeatureCard = ({ icon, title, description, onClick }) => {
+  return (
+    <motion.div
+      className="bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg overflow-hidden cursor-pointer"
+      whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(243, 129, 32, 0.3)' }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+    >
+      <div className="p-6">
+        <div className="flex items-center mb-4">
+          <motion.div
+            className="w-12 h-12 bg-gradient-to-r from-[#F38120] to-[#F3A620] rounded-full flex items-center justify-center mr-4"
+            whileHover={{ rotate: 360, scale: 1.1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {React.cloneElement(icon, { className: 'text-white w-6 h-6' })}
+          </motion.div>
+          <h3 className="text-xl font-bold text-[#4A4D52]">{title}</h3>
+        </div>
+        <p className="text-gray-600">{description}</p>
+        <motion.div 
+          className="mt-4 flex justify-end"
+          whileHover={{ x: 5 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+        >
+          <FaChevronRight className="text-[#F38120] w-5 h-5" />
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+// ... (FeatureCard component remains unchanged)
 
-  // Handle user logout
+const UserDashboard = () => {
+  const { logout } = useContext(AuthContext);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const navigate = useNavigate();
+  const userRole = 'user';
+
   const handleLogout = () => {
-    logout();  // Call the logout function from AuthContext
-    navigate('/signin');  // Redirect to the sign-in page after logout
+    logout();
+    navigate('/signin');
   };
 
   // Set animation timeout on component mount
@@ -32,67 +66,91 @@ export default function UserDashboard() {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden relative">
-      {/* Background animation */}
-      <div
-        className="absolute inset-0 z-[-1]"
-        style={{
-          backgroundColor: '#686D76',
-         // backgroundImage: 'linear-gradient(-60deg, #686D76 100%, )',
-        }}
-      />
-
-      {/* Sidebar */}
-      <SideNavBar
-        logout={handleLogout}
-        navOpen={sidebarOpen}
-        toggleNav={() => setSidebarOpen(!sidebarOpen)}
-        userRole={userRole}
-      />
-
-      {/* Main content */}
-      <div className={`flex-1 overflow-x-hidden overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
-        {/* Top Navbar */}
-        <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
-
-        {/* Main Dashboard Content */}
-        <main className="bg-transparent p-6 lg:p-20 min-h-screen">
-          <h1 className="text-4xl font-bold text-[#373A40] text-center mb-10">User Dashboard</h1>
-
-          {/* Section with Cards */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* New Registration */}
-            <div
-              onClick={() => navigate('/user-vehicle-register')}
-              className="cursor-pointer p-6 bg-white bg-opacity-50 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+    <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+      <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="flex flex-1 overflow-hidden">
+        <SideNavBar
+          logout={handleLogout}
+          navOpen={sidebarOpen}
+          toggleNav={() => setSidebarOpen(!sidebarOpen)}
+          userRole={userRole}
+        />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
+          <div className="flex justify-between items-center mb-10">
+            <motion.h1
+              className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620]"
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              <FaFileAlt className="text-[#F38120] w-10 h-10 mb-4" />
-              <h3 className="text-2xl font-bold text-[#373A40] mb-2">New Registration</h3>
-              <p className="text-gray-600">Register a new vehicle easily.</p>
-            </div>
-
-            {/* Ownership Transfer */}
-            <div
-              onClick={() => navigate('/user-ownership-transfer')}
-              className="cursor-pointer p-6 bg-white bg-opacity-50 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              User Dashboard
+            </motion.h1>
+            <motion.button
+              className="w-12 h-12 rounded-full bg-gradient-to-r from-[#F38120] to-[#F3A620] flex items-center justify-center text-white shadow-lg"
+              onClick={toggleProfile}
+              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
+              whileTap={{ scale: 0.95 }}
             >
-              <FaExchangeAlt className="text-[#F38120] w-10 h-10 mb-4" />
-              <h3 className="text-2xl font-bold text-[#373A40] mb-2">Ownership Transfer</h3>
-              <p className="text-gray-600">Transfer vehicle ownership.</p>
-            </div>
-
-            {/* My Vehicles */}
-            <div
-              onClick={() => navigate('/user-my-vehicles')}
-              className="cursor-pointer p-6 bg-white bg-opacity-50 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-sm mx-auto md:col-span-2 flex flex-col items-center"
-            >
-              <FaCarAlt className="text-[#F38120] w-10 h-10 mb-4" />
-              <h3 className="text-2xl font-bold text-[#373A40/] mb-2">My Vehicles</h3>
-              <p className="text-gray-600 text-center">View all your registered vehicles.</p>
-            </div>
-          </section>
+              <FaUser className="w-6 h-6" />
+            </motion.button>
+          </div>
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, staggerChildren: 0.1 }}
+          >
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.5 }}
+              >
+                <FeatureCard
+                  icon={<FaFileAlt />}
+                  title="New Registration"
+                  description="Register a new vehicle easily."
+                  onClick={() => navigate('/user-vehicle-register')}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <FeatureCard
+                  icon={<FaExchangeAlt />}
+                  title="Ownership Transfer"
+                  description="Transfer vehicle ownership."
+                  onClick={() => navigate('/user-ownership-transfer')}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <FeatureCard
+                  icon={<FaCarAlt />}
+                  title="My Vehicles"
+                  description="View all your registered vehicles."
+                  onClick={() => navigate('/user-my-vehicles')}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
         </main>
       </div>
+      <AnimatePresence>
+        {profileOpen && (
+          <UserProfile user={user} onClose={toggleProfile} />
+        )}
+      </AnimatePresence>
     </div>
   );
-}
+};
+
+export default UserDashboard;
