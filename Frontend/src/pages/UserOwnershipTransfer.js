@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { FaChevronDown, FaChevronUp, FaExchangeAlt } from 'react-icons/fa';
-import AuthContext from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import SideNavBar from '../components/SideNavBar'; // Importing SideNavBar
 import TopNavBar from '../components/TopNavBar';   // Importing TopNavBar

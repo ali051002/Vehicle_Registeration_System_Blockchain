@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import AuthContext from '../context/AuthContext'; // Import AuthContext for user data
+import { AuthContext } from '../context/AuthContext'; // Import AuthContext for user data
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 
 const AdminDashboard = () => {

@@ -1,16 +1,22 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthContext from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import VehicleListItem from '../components/VehicleListItem';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode"; 
 
 export default function UserMyVehicles() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
   const [vehicles, setVehicles] = useState([]);
+  const [apiData, setApiData] = useState(() => {
+    // Retrieve data from localStorage, if available
+    const savedData = localStorage.getItem('userVehicles');
+    return savedData ? JSON.parse(savedData) : [];
+  });
 
   // Fallback vehicles for testing purposes
   const fallbackVehicles = [
@@ -53,24 +59,35 @@ export default function UserMyVehicles() {
     const fetchUserVehicles = async () => {
       if (user?.id) {
         try {
+          console.log(user.id);
           const response = await axios.get(`http://localhost:8085/api/vehicles/user/${user.id}`);
           console.log(response.data); // Logging fetched vehicles
-          setVehicles(response.data.length > 0 ? response.data : fallbackVehicles); // Use fallback if no data fetched
+
+          // Store the API response in both vehicles and apiData state
+          setVehicles(response.data.length > 0 ? response.data : fallbackVehicles);
+          setApiData(response.data.length > 0 ? response.data : fallbackVehicles);
+
+          // Store the data in localStorage so it persists across page refreshes
+          localStorage.setItem('userVehicles', JSON.stringify(response.data));
         } catch (error) {
           console.error('Error fetching user vehicles:', error);
           setVehicles(fallbackVehicles); // Fallback in case of error
+          setApiData(fallbackVehicles);
         }
       }
     };
 
-    fetchUserVehicles();
+    // Fetch data only if it's not already in localStorage
+    if (apiData.length === 0) {
+      fetchUserVehicles();
+    }
 
     const timer = setTimeout(() => {
       // Optional animation logic if needed
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [user]); // The effect depends on the user state
+  }, [user, apiData]); // The effect depends on the user state and apiData
 
   return (
     <div className="flex h-screen overflow-hidden relative">
@@ -95,8 +112,8 @@ export default function UserMyVehicles() {
         <main className="bg-transparent p-6 lg:p-20 min-h-screen">
           <h1 className="text-4xl font-bold text-[#373A40] text-center mb-10">My Vehicles</h1>
           <ul className="space-y-4">
-            {vehicles.length > 0 ? (
-              vehicles.map(vehicle => (
+            {apiData.length > 0 ? (
+              apiData.map(vehicle => (
                 <VehicleListItem key={vehicle._id || vehicle.id} vehicle={vehicle} owner={user} />
               ))
             ) : (

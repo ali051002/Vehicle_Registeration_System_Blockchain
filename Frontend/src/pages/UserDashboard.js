@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { FaCarAlt, FaExchangeAlt, FaFileAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import AuthContext from '../context/AuthContext';  // Import AuthContext for logout
+import { AuthContext } from '../context/AuthContext';  // Import AuthContext for logout
 import SideNavBar from '../components/SideNavBar';  // Import SideNavBar component
 import TopNavBar from '../components/TopNavBar';    // Import TopNavBar component
 
@@ -21,6 +21,10 @@ export default function UserDashboard() {
   // Set animation timeout on component mount
   useEffect(() => {
     const timer = setTimeout(() => {
+      if(localStorage.getItem('token')!= null){
+        navigate('/user-dashboard')
+
+      }
       setIsAnimating(false);  // Disable animation after 3 seconds
     }, 3000);
 

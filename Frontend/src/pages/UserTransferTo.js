@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { FaBars, FaHome, FaCog, FaSignOutAlt, FaCarAlt, FaBell } from 'react-icons/fa';
-import AuthContext from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import SideNavBar from '../components/SideNavBar';  // Importing SideNavBar from components
 import TopNavBar from '../components/TopNavBar';    // Importing TopNavBar from components

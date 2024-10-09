@@ -3,12 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Import axios for API requests
 import SideNavBar from '../components/SideNavBar';  // Import SideNavBar
 import TopNavBar from '../components/TopNavBar';    // Import TopNavBar
+import { jwtDecode } from "jwt-decode"; 
 
 const VehicleRegistry = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [vehicles, setVehicles] = useState([]); // State to store registered and approved vehicles data
   const navigate = useNavigate();
 
+
+
+
+  const storedToken = localStorage.getItem('token')
+  const decoded = jwtDecode(storedToken);
+  const loggedInUserId = decoded.userId;
+
+  console.log("User id :", loggedInUserId)  
   // Function to fetch registered and approved vehicles data
   const fetchVehicles = async () => {
     try {

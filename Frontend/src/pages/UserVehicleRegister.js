@@ -1,10 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
-import AuthContext from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import SideNavBar from '../components/SideNavBar';  // Import SideNavBar
 import TopNavBar from '../components/TopNavBar';    // Import TopNavBar
+import { jwtDecode } from 'jwt-decode';
 
 export default function UserVehicleRegister() {
   const { user, logout } = useContext(AuthContext); // Get user from AuthContext
@@ -50,6 +51,7 @@ export default function UserVehicleRegister() {
     // Log the user object to ensure it's available
     console.log('User:', user);
 
+    console.log("User id: ", user.id)
     // Ensure user is logged in and user object exists
     if (!user || !user.id) {
       setError('You must be logged in to register a vehicle.');
@@ -62,9 +64,15 @@ export default function UserVehicleRegister() {
       return;
     }
 
+    const storedToken = localStorage.getItem('token')
+    const decoded = jwtDecode(storedToken);
+    const loggedInUserId = decoded.userId;
+
+    console.log("User id :", loggedInUserId)
+
     // Prepare the registration data, including ownerId from logged-in user
     const vehicleData = {
-      ownerId: user.id, // Automatically include the logged-in user's ID
+      ownerId: loggedInUserId, // Automatically include the logged-in user's ID
       make: formData.make,
       model: formData.model,
       year: parseInt(formData.year), // Ensure year is an integer

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AiOutlineMail } from 'react-icons/ai';
 import { BiLockAlt } from 'react-icons/bi';
 import { motion } from 'framer-motion';
-import AuthContext from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import Swal from 'sweetalert2';  // Import SweetAlert2
 import 'sweetalert2/dist/sweetalert2.min.css'; // Import SweetAlert2 styles
 

@@ -5,7 +5,8 @@ import axios from 'axios';
 import Swal from 'sweetalert2'; // For notifications
 import SideNavBar from '../components/SideNavBar'; // Importing SideNavBar component
 import TopNavBar from '../components/TopNavBar';   // Importing TopNavBar component
-import AuthContext from '../context/AuthContext';  // Importing AuthContext for approvedBy
+import { AuthContext } from '../context/AuthContext';  // Importing AuthContext for approvedBy
+import { jwtDecode } from "jwt-decode"; 
 
 // Vehicle List Item Component
 const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
@@ -91,6 +92,13 @@ const PendingRegistrationsDetails = () => {
     return () => clearTimeout(timer);
   }, []);
 
+
+  const storedToken = localStorage.getItem('token')
+  const decoded = jwtDecode(storedToken);
+  const loggedInUserId = decoded.userId;
+
+  console.log("User id :", loggedInUserId)  
+  // Function to fetch registered and approved vehicles  
   // Approve a vehicle registration
   const handleApprove = async (vehicle) => {
     const { value: registrationNumber } = await Swal.fire({
@@ -112,7 +120,7 @@ const PendingRegistrationsDetails = () => {
           'http://localhost:8085/api/approveRegistration',
           {
             transactionId: vehicle.TransactionId,  // Send transaction ID from the backend for this vehicle
-            approvedBy: user.id,                   // Use the logged-in government user ID (from AuthContext)
+            approvedBy: loggedInUserId,                   // Use the logged-in government user ID (from AuthContext)
             registrationNumber: registrationNumber // The registration number entered by the user
           },
           {
