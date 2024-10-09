@@ -1,18 +1,64 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import AuthContext from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import SideNavBar from '../components/SideNavBar';  // Import SideNavBar
-import TopNavBar from '../components/TopNavBar';    // Import TopNavBar
+import SideNavBar from '../components/SideNavBar';
+import TopNavBar from '../components/TopNavBar';
+import { FaCar, FaPalette, FaCogs, FaBarcode } from 'react-icons/fa';
+
+const InputField = ({ icon, label, name, type, value, onChange, required }) => (
+  <motion.div
+    className="mb-4"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+    <motion.div
+      className="relative rounded-lg shadow-lg overflow-hidden"
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        {React.cloneElement(icon, { className: "text-[#F38120] w-6 h-6" })}
+      </div>
+      <input
+        type={type}
+        name={name}
+        id={name}
+        required={required}
+        className="block w-full pl-12 pr-3 py-2 text-base border-2 border-gray-300 rounded-lg focus:ring-[#F38120] focus:border-[#F38120] transition-all duration-300 bg-[#EEEEEE] bg-opacity-50 backdrop-blur-none"
+        placeholder={label}
+        value={value}
+        onChange={onChange}
+      />
+      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+        <motion.div
+          className="w-2 h-2 bg-[#F38120] rounded-full"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.5, 1, 0.5],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
+    </motion.div>
+  </motion.div>
+);
 
 export default function UserVehicleRegister() {
-  const { user, logout } = useContext(AuthContext); // Get user from AuthContext
+  const { user, logout } = useContext(AuthContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(true);
   const navigate = useNavigate();
 
-  // Form state
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -29,75 +75,50 @@ export default function UserVehicleRegister() {
     navigate('/signin');
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsAnimating(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Log the user object to ensure it's available
-    console.log('User:', user);
-
-    // Ensure user is logged in and user object exists
     if (!user || !user.id) {
       setError('You must be logged in to register a vehicle.');
       return;
     }
 
-    // Validation to check if all required fields are provided
     if (!formData.make || !formData.model || !formData.year || !formData.chassisNumber || !formData.engineNumber) {
       setError('All fields must be filled out.');
       return;
     }
 
-    // Prepare the registration data, including ownerId from logged-in user
     const vehicleData = {
-      ownerId: user.id, // Automatically include the logged-in user's ID
+      ownerId: user.id,
       make: formData.make,
       model: formData.model,
-      year: parseInt(formData.year), // Ensure year is an integer
-      color: formData.color || null, // Optional color field
+      year: parseInt(formData.year),
+      color: formData.color || null,
       chassisNumber: formData.chassisNumber,
       engineNumber: formData.engineNumber
     };
 
-    console.log('Vehicle Data being sent:', vehicleData);
-
     try {
-      // Get the token from localStorage or AuthContext
       const token = localStorage.getItem('token');
-
-      // Post formData to the API with Authorization header
       const response = await axios.post('http://localhost:8085/api/registerVehicle', vehicleData, {
         headers: {
-          Authorization: `Bearer ${token}`, // Include Bearer token
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (response.status === 200) {
-        // Display SweetAlert notification
         Swal.fire({
           title: 'Vehicle Registered!',
           text: 'Waiting for government approval.',
           icon: 'info',
           confirmButtonText: 'OK',
         });
-        console.log('Vehicle registered:', response.data);
-
-        // Reset form data after submission
         setFormData({
           make: '',
           model: '',
@@ -108,133 +129,123 @@ export default function UserVehicleRegister() {
         });
       }
     } catch (error) {
-      // Handle error and log the response for debugging
       console.error('Error response from server:', error.response ? error.response.data : error.message);
       setError('There was an error registering the vehicle. Please make sure all fields are filled.');
     }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden relative">
-      {/* Background animation */}
-      <div
-        className="absolute inset-0 z-[-1]"
-        style={{
-          backgroundColor: '#EADFB4',
-          backgroundImage: 'linear-gradient(-60deg, #F38120 50%, #EADFB4 50%)',
-          //animation: isAnimating ? 'slide 1s ease-in-out forwards' : 'none',
-        }}
-      />
-      <style jsx>{`
-        @keyframes slide {
-          0% {
-            transform: translateX(-25%);
-          }
-          100% {
-            transform: translateX(0);
-          }
-        }
-      `}</style>
+    <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+      <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="flex flex-1 overflow-hidden">
+        <SideNavBar
+          logout={handleLogout}
+          navOpen={sidebarOpen}
+          toggleNav={() => setSidebarOpen(!sidebarOpen)}
+          userRole="user"
+        />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-5 flex flex-col">
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-6"
+          >
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620] text-center">
+              Vehicle Registration
+            </h1>
+          </motion.div>
 
-      {/* Sidebar */}
-      <SideNavBar logout={handleLogout} navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} />
-
-      {/* Main content */}
-      <div className={`flex-1 overflow-x-hidden overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
-        {/* Top Navbar */}
-        <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
-
-        {/* Page Content */}
-        <main className="bg-transparent p-6 lg:p-20 min-h-screen">
-          <h1 className="text-4xl font-bold text-[#373A40] text-center mb-10">Vehicle Registration</h1>
-
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit} className="space-y-6 relative mx-auto bg-[#EADFB4] bg-opacity-30 backdrop-blur-sm p-8 rounded-lg shadow-lg w-[80%] lg:w-[60%] h-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="make" className="block text-lg font-medium text-[#373A40]">Vehicle Make</label>
-                <input
-                  type="text"
-                  id="make"
-                  name="make"
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  required
-                  value={formData.make}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="model" className="block text-lg font-medium text-[#373A40]">Vehicle Model</label>
-                <input
-                  type="text"
-                  id="model"
-                  name="model"
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  required
-                  value={formData.model}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="year" className="block text-lg font-medium text-[#373A40]">Year of Manufacture</label>
-                <input
-                  type="number"
-                  id="year"
-                  name="year"
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  required
-                  value={formData.year}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="color" className="block text-lg font-medium text-[#373A40]">Color</label>
-                <input
-                  type="text"
-                  id="color"
-                  name="color"
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  value={formData.color}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="chassisNumber" className="block text-lg font-medium text-[#373A40]">Chassis Number</label>
-                <input
-                  type="text"
-                  id="chassisNumber"
-                  name="chassisNumber"
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  required
-                  value={formData.chassisNumber}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="engineNumber" className="block text-lg font-medium text-[#373A40]">Engine Number</label>
-                <input
-                  type="text"
-                  id="engineNumber"
-                  name="engineNumber"
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#F38120] focus:border-[#F38120]"
-                  required
-                  value={formData.engineNumber}
-                  onChange={handleChange}
-                />
-              </div>
+          <motion.form
+            onSubmit={handleSubmit}
+            className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg shadow-2xl rounded-2xl p-6 max-w-4xl mx-auto flex-grow flex flex-col justify-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField
+                icon={<FaCar />}
+                label="Vehicle Make"
+                name="make"
+                type="text"
+                value={formData.make}
+                onChange={handleChange}
+                required
+              />
+              <InputField
+                icon={<FaCar />}
+                label="Vehicle Model"
+                name="model"
+                type="text"
+                value={formData.model}
+                onChange={handleChange}
+                required
+              />
+              <InputField
+                icon={<FaCogs />}
+                label="Year of Manufacture"
+                name="year"
+                type="number"
+                value={formData.year}
+                onChange={handleChange}
+                required
+              />
+              <InputField
+                icon={<FaPalette />}
+                label="Color"
+                name="color"
+                type="text"
+                value={formData.color}
+                onChange={handleChange}
+              />
+              <InputField
+                icon={<FaBarcode />}
+                label="Chassis Number"
+                name="chassisNumber"
+                type="text"
+                value={formData.chassisNumber}
+                onChange={handleChange}
+                required
+              />
+              <InputField
+                icon={<FaBarcode />}
+                label="Engine Number"
+                name="engineNumber"
+                type="text"
+                value={formData.engineNumber}
+                onChange={handleChange}
+                required
+              />
             </div>
 
-            <div className="text-center mt-6">
+            <motion.div
+              className="mt-6 flex justify-center"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <button
                 type="submit"
-                className="px-6 py-2 bg-[#F38120] text-white rounded-md hover:bg-[#DC5F00] transition-all duration-300"
+                className="px-8 py-3 bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg font-semibold"
               >
                 Register Vehicle
               </button>
-            </div>
-          </form>
+            </motion.div>
+          </motion.form>
 
-          {error && <p className="text-red-500 mt-4">{error}</p>}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <p>{error}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
     </div>
