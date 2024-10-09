@@ -10,6 +10,7 @@ import TopNavBar from '../components/TopNavBar';
 const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Toggle vehicle details display
   const toggleDetails = () => {
     setIsExpanded(!isExpanded);
   };
