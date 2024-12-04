@@ -252,6 +252,13 @@ const approveVehicleRegistration = async (transactionId, approvedBy, registratio
         .execute('ApproveVehicleRegistration');
 };
 
+const rejectVehicleRequest = async (transactionId) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('TransactionId', sql.UniqueIdentifier, transactionId)
+        .execute('RejectVehicleRequest');
+};
+
 const requestOwnershipTransfer = async (vehicleId, currentOwnerId, newOwnerCnic, transferFee) => {
     const pool = await poolPromise;
     return pool.request()
@@ -290,6 +297,7 @@ module.exports = {
     getTransactions,
     requestVehicleRegistration,
     approveVehicleRegistration,
+    rejectVehicleRequest,
     requestOwnershipTransfer,
     approveOwnershipTransfer,
     updateVehicleStatus,
