@@ -1,45 +1,54 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode"; // Named import for jwtDecode
 
-// Create the AuthContext
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // User state to store logged-in user info
-  const [loading, setLoading] = useState(true); // Loading state to track authentication status
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Effect to load user profile if token exists in localStorage
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`; // Set token in axios headers
-      axios
-        .get('http://localhost:8085/api/profile') // Fetch user profile
-        .then((response) => {
-          console.log('User profile response:', response.data);
-          setUser(response.data.user); // Set user data on successful response
+
+    const storedToken = localStorage.getItem('token'); // Retrieve token from localStorage
+    if (storedToken) {
+      setToken(storedToken);
+      const decoded = jwtDecode(storedToken); // Decode JWT token
+      console.log('Response from JWT', decoded);
+      const userID = decoded.userId; // Extract userId from decoded token
+      console.log("Auth Context user id:", userID);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`; // Set token in axios headers
+
+      // Fetch user data with the token
+      axios.get(`http://localhost:8085/api/user/${userID}`)
+        .then(response => {
+          console.log(response.data);
+          setUser(response.data); // Set user data from the response
+          setLoading(false); // Stop loading after user data is fetched
         })
-        .catch((error) => {
-          console.error('Failed to fetch user profile', error);
-          logout(); // Logout if fetching profile fails (invalid token, etc.)
+        .catch(error => {
+          console.error('Error fetching user data:', error);
+          setLoading(false); // Stop loading even if there's an error
         });
     } else {
       setLoading(false); // Stop loading if no token is found
     }
   }, []);
 
-  // Function to handle login
   const login = async (email, password) => {
     try {
       const response = await axios.post('http://localhost:8085/api/login', { email, password });
       localStorage.setItem('token', response.data.token); // Store token in localStorage
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`; // Set token in axios
+      setToken(response.data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`; // Set token in axios headers
       console.log('Login successful:', response.data);
-      setUser(response.data.user); // Set user data (including role and id) after successful login
-      return response.data.user; // Return user object
+      setUser(response.data.user); // Set user data after successful login
+      setLoading(false);
+      return response.data.user;
     } catch (error) {
       console.error('Login error:', error.response?.data?.msg || 'Login failed');
-      throw new Error(error.response?.data?.msg || 'Login failed'); // Throw an error if login fails
+      setLoading(false); // Stop loading if login fails
     }
   };
 
@@ -48,13 +57,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token'); // Remove token from localStorage
     delete axios.defaults.headers.common['Authorization']; // Remove token from axios headers
     setUser(null); // Reset user state to null
+    setLoading(false); // Stop loading after logout
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {!loading && children} {/* Only render children when not loading */}
+    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+      {loading ? <div>Loading...</div> : children} {/* Show loading spinner if still loading */}
     </AuthContext.Provider>
   );
 };
 
-export default AuthContext;
+export { AuthContext, AuthProvider };

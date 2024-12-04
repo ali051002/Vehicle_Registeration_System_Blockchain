@@ -207,11 +207,13 @@ const registerVehicle = async (req, res) => {
 const approveRegistration = async (req, res) => {
     const { transactionId, approvedBy, registrationNumber } = req.body;
 
+    // Check if all required fields are provided
     if (!transactionId || !approvedBy || !registrationNumber) {
         return res.status(400).json({ msg: "All required fields must be provided" });
     }
 
     try {
+        // Call the function to approve the vehicle registration
         await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
         res.status(200).json({ msg: "Vehicle registration approved successfully." });
     } catch (err) {
@@ -234,6 +236,7 @@ const rejectRequest = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
+
 
 // Update vehicle status (Approve or Reject)
 const updateVehicleStatusController = async (req, res) => {

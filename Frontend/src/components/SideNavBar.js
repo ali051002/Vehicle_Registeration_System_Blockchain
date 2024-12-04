@@ -1,8 +1,9 @@
 import React from 'react';
-import { FaBars, FaHome, FaCog, FaSignOutAlt, FaBell } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { FaHome, FaCog, FaSignOutAlt, FaBell } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
-export default function SideNavBar({ logout, navOpen, toggleNav, userRole }) {
+const SideNavBar = ({ logout, navOpen, toggleNav, userRole }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -10,59 +11,89 @@ export default function SideNavBar({ logout, navOpen, toggleNav, userRole }) {
     navigate('/signin');
   };
 
-  // Determine the dashboard link based on the user role
   const getDashboardLink = () => {
-    if (userRole === 'governmentOfficial') {
-      return '/government-official-dashboard';  // Route for government officials
-    }
-    return '/user-dashboard';  // Route for regular users
+    return userRole === 'governmentOfficial' ? '/government-official-dashboard' : '/user-dashboard';
+  };
+
+  const sidebarVariants = {
+    open: { width: '16rem', transition: { duration: 0.3, type: 'spring', stiffness: 300, damping: 30 } },
+    closed: { width: '4rem', transition: { duration: 0.3, type: 'spring', stiffness: 300, damping: 30 } },
+  };
+
+  const linkVariants = {
+    open: { opacity: 1, x: 0, display: 'block', transition: { duration: 0.2 } },
+    closed: { opacity: 0, x: -20, display: 'none', transition: { duration: 0.2 } },
+  };
+
+  const iconVariants = {
+    open: { rotate: 0 },
+    closed: { rotate: 360 },
   };
 
   return (
-    <div
-      className={`fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out 
-      ${navOpen ? 'w-64' : 'w-16'} flex flex-col justify-between  `}
+    <motion.div
+      className="bg-gradient-to-b from-[#4A4D52] to-[#3A3D42] shadow-lg flex flex-col justify-between"
+      initial="closed"
+      animate={navOpen ? 'open' : 'closed'}
+      variants={sidebarVariants}
     >
-      {/* Top Section with Hamburger Button */}
-      <div>
-        <div className="flex items-center justify-between h-16 px-4">
-          <button onClick={toggleNav} className="p-2 rounded-md hover:bg-white hover:bg-opacity-20 text-[#F38120]">
-            <FaBars />
-          </button>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="mt-8 space-y-4">
-          {/* Dashboard Link */}
-          <Link to={getDashboardLink()} className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#F38120]">
-            <FaHome className="w-5 h-5" />
-            {navOpen && <span className="ml-4">Dashboard</span>}
-          </Link>
-
-          {/* Notifications */}
-          <Link to="/notifications" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#F38120]">
-            <FaBell className="w-5 h-5" />
-            {navOpen && <span className="ml-4">Notifications</span>}
-          </Link>
-
-          {/* Settings */}
-          <Link to="/settings" className="flex items-center px-4 py-2 text-sm hover:bg-white hover:bg-opacity-20 text-[#F38120]">
-            <FaCog className="w-5 h-5" />
-            {navOpen && <span className="ml-4">Settings</span>}
-          </Link>
-        </nav>
-      </div>
-
-      {/* Logout Button */}
-      <div className="mb-4">
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center w-full px-4 py-2 hover:bg-white hover:bg-opacity-20 text-[#F38120]"
+      <nav className="mt-8 space-y-4">
+        <motion.div
+          className="flex items-center px-4 py-2 text-white hover:bg-[#F38120] transition-colors duration-200 rounded-l-full"
+          whileHover={{ x: 5 }}
         >
-          <FaSignOutAlt className="w-5 h-5" />
-          {navOpen && <span className="ml-4">Logout</span>}
-        </button>
+          <Link to={getDashboardLink()} className="flex items-center w-full">
+            <motion.div variants={iconVariants}>
+              <FaHome className="w-5 h-5" />
+            </motion.div>
+            <motion.span className="ml-4" variants={linkVariants}>
+              Dashboard
+            </motion.span>
+          </Link>
+        </motion.div>
+        <motion.div
+          className="flex items-center px-4 py-2 text-white hover:bg-[#F38120] transition-colors duration-200 rounded-l-full"
+          whileHover={{ x: 5 }}
+        >
+          <Link to="/notifications" className="flex items-center w-full">
+            <motion.div variants={iconVariants}>
+              <FaBell className="w-5 h-5" />
+            </motion.div>
+            <motion.span className="ml-4" variants={linkVariants}>
+              Notifications
+            </motion.span>
+          </Link>
+        </motion.div>
+        <motion.div
+          className="flex items-center px-4 py-2 text-white hover:bg-[#F38120] transition-colors duration-200 rounded-l-full"
+          whileHover={{ x: 5 }}
+        >
+          <Link to="/settings" className="flex items-center w-full">
+            <motion.div variants={iconVariants}>
+              <FaCog className="w-5 h-5" />
+            </motion.div>
+            <motion.span className="ml-4" variants={linkVariants}>
+              Settings
+            </motion.span>
+          </Link>
+        </motion.div>
+      </nav>
+      <div className="mb-8">
+        <motion.button
+          onClick={handleLogout}
+          className="flex items-center justify-center w-full px-4 py-2 text-white hover:bg-[#F38120] transition-colors duration-200 rounded-l-full"
+          whileHover={{ x: 5 }}
+        >
+          <motion.div variants={iconVariants}>
+            <FaSignOutAlt className="w-5 h-5" />
+          </motion.div>
+          <motion.span className="ml-4" variants={linkVariants}>
+            Logout
+          </motion.span>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
-}
+};
+
+export default SideNavBar;

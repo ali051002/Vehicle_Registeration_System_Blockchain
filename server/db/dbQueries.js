@@ -1,5 +1,6 @@
 const { sql, poolPromise } = require('./dbConfig');
 const bcrypt = require('bcrypt');
+const { response } = require('express');
 const jwt = require('jsonwebtoken');
 
 // Create a new user (Signup)
@@ -43,7 +44,7 @@ const getUserByEmail = async (email) => {
 const loginUser = async (email, password) => {
     // Fetch the user by email
     const user = await getUserByEmail(email);
-    
+    console.log(user._id)
     // If the user does not exist, throw an error
     if (!user) {
         throw new Error('Invalid email or password');
@@ -58,7 +59,7 @@ const loginUser = async (email, password) => {
     }
 
     // Generate JWT token if credentials are correct
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Return token and user data including role and id
     return {
@@ -100,9 +101,11 @@ const getUserByName = async (userName) => {
 // Get user by ID
 const getUserById = async (userId) => {
     const pool = await poolPromise;
+    // response = 
+    // console.log(response)
     return pool.request()
-        .input('UserId', sql.UniqueIdentifier, userId)
-        .execute('sp_GetUserById');
+    .input('UserId', sql.UniqueIdentifier, userId)
+    .execute('sp_GetUserById');
 };
 
 // Update user

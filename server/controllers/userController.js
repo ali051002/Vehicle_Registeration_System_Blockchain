@@ -81,10 +81,13 @@ const fetchUserById = async (req, res) => {
     }
     try {
         const result = await getUserById(userId);
+        
         if (!result) {
             return res.status(404).json({ msg: "User not found" });
         }
-        res.status(200).json(result);
+        res.status(200).json(
+        result.recordsets[0][0]
+        );
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }

@@ -1,24 +1,29 @@
 import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
-import AuthContext from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 
 const PrivateRoute = ({ children, role }) => {
-  const { user } = useContext(AuthContext); // Get the current user from the AuthContext
+  const { user, loading } = useContext(AuthContext);
 
-  // If no user is logged in, redirect to the sign-in page
-  if (!user) {
-    return <Navigate to="/signin" />;  // Redirects to sign-in if no user is found
+  // Show a loading spinner or message while authentication is being verified
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  // If a specific role is required and the user doesn't match, redirect based on the user's role
+  // If user is not logged in, redirect to the login page
+  if (!user && !localStorage.getItem('token')) {
+    console.log('Page rerouting to sign in due to no token'+ user + 'token ' + localStorage.getItem('token'))
+    return <Navigate to="/signin" />;
+  }
+
+
+  // If the route requires a specific role and the user doesn't have it, redirect them
   if (role && user.role !== role) {
-    if (user.role === 'government official') {
-      return <Navigate to="/government-official-dashboard" />;  // Redirect to government dashboard if role mismatch
-    }
-    return <Navigate to="/user-dashboard" />;  // Default redirect for normal users
+    return <Navigate to="/signin" />;
   }
 
-  // Render the children (protected component) if the user is authenticated and has the correct role
+  console.log(children);
+  // If authenticated and role matches (or no role required), render the component
   return children;
 };
 
