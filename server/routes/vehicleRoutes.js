@@ -12,6 +12,8 @@ router.post('/vehiclesByOwner', vehicleController.fetchVehiclesByOwner);
 router.post('/registerVehicleRequest', vehicleController.registerVehicle);
 // Approve Register a vehicle(use)
 router.post('/approveRegistration', vehicleController.approveRegistration);
+// Reject Request(use)
+router.post('/rejectRequest', vehicleController.rejectRequest);
 
 // Request ownership transfer(use)
 router.post('/transferOwnership', vehicleController.transferOwnership);

@@ -7,6 +7,7 @@ const {
     deleteVehicle,
     requestVehicleRegistration,
     approveVehicleRegistration,
+    rejectVehicleRequest,
     requestOwnershipTransfer,
     approveOwnershipTransfer,
     getVehiclesByOwnerCNIC,
@@ -222,6 +223,22 @@ const approveRegistration = async (req, res) => {
 };
 
 
+const rejectRequest = async (req, res) => {
+    const { transactionId } = req.body;
+
+    if (!transactionId) {
+        return res.status(400).json({ msg: "All required fields must be provided" });
+    }
+
+    try {
+        await rejectVehicleRequest(transactionId);
+        res.status(200).json({ msg: "Request rejected successfully." });
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+
 // Update vehicle status (Approve or Reject)
 const updateVehicleStatusController = async (req, res) => {
     const { vehicleId, status } = req.body;
@@ -322,6 +339,7 @@ module.exports = {
     removeVehicle,
     registerVehicle,
     approveRegistration,
+    rejectRequest,
     updateVehicleStatusController, // Added vehicle status update controller
     transferOwnership,
     approveTransfer,
