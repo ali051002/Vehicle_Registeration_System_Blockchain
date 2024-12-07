@@ -5,7 +5,10 @@ import { FaUser, FaIdCard, FaMoneyBillWave, FaExchangeAlt } from 'react-icons/fa
 import { AuthContext } from '../context/AuthContext';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
+import axios from 'axios'; // Import axios for API calls
+import { jwtDecode } from 'jwt-decode';
 
+// TransferForm Component
 const TransferForm = ({ onSubmit, formData, setFormData }) => {
   return (
     <motion.form
@@ -19,15 +22,15 @@ const TransferForm = ({ onSubmit, formData, setFormData }) => {
         <h3 className="text-2xl font-bold text-[#4A4D52] mb-6">Transfer Vehicle Ownership</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="name" className="font-semibold text-[#F38120] mb-1 block">Name</label>
+            <label htmlFor="fees" className="font-semibold text-[#F38120] mb-1 block">Fees</label>
             <div className="flex items-center">
-              <FaUser className="text-[#F38120] mr-2" />
+              <FaMoneyBillWave className="text-[#F38120] mr-2" />
               <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                type="number"
+                id="fees"
+                name="fees"
+                value={formData.fees}
+                onChange={(e) => setFormData({ ...formData, fees: e.target.value })}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#F38120] focus:border-[#F38120]"
                 required
               />
@@ -43,21 +46,6 @@ const TransferForm = ({ onSubmit, formData, setFormData }) => {
                 name="cnic"
                 value={formData.cnic}
                 onChange={(e) => setFormData({ ...formData, cnic: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#F38120] focus:border-[#F38120]"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="fees" className="font-semibold text-[#F38120] mb-1 block">Fees</label>
-            <div className="flex items-center">
-              <FaMoneyBillWave className="text-[#F38120] mr-2" />
-              <input
-                type="text"
-                id="fees"
-                name="fees"
-                value={formData.fees}
-                onChange={(e) => setFormData({ ...formData, fees: e.target.value })}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#F38120] focus:border-[#F38120]"
                 required
               />
@@ -81,29 +69,52 @@ const TransferForm = ({ onSubmit, formData, setFormData }) => {
 const UserTransferTo = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const { vehicleId } = useParams();
+  const { vehicleId } = useParams(); // Get vehicleId from the URL
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
     cnic: '',
     fees: '',
   });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const storedToken = localStorage.getItem('token');
+  console.log("Token: ", storedToken);
+  const decoded = jwtDecode(storedToken);
+  const loggedInUserId = decoded.userId;
+
+  console.log(loggedInUserId, formData.cnic, formData.fees, vehicleId);
 
   const handleLogout = () => {
     logout();
     navigate('/signin');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.cnic) {
-      alert('Please fill out the required CNIC field.');
+    if (!formData.cnic || !formData.fees) {
+      alert('Please fill out all required fields.');
       return;
     }
-    // Submit logic here
-    console.log('Submitting transfer request:', formData);
-    // After submission, you might want to navigate back or to a confirmation page
-    // navigate('/transfer-confirmation');
+
+    try {
+      // Make API request to transfer ownership
+      const response = await axios.post('http://localhost:8085/api/transferOwnership', {
+        vehicleId,
+        currentOwnerId: loggedInUserId,
+        newOwnerCnic: formData.cnic,
+        transferFee: formData.fees,
+      });
+
+      setSuccessMessage(response.data.msg);
+      console.log('Transfer request submitted successfully:', response.data.msg);
+      setTimeout(() => {
+        navigate('/user-dashboard'); // Redirect after success
+      }, 2000); // Redirect after a delay
+    } catch (error) {
+      console.error('Error transferring ownership:', error.response?.data?.msg || error.message);
+      setErrorMessage(error.response?.data?.msg || 'Failed to submit transfer request.');
+    }
   };
 
   return (
@@ -138,6 +149,27 @@ const UserTransferTo = () => {
                 </p>
               )}
             </motion.div>
+
+            {successMessage && (
+              <motion.p
+                className="text-green-500 text-center mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                {successMessage}
+              </motion.p>
+            )}
+            {errorMessage && (
+              <motion.p
+                className="text-red-500 text-center mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                {errorMessage}
+              </motion.p>
+            )}
 
             <AnimatePresence>
               <motion.div

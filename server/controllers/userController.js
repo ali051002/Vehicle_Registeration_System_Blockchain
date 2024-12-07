@@ -5,7 +5,8 @@ const {
     getUserByName, 
     getUserById, 
     updateUser, 
-    deleteUser 
+    deleteUser ,
+    
 } = require('../db/dbQueries');
 
 // Create User Controller (Signup)
@@ -119,6 +120,24 @@ const removeUser = async (req, res) => {
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
+
+
+    const fetchGovernmentOfficialById = async (req, res) => {
+        const officialId = req.params.id;
+        if (!officialId) {
+            return res.status(400).json({ msg: "Government Official ID is required" });
+        }
+        try {
+            const result = await getUserById(officialId);
+            
+            if (!result) {
+                return res.status(404).json({ msg: "Government Official not found" });
+            }
+            res.status(200).json(result.recordsets[0][0]);  // Adjust this to match the returned data structure
+        } catch (err) {
+            res.status(500).json({ msg: err.message });
+        }
+}
 };
 
 module.exports = {
@@ -128,5 +147,8 @@ module.exports = {
     fetchUserByName,
     fetchUserById,
     modifyUser,
-    removeUser
+    removeUser,
+    
+    
+    
 };

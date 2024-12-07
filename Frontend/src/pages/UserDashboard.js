@@ -1,8 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCarAlt, FaExchangeAlt, FaFileAlt, FaChevronRight, FaUser } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import {AuthContext} from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
 import UserProfile from '../components/UserProfile';
@@ -38,12 +38,12 @@ const FeatureCard = ({ icon, title, description, onClick }) => {
     </motion.div>
   );
 };
-// ... (FeatureCard component remains unchanged)
 
 const UserDashboard = () => {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(true);
   const navigate = useNavigate();
   const userRole = 'user';
 
@@ -52,18 +52,20 @@ const UserDashboard = () => {
     navigate('/signin');
   };
 
-  // Set animation timeout on component mount
+  const toggleProfile = () => {
+    setProfileOpen(!profileOpen);
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      if(localStorage.getItem('token')!= null){
-        navigate('/user-dashboard')
-
+      if(localStorage.getItem('token') != null){
+        navigate('/user-dashboard');
       }
       setIsAnimating(false);  // Disable animation after 3 seconds
     }, 3000);
 
     return () => clearTimeout(timer);  // Clear timer on component unmount
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">

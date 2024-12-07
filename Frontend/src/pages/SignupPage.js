@@ -1,13 +1,17 @@
 // src/pages/SignUpPage.js
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 import { BiUser, BiLockAlt, BiEnvelope, BiPhone, BiIdCard, BiMapPin } from 'react-icons/bi';
 import { FaArrowRight, FaExclamationCircle } from 'react-icons/fa';
+import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
+import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+import Loading from './Loading';
 
-export default function SignUpPage() {
+export default function SignupPage() {
+  // State variables
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,55 +19,116 @@ export default function SignUpPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [addressDetails, setAddressDetails] = useState('');
   const [role, setRole] = useState('user');
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false); 
+    }, 3000);
+    return () => clearTimeout(timer); 
+  }, []);
 
+  if (loading) {
+    return <Loading />;
+  }
+
+  // Validation patterns
+  const namePattern = /^[A-Za-z.\s]+$/;
+  const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const cnicPattern = /^\d{5}-\d{7}-\d{1}$/;
+
+  // Form validation function
+  const validateForm = () => {
     if (!username || !email || !password || !cnic || !phoneNumber || !addressDetails) {
-      setIsLoading(false);
-      
-      // Custom styled error popup using Tailwind CSS classes
-      Swal.fire({
-        html: `
-          <div class="flex flex-col items-center">
-            <FaExclamationCircle class="text-6xl text-[#F38120] mb-4" />
-            <p class="text-xl text-white">All fields are required!</p>
-          </div>
-        `,
-        background: '#171717',
-        color: '#EEEEEE',
-        showConfirmButton: true,
-        confirmButtonColor: '#F38120',
-      });
-      return;
+      setError('All fields are required.');
+      return false;
     }
 
+    if (!namePattern.test(username)) {
+      setError('Username must contain only English letters, spaces, and dots.');
+      return false;
+    }
+
+    if (!passwordPattern.test(password)) {
+      setError('Password must be at least 8 characters long, contain at least one special character, and one number.');
+      return false;
+    }
+
+    if (!cnicPattern.test(cnic)) {
+      setError('CNIC must be in XXXXX-XXXXXXX-X format.');
+      return false;
+    }
+
+    return true;
+  };
+
+  // Handle profile picture upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfilePicture(reader.result); // Sets the base64 string for the image
+    };
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null); // Reset error
+
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
     try {
-      // Simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setIsLoading(false);
-      setIsRedirecting(true);
-      
-      // Simulate redirection delay
-      setTimeout(() => {
-        setIsRedirecting(false);
-        if (role === 'admin') {
-          navigate('/admin-dashboard');
-        } else if (role === 'government official') {
-          navigate('/government-official-dashboard');
-        } else {
-          navigate('/user-dashboard');
-        }
-      }, 2000);
+      const response = await axios.post('http://localhost:8085/api/user', {
+        name: username,
+        email,
+        password,
+        cnic,
+        phoneNumber,
+        addressDetails,
+        role,
+        profilePicture,  // Include profile picture in the request
+      });
+
+      if (response.status === 201) {
+        setIsLoading(false);
+        setIsRedirecting(true);
+
+        Swal.fire({
+          title: 'Success!',
+          text: 'User created successfully. You can now sign in.',
+          icon: 'success',
+          confirmButtonColor: '#F38120',
+          confirmButtonText: 'Sign In',
+          background: '#EADFB4',
+          backdrop: `
+            rgba(0,0,0,0.4)
+            url("/images/success.gif")
+            left top
+            no-repeat
+          `,
+        }).then(() => {
+          navigate('/signin');
+        });
+      }
     } catch (err) {
+      console.error('Error during registration:', err.response || err.message);
       setIsLoading(false);
       Swal.fire({
         title: 'Error!',
-        text: 'Sign up failed. Please try again.',
+        text: err.response?.data?.message || 'Registration failed. Please try again.',
         icon: 'error',
         confirmButtonColor: '#F38120',
       });
@@ -73,6 +138,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#686D76] text-white p-4">
       <div className="w-full max-w-4xl flex flex-col md:flex-row bg-[#EEEEEE] rounded-lg shadow-2xl overflow-hidden">
+        {/* Left Section - Branding */}
         <motion.div 
           className="md:w-1/3 flex flex-col justify-center items-center p-6 bg-[#EEEEEE]"
           initial={{ opacity: 0, x: -50 }}
@@ -90,13 +156,24 @@ export default function SignUpPage() {
           />
         </motion.div>
 
+        {/* Right Section - Sign Up Form */}
         <motion.div 
-          className="md:w-2/3 bg-[#171717] rounded-border-20 p-6"
+          className="md:w-2/3 bg-[#171717] rounded-lg p-6 flex flex-col justify-center" // Changed 'rounded-border-20' to 'rounded-lg'
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <h2 className="text-2xl font-bold mb-4 text-center text-[#F38120]">Sign Up</h2>
+          
+          {/* Display Error Message */}
+          {error && (
+            <div className="flex items-center bg-red-500 text-white px-4 py-2 rounded mb-4">
+              <FaExclamationCircle className="mr-2" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Sign Up Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <InputField
@@ -132,7 +209,7 @@ export default function SignUpPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <InputField
-                icon={<BiPhone />}
+                icon={<AiOutlinePhone />}
                 type="text"
                 placeholder="Phone Number"
                 value={phoneNumber}
@@ -146,6 +223,25 @@ export default function SignUpPage() {
                 onChange={setAddressDetails}
               />
             </div>
+
+            {/* Profile Picture Upload */}
+            <motion.div
+              className="relative col-span-full"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, easeInOut: 'easeInOut' }}
+            >
+              <label className="text-[#F38120] font-semibold mb-2 block">Profile Picture</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="w-full p-3 bg-gray-200 text-black rounded-lg border border-gray-400"
+              />
+              {profilePicture && (
+                <img src={profilePicture} alt="Profile Preview" className="mt-2 w-24 h-24 object-cover rounded-full" />
+              )}
+            </motion.div>
 
             {/* Role Selection */}
             <motion.div
@@ -172,6 +268,7 @@ export default function SignUpPage() {
               </div>
             </motion.div>
 
+            {/* Submit Button */}
             <motion.button
               type="submit"
               className="w-full py-2 px-4 bg-[#F38120] text-white rounded-lg flex items-center justify-center space-x-2 hover:bg-[#e0701c] transition duration-300 ease-in-out transform hover:scale-105"
@@ -193,6 +290,36 @@ export default function SignUpPage() {
               )}
             </motion.button>
           </form>
+
+          {/* Redirecting Indicator */}
+          <AnimatePresence>
+            {(isLoading || isRedirecting) && (
+              <motion.div
+                className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  className="bg-[#171717] p-8 rounded-lg shadow-lg text-center"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                >
+                  <motion.div
+                    className="w-16 h-16 border-t-4 border-[#F38120] rounded-full mx-auto mb-4"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                  <p className="text-xl font-semibold text-[#F38120]">
+                    {isLoading ? "Signing you up..." : "Redirecting to your dashboard..."}
+                  </p>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Sign In Link */}
           <motion.p 
             className="mt-4 text-center text-[#EEEEEE] text-sm"
             initial={{ opacity: 0, y: 20 }}
@@ -200,42 +327,17 @@ export default function SignUpPage() {
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             Already have an account?{' '}
-            <a href="/signin" className="text-[#F38120] hover:underline">
+            <Link to="/signin" className="text-[#F38120] hover:underline">
               Sign In
-            </a>
+            </Link>
           </motion.p>
         </motion.div>
       </div>
-      <AnimatePresence>
-        {(isLoading || isRedirecting) && (
-          <motion.div
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-[#171717] p-8 rounded-lg shadow-lg text-center"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-            >
-              <motion.div
-                className="w-16 h-16 border-t-4 border-[#F38120] rounded-full mx-auto mb-4"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              />
-              <p className="text-xl font-semibold text-[#F38120]">
-                {isLoading ? "Signing you up..." : "Redirecting to your dashboard..."}
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
 
+// Reusable InputField Component
 function InputField({ icon, type, placeholder, value, onChange }) {
   return (
     <motion.div
@@ -244,7 +346,7 @@ function InputField({ icon, type, placeholder, value, onChange }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-[#F38120]">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#F38120]">
         {icon}
       </div>
       <input
@@ -252,7 +354,7 @@ function InputField({ icon, type, placeholder, value, onChange }) {
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-8 pr-3 py-2 text-sm bg-[#686D76] text-[#EEEEEE] placeholder-[#EEEEEE] rounded-lg border border-[#EEEEEE] focus:border-[#F38120] focus:ring focus:ring-[#F38120] focus:ring-opacity-50 transition duration-300 ease-in-out"
+        className="w-full pl-10 pr-3 py-2 text-sm bg-[#686D76] text-[#EEEEEE] placeholder-[#EEEEEE] rounded-lg border border-[#EEEEEE] focus:border-[#F38120] focus:ring focus:ring-[#F38120] focus:ring-opacity-50 transition duration-300 ease-in-out"
       />
     </motion.div>
   );

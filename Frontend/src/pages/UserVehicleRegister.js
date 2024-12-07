@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import Swal from 'sweetalert2';
-
 
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
@@ -89,9 +88,17 @@ export default function UserVehicleRegister() {
     // Log the user object to ensure it's available
     console.log('User:', user);
 
-    console.log("User id: ", user.id)
+
+    const storedToken = localStorage.getItem('token');
+    console.log("Token: ", storedToken);
+    const decoded = jwtDecode(storedToken);
+    console.log("Decoded Token: ", decoded);
+    const loggedInUserId = decoded.userId;
+
+    console.log("User id :", loggedInUserId);
+
     // Ensure user is logged in and user object exists
-    if (!user || !user.id) {
+    if (!user || !loggedInUserId) {
       setError('You must be logged in to register a vehicle.');
       return;
     }
@@ -101,15 +108,6 @@ export default function UserVehicleRegister() {
       return;
     }
 
-    const storedToken = localStorage.getItem('token')
-    const decoded = jwtDecode(storedToken);
-    const loggedInUserId = decoded.userId;
-
-    console.log("User id :", loggedInUserId)
-
-  
-
-    console.log("User id :", loggedInUserId)
 
     const vehicleData = {
       ownerId: loggedInUserId, // Automatically include the logged-in user's ID
@@ -123,7 +121,7 @@ export default function UserVehicleRegister() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8085/api/registerVehicle', vehicleData, {
+      const response = await axios.post('http://localhost:8085/api/registerVehicleRequest', vehicleData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

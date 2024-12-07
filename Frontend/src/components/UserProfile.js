@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaTimes, FaUser, FaEnvelope, FaIdCard, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaTimes, FaIdCard, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 
 const UserProfile = ({ user, onClose }) => {
   const containerVariants = {
@@ -68,7 +68,9 @@ const UserProfile = ({ user, onClose }) => {
             </motion.button>
           </div>
         </motion.div>
+
         <div className="p-6 space-y-6">
+          {/* Profile Picture Section */}
           <motion.div 
             className="flex items-center space-x-4"
             variants={itemVariants}
@@ -78,11 +80,15 @@ const UserProfile = ({ user, onClose }) => {
               variants={iconVariants}
               whileHover="hover"
             >
-              <img
-                src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`}
-                alt="User Avatar"
-                className="w-20 h-20 rounded-full"
-              />
+           {/* Profile Picture Display */}
+<div className="flex items-center justify-center">
+  <img
+    src={user.profilePicture || '/c.png'}  // Fallback to default avatar
+    alt="User Avatar"
+    className="w-20 h-20 rounded-full object-cover"
+  />
+</div>
+
             </motion.div>
             <div>
               <motion.h4 
@@ -99,13 +105,15 @@ const UserProfile = ({ user, onClose }) => {
               </motion.p>
             </div>
           </motion.div>
+
+          {/* User Details Section */}
           <motion.div 
             className="space-y-4"
             variants={itemVariants}
           >
             <ProfileItem icon={<FaIdCard />} label="CNIC" value={user.cnic} itemVariants={itemVariants} iconVariants={iconVariants} />
-            <ProfileItem icon={<FaPhone />} label="Phone" value={user.phone} itemVariants={itemVariants} iconVariants={iconVariants} />
-            <ProfileItem icon={<FaMapMarkerAlt />} label="Address" value={user.address} itemVariants={itemVariants} iconVariants={iconVariants} />
+            <ProfileItem icon={<FaPhone />} label="Phone" value={user.phoneNumber} itemVariants={itemVariants} iconVariants={iconVariants} />
+            <ProfileItem icon={<FaMapMarkerAlt />} label="Address" value={user.addressDetails} itemVariants={itemVariants} iconVariants={iconVariants} />
           </motion.div>
         </div>
       </motion.div>
@@ -113,7 +121,7 @@ const UserProfile = ({ user, onClose }) => {
   );
 };
 
-// Pass itemVariants and iconVariants as props to ProfileItem
+// ProfileItem Component for displaying user details
 const ProfileItem = ({ icon, label, value, itemVariants, iconVariants }) => {
   return (
     <motion.div 

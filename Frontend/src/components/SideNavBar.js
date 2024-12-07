@@ -2,13 +2,37 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FaHome, FaCog, FaSignOutAlt, FaBell } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const SideNavBar = ({ logout, navOpen, toggleNav, userRole }) => {
   const navigate = useNavigate();
 
+  // Confirm logout with SweetAlert2 popup
   const handleLogout = () => {
-    logout();
-    navigate('/signin');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to log out?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#F38120',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, log out!',
+      cancelButtonText: 'Cancel',
+      background: '#fff',
+      backdrop: `rgba(0,0,0,0.4)`,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logout();
+        navigate('/signin');
+        Swal.fire({
+          title: 'Logged out',
+          text: 'You have been successfully logged out.',
+          icon: 'success',
+          confirmButtonColor: '#F38120',
+        });
+      }
+    });
   };
 
   const getDashboardLink = () => {
@@ -55,27 +79,13 @@ const SideNavBar = ({ logout, navOpen, toggleNav, userRole }) => {
           className="flex items-center px-4 py-2 text-white hover:bg-[#F38120] transition-colors duration-200 rounded-l-full"
           whileHover={{ x: 5 }}
         >
-          <Link to="/notifications" className="flex items-center w-full">
-            <motion.div variants={iconVariants}>
-              <FaBell className="w-5 h-5" />
-            </motion.div>
-            <motion.span className="ml-4" variants={linkVariants}>
-              Notifications
-            </motion.span>
-          </Link>
+      
         </motion.div>
         <motion.div
           className="flex items-center px-4 py-2 text-white hover:bg-[#F38120] transition-colors duration-200 rounded-l-full"
           whileHover={{ x: 5 }}
         >
-          <Link to="/settings" className="flex items-center w-full">
-            <motion.div variants={iconVariants}>
-              <FaCog className="w-5 h-5" />
-            </motion.div>
-            <motion.span className="ml-4" variants={linkVariants}>
-              Settings
-            </motion.span>
-          </Link>
+      
         </motion.div>
       </nav>
       <div className="mb-8">

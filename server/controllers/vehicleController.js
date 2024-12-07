@@ -11,7 +11,8 @@ const {
     approveOwnershipTransfer,
     getVehiclesByOwnerCNIC,
     updateVehicleStatus,
-    getVehiclesByUserId // Add the update vehicle status function
+    getVehiclesByUserId,
+    rejectVehicleRequest // Add the update vehicle status function
 } = require('../db/dbQueries');
 
 // Get All Vehicles
@@ -295,6 +296,22 @@ const approveTransfer = async (req, res) => {
     }
 };
 
+const rejectRequest = async (req, res) => {
+    const { transactionId } = req.body;
+
+    if (!transactionId) {
+        return res.status(400).json({ msg: "Transaction id is required." });
+    }
+
+    try {
+        await rejectVehicleRequest(transactionId);
+        res.status(200).json({ msg: "Request rejected successfully." });
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+
 module.exports = {
     fetchAllVehicles,
     fetchVehicleById,
@@ -310,6 +327,7 @@ module.exports = {
     approveTransfer,
     fetchPendingVehicles,
     getRegisteredVehicles,
-    getUserVehiclesController // Add this function
+    getUserVehiclesController,
+    rejectRequest 
 };
 

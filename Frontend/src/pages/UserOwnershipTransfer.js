@@ -2,10 +2,11 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCar, FaCalendarAlt, FaBarcode, FaPalette, FaCogs, FaIdCard, FaExchangeAlt } from 'react-icons/fa';
-import {AuthContext} from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode";
 
 const VehicleCard = ({ vehicle, onTransfer }) => {
   return (
@@ -64,7 +65,7 @@ const VehicleCard = ({ vehicle, onTransfer }) => {
           className="mt-4 px-4 py-2 bg-[#F38120] text-white rounded-md hover:bg-[#DC5F00] transition-all duration-300 flex items-center justify-center"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => onTransfer(vehicle.id)}
+          onClick={() => onTransfer(vehicle._id)} // Call handleTransfer when clicked
         >
           <FaExchangeAlt className="mr-2" />
           Transfer Ownership
@@ -85,11 +86,15 @@ const UserOwnershipTransfer = () => {
     navigate('/signin');
   };
 
+  const storedToken = localStorage.getItem('token');
+  const decoded = jwtDecode(storedToken);
+  const loggedInUserId = decoded.userId;
+
   useEffect(() => {
     const fetchUserVehicles = async () => {
-      if (user && user.id) {
+      if (loggedInUserId) {
         try {
-          const response = await axios.get(`http://localhost:8085/api/vehicles/user/${user.id}`);
+          const response = await axios.get(`http://localhost:8085/api/vehicles/user/${loggedInUserId}`);
           setVehicles(response.data);
         } catch (error) {
           console.error('Error fetching user vehicles:', error);
@@ -98,8 +103,9 @@ const UserOwnershipTransfer = () => {
     };
 
     fetchUserVehicles();
-  }, [user]);
+  }, [loggedInUserId]);
 
+  // Pass vehicleId as a parameter to the route
   const handleTransfer = (vehicleId) => {
     navigate(`/user-transfer-to/${vehicleId}`);
   };
@@ -142,13 +148,13 @@ const UserOwnershipTransfer = () => {
                 {vehicles.length > 0 ? (
                   vehicles.map((vehicle) => (
                     <motion.div
-                      key={vehicle._id || vehicle.id}
+                      key={vehicle._id}
                       initial={{ opacity: 0, y: 50 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -50 }}
                       transition={{ duration: 0.5 }}
                     >
-                      <VehicleCard vehicle={vehicle} onTransfer={handleTransfer} />
+                      <VehicleCard vehicle={vehicle} onTransfer={handleTransfer} /> {/* Pass handleTransfer */}
                     </motion.div>
                   ))
                 ) : (

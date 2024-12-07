@@ -67,6 +67,8 @@ const VehicleCard = ({ vehicle }) => {
   );
 };
 
+
+
 const UserMyVehicles = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -105,21 +107,31 @@ const UserMyVehicles = () => {
     // other vehicles...
   ];
 
-  const toggleNav = () => {
-    setNavOpen(!navOpen);
-  };
+  // const toggleNav = () => {
+  //   setNavOpen(!navOpen);
+  // };
 
   const handleLogout = () => {
     logout();
     navigate('/signin');
   };
 
+  const storedToken = localStorage.getItem('token');
+  console.log("Token: ", storedToken);
+  const decoded = jwtDecode(storedToken);
+  console.log("Decoded Token: ", decoded);
+  const loggedInUserId = decoded.userId;
+
+  console.log("User id above if else:", loggedInUserId);
+
   useEffect(() => {
+    console.log("Inside in UseEffect")
     const fetchUserVehicles = async () => {
-      if (user && user.id) {
+      console.log("Inside further useEffect about to")
+      if (loggedInUserId) {
         try {
-          console.log(user.id);
-          const response = await axios.get(`http://localhost:8085/api/vehicles/user/${user.id}`);
+          console.log("Inside If block of fetch",loggedInUserId);
+          const response = await axios.get(`http://localhost:8085/api/vehicles/user/${loggedInUserId}`);
           console.log(response.data); // Logging fetched vehicles
 
           // Store the API response in both vehicles and apiData state
@@ -134,19 +146,24 @@ const UserMyVehicles = () => {
           setApiData(fallbackVehicles);
         }
       }
+      else {
+        console.log("Api not hit and not fetch")
+        setVehicles(fallbackVehicles); // Fallback in case of error
+        setApiData(fallbackVehicles);
+      }
     };
-
+    
+    fetchUserVehicles();
     // Fetch data only if it's not already in localStorage
-    if (apiData.length === 0) {
-      fetchUserVehicles();
-    }
-
+    // if (apiData.length === 0) {
+    //   fetchUserVehicles();
+    // }
     const timer = setTimeout(() => {
       // Optional animation logic if needed
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [user, apiData]); // The effect depends on the user state and apiData
+  },); // The effect depends on the user state and apiData
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">

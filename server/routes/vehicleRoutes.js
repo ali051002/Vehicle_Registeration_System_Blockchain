@@ -18,10 +18,10 @@ router.post('/transferOwnership', vehicleController.transferOwnership);
 // Approve ownership transfer(use)
 router.post('/approveTransfer', vehicleController.approveTransfer);
 
-
+router.post('/rejectTransfer',vehicleController.rejectRequest);
 // Approve or Reject vehicle status updates
 router.post('/vehicles/approve', vehicleController.updateVehicleStatusController);
-router.post('/vehicles/reject', vehicleController.updateVehicleStatusController);
+router.post('/vehicles/reject', vehicleController.rejectRequest);
 
 // Get vehicles in pending registration or unregistered status
 router.get('/vehicles/pending', vehicleController.fetchPendingVehicles);

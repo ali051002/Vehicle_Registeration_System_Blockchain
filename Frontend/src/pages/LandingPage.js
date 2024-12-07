@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { FaCheckCircle, FaShieldAlt, FaClock, FaChevronDown, FaArrowRight, FaUsers, FaLock, FaRocket } from 'react-icons/fa';
 import { AiOutlineMenu } from 'react-icons/ai';
+import ContactForm from '../components/ChatForm';
+import LoadingPage from './Loading';
+
+
+
 
 const TriangleBackground = () => (
   React.createElement("svg", { className: "absolute inset-0 w-full h-full z-0", xmlns: "http://www.w3.org/2000/svg" },
@@ -56,7 +61,7 @@ const Navbar = () => {
           React.createElement("nav", { className: "hidden md:flex space-x-10" },
             React.createElement("a", { href: "#hero", className: "text-base font-medium text-gray-500 hover:text-gray-900" }, "Platform"),
             React.createElement("a", { href: "#features", className: "text-base font-medium text-gray-500 hover:text-gray-900" }, "About us"),
-            React.createElement("a", { href: "#join-us", className: "text-base font-medium text-gray-500 hover:text-gray-900" }, "Contact")
+            React.createElement("a", { href: "#join-us", className: "text-base font-medium text-gray-500 hover:text-gray-900" }, "Contact"),
           ),
           React.createElement("div", { className: "hidden md:flex items-center justify-end md:flex-1 lg:w-0" },
             React.createElement("a", { href: "/signin", className: "whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-900" }, "Sign in"),
@@ -78,7 +83,8 @@ const Navbar = () => {
           React.createElement("div", { className: "px-2 pt-2 pb-3 space-y-1" },
             React.createElement("a", { href: "#hero", className: "block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-300" }, "Platform"),
             React.createElement("a", { href: "#features", className: "block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-300" }, "About us"),
-            React.createElement("a", { href: "#join-us", className: "block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-300" }, "Contact")
+            React.createElement("a", { href: "#join-us", className: "block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-300" }, "Contact"),
+
           ),
           React.createElement("div", { className: "px-5 py-4 border-t border-gray-300" },
             React.createElement("a", { href: "/signin", className: "block text-center w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-[#F38120] bg-gray-100 hover:bg-gray-200" }, "Sign in"),
@@ -144,6 +150,17 @@ const FeatureCard = ({ icon, title, description }) => {
 
 const LandingPage = () => {
   const [scrollY, setScrollY] = useState(0);
+  const [loading, setLoading] = useState(true); // Add loading state
+
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -151,6 +168,7 @@ const LandingPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  if (loading) return <LoadingPage />;
   const opacity = 1 - Math.min(scrollY / (window.innerHeight * 0.5), 1);
 
   return (
@@ -177,7 +195,7 @@ const LandingPage = () => {
                 transition: { duration: 0.5, delay: 0.4 }
               }, "Secure Chain Vehicle Registration brings blockchain technology to revolutionize how we register and manage vehicle information."),
               React.createElement(motion.a, {
-                href: "#features",
+                href: "/learn",
                 className: "bg-[#F38120] text-white active:bg-[#e0701c] font-bold uppercase text-base px-8 py-3 rounded-full shadow-md hover:shadow-lg outline-none focus:outline-none mt-8 ease-linear transition-all duration-150 inline-flex items-center",
                 whileHover: { scale: 1.05 },
                 whileTap: { scale: 0.95 },
@@ -186,7 +204,7 @@ const LandingPage = () => {
                 transition: { duration: 0.5, delay: 0.6 }
               },
                 "Learn More",
-                React.createElement(FaArrowRight, { className: "ml-2" })
+                React.createElement(FaArrowRight, {  className: "ml-2" })
               )
             ),
             React.createElement(motion.div, {
@@ -337,6 +355,16 @@ const LandingPage = () => {
           )
         )
       ),
+      React.createElement("section", { id: "contact", className: "relative py-20 bg-gray-100" },
+        React.createElement("div", { className: "container max-w-7xl mx-auto px-4" },
+          React.createElement("h3", { className: "text-3xl font-semibold text-[#F38120] text-center mb-6" }, "Get in Touch"),
+          React.createElement(ContactForm, null) // Adding the ContactForm component here
+        )
+      ),
+
+
+
+
       React.createElement("footer", { className: "relative bg-[#4A4D52] pt-8 pb-6" },
         React.createElement("div", { className: "container max-w-7xl mx-auto px-4" },
           React.createElement("div", { className: "flex flex-wrap text-center lg:text-left" },

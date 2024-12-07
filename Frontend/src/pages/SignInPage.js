@@ -1,18 +1,34 @@
-// src/pages/SignInPage.js
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa';
 import { AuthContext } from '../context/AuthContext';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+import LoadingPage from './Loading'; // Correct component name
 
 export default function SignInPage() {
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Updated to only one loading state
+
+
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(true); 
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false); 
+    }, 3000);
+    return () => clearTimeout(timer); 
+  }, []);
+
+
+  if (loading) {
+    return <LoadingPage/>; 
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

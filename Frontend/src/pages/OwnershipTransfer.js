@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
+import axios from 'axios'; // Import axios for API call
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
 
@@ -9,76 +10,111 @@ const OwnershipTransfer = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedTransfer, setExpandedTransfer] = useState(null);
   const [disableHover, setDisableHover] = useState(false);  // To disable hover animations on click
+  const [vehicles, setVehicles] = useState([]);  // State for vehicles fetched from API
+  const [loading, setLoading] = useState(true);  // Loading state
+  const [error, setError] = useState('');  // Error state
   const navigate = useNavigate();
 
   const handleLogout = () => {
     navigate('/signin');
   };
 
-  const vehicles = [
-    {
-      id: 1,
-      registrationNumber: 'XYZ123',
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      color: 'Red',
-      status: 'Pending',
-      chassisNumber: 'CH123456',
-      engineNumber: 'EN123456',
-      registrationDate: '2020-05-12',
-      fromOwner: { id: 'owner1', name: 'John Doe', cnic: '12345-6789012-3' },
-      toOwner: { id: 'owner2', name: 'Jane Smith', cnic: '98765-4321098-7' },
-    },
-    {
-      id: 2,
-      registrationNumber: 'ABC456',
-      make: 'Honda',
-      model: 'Civic',
-      year: 2019,
-      color: 'Blue',
-      status: 'Pending',
-      chassisNumber: 'CH654321',
-      engineNumber: 'EN654321',
-      registrationDate: '2019-08-20',
-      fromOwner: { id: 'owner2', name: 'Jane Smith', cnic: '98765-4321098-7' },
-      toOwner: { id: 'owner1', name: 'John Doe', cnic: '12345-6789012-3' },
-    },
-  ];
+  // Fetch pending ownership transfers from the API
+  useEffect(() => {
+    const fetchPendingTransfers = async () => {
+      try {
+        const response = await axios.get('http://localhost:8085/api/transactions/pendingtransfers');
+        setVehicles(response.data);  // Update state with the fetched vehicles
+        setLoading(false);  // Stop loading when data is fetched
+      } catch (err) {
+        console.error('Error fetching pending transfers:', err);
+        setError('Failed to load pending transfers.');
+        setLoading(false);
+      }
+    };
+
+    fetchPendingTransfers();
+  }, []);
+
+  // Approve Transfer API call
+  const handleAccept = async (transactionId) => {
+    try {
+      // Send transactionId as an object
+      const response = await axios.post('http://localhost:8085/api/approveTransfer', 
+        { transactionId }, 
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      Swal.fire({
+        title: 'Transfer Accepted',
+        text: response.data.msg,
+        icon: 'success',
+        confirmButtonText: 'OK',
+        backdrop: `
+          rgba(0,0,123,0.4)
+          url("/images/nyan-cat.gif")
+          left top
+          no-repeat
+        `,
+      });
+
+      // Optionally, update the UI to remove the approved vehicle from the list
+      setVehicles(vehicles.filter(vehicle => vehicle.TransactionId !== transactionId));
+    } catch (error) {
+      Swal.fire({
+        title: 'Error',
+        text: error.response?.data?.msg || 'Failed to approve the transfer.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+  // Reject Transfer API call
+  const handleReject = async (transactionId) => {
+    try {
+      // Send transactionId as an object to the reject route
+      const response = await axios.post('http://localhost:8085/api/rejectTransfer', 
+        { transactionId }, 
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      Swal.fire({
+        title: 'Transfer Rejected',
+        text: response.data.msg,
+        icon: 'success',
+        confirmButtonText: 'OK',
+        backdrop: `
+          rgba(0,0,123,0.4)
+          url("/images/nyan-cat.gif")
+          left top
+          no-repeat
+        `,
+      });
+
+      // Optionally, update the UI to remove the rejected vehicle from the list
+      setVehicles(vehicles.filter(vehicle => vehicle.TransactionId !== transactionId));
+    } catch (error) {
+      Swal.fire({
+        title: 'Error',
+        text: error.response?.data?.msg || 'Failed to reject the transfer.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
 
   const handleViewDetails = (vehicleId) => {
     setExpandedTransfer(expandedTransfer === vehicleId ? null : vehicleId);
     setDisableHover(!disableHover);  // Disable hover animations
-  };
-
-  const handleAccept = (vehicleId) => {
-    Swal.fire({
-      title: 'Transfer Accepted',
-      text: `You have successfully accepted the transfer for vehicle ID: ${vehicleId}.`,
-      icon: 'success',
-      confirmButtonText: 'OK',
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `,
-    });
-  };
-
-  const handleReject = (vehicleId) => {
-    Swal.fire({
-      title: 'Transfer Rejected',
-      text: `You have rejected the transfer for vehicle ID: ${vehicleId}.`,
-      icon: 'error',
-      confirmButtonText: 'OK',
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `,
-    });
   };
 
   return (
@@ -108,84 +144,90 @@ const OwnershipTransfer = () => {
             </h1>
           </motion.div>
 
-          {/* Transfer List */}
-          <motion.ul
-            className="space-y-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, staggerChildren: 0.1 }}
-          >
-            {vehicles.map((vehicle) => (
-              <motion.li 
-                key={vehicle.id} 
-                className="border border-gray-300 p-4 bg-white bg-opacity-30 rounded-lg"
-                whileHover={disableHover ? {} : { scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p><strong>From:</strong> {vehicle.fromOwner.name}</p>
-                    <p><strong>To:</strong> {vehicle.toOwner.name}</p>
-                  </div>
-                  <motion.button
-                    className="bg-[#F38120] text-white px-4 py-2 rounded"
-                    onClick={() => handleViewDetails(vehicle.id)}
-                    whileHover={disableHover ? {} : { scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {expandedTransfer === vehicle.id ? 'Hide Details' : 'View Details'}
-                  </motion.button>
-                </div>
-
-                {/* Expanded Details */}
-                <AnimatePresence>
-                  {expandedTransfer === vehicle.id && (
-                    <motion.div
-                      className="mt-4"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
+          {/* Display Loading, Error, or Vehicle List */}
+          {loading ? (
+            <p>Loading pending transfers...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            <motion.ul
+              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, staggerChildren: 0.1 }}
+            >
+              {vehicles.map((vehicle) => (
+                <motion.li 
+                  key={vehicle.TransactionId} 
+                  className="border border-gray-300 p-4 bg-white bg-opacity-30 rounded-lg"
+                  whileHover={disableHover ? {} : { scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p><strong>From:</strong> {vehicle.FromUserName}</p>
+                      <p><strong>To:</strong> {vehicle.ToUserName || 'Not Assigned'}</p>
+                    </div>
+                    <motion.button
+                      className="bg-[#F38120] text-white px-4 py-2 rounded"
+                      onClick={() => handleViewDetails(vehicle.TransactionId)}
+                      whileHover={disableHover ? {} : { scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      <h3 className="text-lg font-semibold">User Details:</h3>
-                      <p><strong>From:</strong> {vehicle.fromOwner.name} (CNIC: {vehicle.fromOwner.cnic})</p>
-                      <p><strong>To:</strong> {vehicle.toOwner.name} (CNIC: {vehicle.toOwner.cnic})</p>
+                      {expandedTransfer === vehicle.TransactionId ? 'Hide Details' : 'View Details'}
+                    </motion.button>
+                  </div>
 
-                      <h3 className="text-lg font-semibold mt-4">Vehicle Details:</h3>
-                      <p><strong>Year:</strong> {vehicle.year}</p>
-                      <p><strong>Color:</strong> {vehicle.color}</p>
-                      <p><strong>Status:</strong> {vehicle.status}</p>
-                      <p><strong>Registration Number:</strong> {vehicle.registrationNumber}</p>
-                      <p><strong>Chassis Number:</strong> {vehicle.chassisNumber}</p>
-                      <p><strong>Engine Number:</strong> {vehicle.engineNumber}</p>
-                      <p><strong>Registration Date:</strong> {new Date(vehicle.registrationDate).toLocaleDateString()}</p>
+                  {/* Expanded Details */}
+                  <AnimatePresence>
+                    {expandedTransfer === vehicle.TransactionId && (
+                      <motion.div
+                        className="mt-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <h3 className="text-lg font-semibold">User Details:</h3>
+                        <p><strong>From:</strong> {vehicle.FromUserName}</p>
+                        <p><strong>To:</strong> {vehicle.ToUserName || 'Pending'}</p>
 
-                      {/* Accept and Reject Buttons */}
-                      <div className="mt-4 flex space-x-4">
-                        <motion.button
-                          className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-all"
-                          onClick={() => handleAccept(vehicle.id)}
-                          whileHover={disableHover ? {} : { scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Accept
-                        </motion.button>
-                        <motion.button
-                          className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#C24A00] transition-all"
-                          onClick={() => handleReject(vehicle.id)}
-                          whileHover={disableHover ? {} : { scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Reject
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.li>
-            ))}
-          </motion.ul>
+                        <h3 className="text-lg font-semibold mt-4">Vehicle Details:</h3>
+                        <p><strong>Year:</strong> {vehicle.year}</p>
+                        <p><strong>Color:</strong> {vehicle.color}</p>
+                        <p><strong>Status:</strong> {vehicle.transactionStatus}</p>
+                        <p><strong>Registration Number:</strong> {vehicle.registrationNumber}</p>
+                        <p><strong>Chassis Number:</strong> {vehicle.chassisNumber}</p>
+                        <p><strong>Engine Number:</strong> {vehicle.engineNumber}</p>
+                        <p><strong>Registration Date:</strong> {new Date(vehicle.registrationDate).toLocaleDateString()}</p>
+
+                        {/* Accept and Reject Buttons */}
+                        <div className="mt-4 flex space-x-4">
+                          <motion.button
+                            className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-all"
+                            onClick={() => handleAccept(vehicle.TransactionId)}
+                            whileHover={disableHover ? {} : { scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Accept
+                          </motion.button>
+                          <motion.button
+                            className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#C24A00] transition-all"
+                            onClick={() => handleReject(vehicle.TransactionId)}
+                            whileHover={disableHover ? {} : { scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Reject
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.li>
+              ))}
+            </motion.ul>
+          )}
         </main>
       </div>
     </div>

@@ -16,6 +16,10 @@ import UserVehicleRegister from './pages/UserVehicleRegister';
 import UserOwnershipTransfer from './pages/UserOwnershipTransfer';
 import UserMyVehicles from './pages/UserMyVehicles';
 import UserTransferTo from './pages/UserTransferTo';
+import ContactForm from './components/ChatForm';
+import RedesignedUnauthorizedPage from './pages/UnAuthorised';
+import LoadingPage from './pages/Loading';
+import LearnMorePage from './pages/LearnMore';
 
 const App = () => {
   return (
@@ -24,8 +28,12 @@ const App = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} /> {/* Landing Page route */}
-          <Route path="/signup" element={<SignupPage />} />
+       <Route path ="/signup" element={<SignupPage/>}/> 
           <Route path="/signin" element={<SignInPage />} />
+          <Route path="/chat" elements={<ContactForm/>}/>
+          <Route path="/unauthorized" elements={<RedesignedUnauthorizedPage/>}/>
+          <Route path="/loading" elements={<LoadingPage/>}/>
+          <Route path="/learn" elements={<LearnMorePage/>}/>
 
           {/* User Dashboard Routes (Private) */}
           <Route path="/user-dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />

@@ -20,7 +20,7 @@ const createUser = async (userData) => {
             .input('cnic', sql.NVarChar(15), userData.cnic)
             .input('PhoneNumber', sql.NVarChar(20), userData.phoneNumber)
             .input('AddressDetails', sql.NVarChar(255), userData.addressDetails)
-            .input('ProfilePicture', sql.NVarChar(255), userData.profilePicture)
+            .input('ProfilePicture', sql.NVarChar(sql.MAX), userData.profilePicture)
             .execute('sp_CreateUser');
 
         // Assuming the stored procedure returns the ID of the newly created user
@@ -272,6 +272,12 @@ const approveOwnershipTransfer = async (transactionId) => {
         .execute('ApproveOwnershipTransfer');
 };
 
+const rejectVehicleRequest = async (transactionId) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('TransactionId', sql.UniqueIdentifier, transactionId)
+        .execute('RejectVehicleRequest');
+};
 
 
 module.exports = {
@@ -296,5 +302,6 @@ module.exports = {
     requestOwnershipTransfer,
     approveOwnershipTransfer,
     updateVehicleStatus,
-    getVehiclesByUserId
+    getVehiclesByUserId,
+    rejectVehicleRequest
 };

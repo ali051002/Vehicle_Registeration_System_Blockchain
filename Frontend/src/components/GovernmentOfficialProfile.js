@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaTimes, FaUser, FaEnvelope, FaIdCard, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaTimes, FaIdCard, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+
 const GovernmentOfficialProfile = ({ user, onClose }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -40,16 +41,13 @@ const GovernmentOfficialProfile = ({ user, onClose }) => {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
     >
       <motion.div
         className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-2xl overflow-hidden w-full max-w-md text-white"
         variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
       >
         <motion.div 
           className="p-6 bg-gradient-to-r from-[#F38120] to-[#F3A620]"
@@ -67,7 +65,9 @@ const GovernmentOfficialProfile = ({ user, onClose }) => {
             </motion.button>
           </div>
         </motion.div>
+
         <div className="p-6 space-y-6">
+          {/* Profile Picture and Basic Info */}
           <motion.div 
             className="flex items-center space-x-4"
             variants={itemVariants}
@@ -77,11 +77,19 @@ const GovernmentOfficialProfile = ({ user, onClose }) => {
               variants={iconVariants}
               whileHover="hover"
             >
-              <img
-                src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`}
-                alt="Official Avatar"
-                className="w-20 h-20 rounded-full"
-              />
+              {user.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt="Official Avatar"
+                  className="w-20 h-20 rounded-full"
+                />
+              ) : (
+                <img
+                  src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`}
+                  alt="Official Avatar"
+                  className="w-20 h-20 rounded-full"
+                />
+              )}
             </motion.div>
             <div>
               <motion.h4 
@@ -98,13 +106,33 @@ const GovernmentOfficialProfile = ({ user, onClose }) => {
               </motion.p>
             </div>
           </motion.div>
+
+          {/* Profile Details */}
           <motion.div 
             className="space-y-4"
             variants={itemVariants}
           >
-            <ProfileItem icon={<FaIdCard />} label="CNIC" value={user.employeeId} itemVariants={itemVariants} iconVariants={iconVariants} />
-            <ProfileItem icon={<FaPhone />} label="Phone" value={user.department} itemVariants={itemVariants} iconVariants={iconVariants} />
-            <ProfileItem icon={<FaMapMarkerAlt />} label="Address" value={user.position} itemVariants={itemVariants} iconVariants={iconVariants} />
+            <ProfileItem
+              icon={<FaIdCard />}
+              label="Employee ID"
+              value={user.employeeId}
+              itemVariants={itemVariants}
+              iconVariants={iconVariants}
+            />
+            <ProfileItem
+              icon={<FaPhone />}
+              label="Department"
+              value={user.department}
+              itemVariants={itemVariants}
+              iconVariants={iconVariants}
+            />
+            <ProfileItem
+              icon={<FaMapMarkerAlt />}
+              label="Position"
+              value={user.position}
+              itemVariants={itemVariants}
+              iconVariants={iconVariants}
+            />
           </motion.div>
         </div>
       </motion.div>
@@ -112,25 +140,23 @@ const GovernmentOfficialProfile = ({ user, onClose }) => {
   );
 };
 
-const ProfileItem = ({ icon, label, value, itemVariants, iconVariants }) => {
-  return (
-    <motion.div 
-      className="flex items-center space-x-3"
-      variants={itemVariants}
+const ProfileItem = ({ icon, label, value, itemVariants, iconVariants }) => (
+  <motion.div 
+    className="flex items-center space-x-3"
+    variants={itemVariants}
+  >
+    <motion.div
+      className="w-10 h-10 rounded-full bg-[#F38120] bg-opacity-20 flex items-center justify-center"
+      variants={iconVariants}
+      whileHover="hover"
     >
-      <motion.div
-        className="w-10 h-10 rounded-full bg-[#F38120] bg-opacity-20 flex items-center justify-center"
-        variants={iconVariants}
-        whileHover="hover"
-      >
-        {React.cloneElement(icon, { className: 'text-[#F38120] w-5 h-5' })}
-      </motion.div>
-      <div>
-        <p className="text-sm text-gray-400">{label}</p>
-        <p className="text-lg">{value}</p>
-      </div>
+      {React.cloneElement(icon, { className: 'text-[#F38120] w-5 h-5' })}
     </motion.div>
-  );
-};
+    <div>
+      <p className="text-sm text-gray-400">{label}</p>
+      <p className="text-lg">{value}</p>
+    </div>
+  </motion.div>
+);
 
 export default GovernmentOfficialProfile;

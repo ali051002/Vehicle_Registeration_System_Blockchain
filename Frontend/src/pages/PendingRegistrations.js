@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaChevronDown, FaChevronUp, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
-import { AuthContext } from '../context/AuthContext';  // Importing AuthContext for approvedBy
-import { jwtDecode } from "jwt-decode"; 
+import { AuthContext } from '../context/AuthContext';
+import { jwtDecode } from "jwt-decode";
+
 
 // Vehicle List Item Component
 const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
@@ -61,7 +62,7 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
             <div className="mt-4 flex space-x-4">
               <motion.button
                 className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
-                onClick={() => onApprove(vehicle._id)}
+                onClick={() => onApprove(vehicle)}
                 whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -86,9 +87,10 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
 const PendingRegistrations = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingRegistrations, setPendingRegistrations] = useState([]);
-  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
-  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
-  const [registrationId, setRegistrationId] = useState('');
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null); // Fix 1: Added state for selectedVehicleId
+  const [registrationId, setRegistrationId] = useState(''); // Fix 2: Added state for registrationId
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false); // Fix 3: Added state for approvalModalOpen
+  const user = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -105,14 +107,10 @@ const PendingRegistrations = () => {
     fetchPendingRegistrations();
   }, []);
 
-
-  const storedToken = localStorage.getItem('token')
+  const storedToken = localStorage.getItem('token');
   const decoded = jwtDecode(storedToken);
-  const loggedInUserId = decoded.userId;
+  const loggedInUserId = decoded.id || decoded.userId; // Adjusted to match your token's payload structure
 
-  console.log("User id :", loggedInUserId)  
-  // Function to fetch registered and approved vehicles  
-  // Approve a vehicle registration
   const handleApprove = async (vehicle) => {
     const { value: registrationNumber } = await Swal.fire({
       title: 'Enter Registration Number',
@@ -132,13 +130,13 @@ const PendingRegistrations = () => {
         const response = await axios.post(
           'http://localhost:8085/api/approveRegistration',
           {
-            transactionId: vehicle.TransactionId,  // Send transaction ID from the backend for this vehicle
-            approvedBy: loggedInUserId,                   // Use the logged-in government user ID (from AuthContext)
-            registrationNumber: registrationNumber // The registration number entered by the user
+            transactionId: vehicle.transactionId,
+            approvedBy: loggedInUserId,
+            registrationNumber: registrationNumber
           },
           {
             headers: {
-              'Content-Type': 'application/json',  // Set the headers explicitly
+              'Content-Type': 'application/json',
             },
           }
         );
@@ -149,12 +147,11 @@ const PendingRegistrations = () => {
         }
       } catch (error) {
         console.error('Error approving vehicle registration:', error);
-        Swal.fire('Error', 'Failed to approve vehicle registration', 'error');
+        Swal.fire('Error', error.response?.data.msg || 'Failed to approve vehicle registration', 'error');
       }
     }
   };
 
-  // Reject a vehicle registration
   const handleReject = async (vehicleId) => {
     try {
       const response = await axios.post('http://localhost:8085/api/vehicles/reject', {
@@ -163,12 +160,12 @@ const PendingRegistrations = () => {
       });
 
       if (response.status === 200) {
-        showNotification('Vehicle registration rejected.', 'info');
+        Swal.fire('Info', 'Vehicle registration rejected.', 'info');
         setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== vehicleId));
       }
     } catch (error) {
       console.error('Error rejecting vehicle registration:', error);
-      showNotification('Failed to reject vehicle registration', 'error');
+      Swal.fire('Error', 'Failed to reject vehicle registration', 'error');
     }
   };
 
@@ -181,14 +178,14 @@ const PendingRegistrations = () => {
       });
 
       if (response.status === 200) {
-        showNotification('Vehicle registration approved!', 'success');
+        Swal.fire('Success', 'Vehicle registration approved!', 'success');
         setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== selectedVehicleId));
-        setApprovalModalOpen(false);
-        setRegistrationId('');
+        setApprovalModalOpen(false); // Close the modal after approval
+        setRegistrationId(''); // Clear the registration ID input
       }
     } catch (error) {
       console.error('Error approving vehicle registration:', error);
-      showNotification('Failed to approve vehicle registration', 'error');
+      Swal.fire('Error', 'Failed to approve vehicle registration', 'error');
     }
   };
 
@@ -216,7 +213,6 @@ const PendingRegistrations = () => {
       <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-1 overflow-hidden">
         <SideNavBar
-          logout={handleLogout}
           navOpen={sidebarOpen}
           toggleNav={() => setSidebarOpen(!sidebarOpen)}
           userRole="governmentOfficial"

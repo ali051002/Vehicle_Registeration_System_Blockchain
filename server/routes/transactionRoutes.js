@@ -11,6 +11,7 @@ const transactionController = require('../controllers/transactionController');
 */    
 router.get('/transactions', transactionController.fetchTransactions);
 router.get('/transactions/pending', transactionController.fetchPendingTransactions);
+router.get('/transactions/pendingtransfers', transactionController.fetchPendingTransfers);
 
 
 module.exports = router;
