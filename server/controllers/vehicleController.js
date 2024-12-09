@@ -7,7 +7,6 @@ const {
     deleteVehicle,
     requestVehicleRegistration,
     approveVehicleRegistration,
-    rejectVehicleRequest,
     requestOwnershipTransfer,
     approveOwnershipTransfer,
     getVehiclesByOwnerCNIC,
@@ -217,22 +216,6 @@ const approveRegistration = async (req, res) => {
         // Call the function to approve the vehicle registration
         await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
         res.status(200).json({ msg: "Vehicle registration approved successfully." });
-    } catch (err) {
-        res.status(500).json({ msg: err.message });
-    }
-};
-
-
-const rejectRequest = async (req, res) => {
-    const { transactionId } = req.body;
-
-    if (!transactionId) {
-        return res.status(400).json({ msg: "All required fields must be provided" });
-    }
-
-    try {
-        await rejectVehicleRequest(transactionId);
-        res.status(200).json({ msg: "Request rejected successfully." });
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
