@@ -11,6 +11,7 @@ const {
     approveOwnershipTransfer,
     getVehiclesByOwnerCNIC,
     updateVehicleStatus,
+    rejectVehicleRequest,
     getVehiclesByUserId// Add the update vehicle status function
 } = require('../db/dbQueries');
 
