@@ -279,6 +279,12 @@ const approveOwnershipTransfer = async (transactionId) => {
         .execute('ApproveOwnershipTransfer');
 };
 
+const rejectVehicleRequest = async (transactionId) => {
+    const pool = await poolPromise;
+    return pool.request()
+        .input('TransactionId', sql.UniqueIdentifier, transactionId)
+        .execute('RejectVehicleRequest');
+};
 
 
 module.exports = {

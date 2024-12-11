@@ -7,7 +7,6 @@ const {
     deleteVehicle,
     requestVehicleRegistration,
     approveVehicleRegistration,
-    rejectVehicleRequest,
     requestOwnershipTransfer,
     approveOwnershipTransfer,
     getVehiclesByOwnerCNIC,

@@ -147,8 +147,5 @@ module.exports = {
     fetchUserByName,
     fetchUserById,
     modifyUser,
-    removeUser,
-    
-    
-    
+    removeUser   
 };
