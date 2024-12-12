@@ -85,32 +85,36 @@ export default function UserVehicleRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Log the user object to ensure it's available
-    console.log('User:', user);
-
-
+    // Ensure user is logged in
     const storedToken = localStorage.getItem('token');
-    console.log("Token: ", storedToken);
-    const decoded = jwtDecode(storedToken);
-    console.log("Decoded Token: ", decoded);
-    const loggedInUserId = decoded.userId;
-
-    console.log("User id :", loggedInUserId);
-
-    // Ensure user is logged in and user object exists
-    if (!user || !loggedInUserId) {
+    if (!storedToken) {
       setError('You must be logged in to register a vehicle.');
       return;
     }
 
+    let decoded;
+    try {
+      decoded = jwtDecode(storedToken);
+    } catch (err) {
+      console.error('Error decoding token:', err);
+      setError('Invalid token. Please log in again.');
+      return;
+    }
+
+    const loggedInUserId = decoded.userId;
+    if (!loggedInUserId) {
+      setError('Could not find user ID in token. Please log in again.');
+      return;
+    }
+
+    // Validate fields
     if (!formData.make || !formData.model || !formData.year || !formData.chassisNumber || !formData.engineNumber) {
       setError('All fields must be filled out.');
       return;
     }
 
-
     const vehicleData = {
-      ownerId: loggedInUserId, // Automatically include the logged-in user's ID
+      ownerId: loggedInUserId,
       make: formData.make,
       model: formData.model,
       year: parseInt(formData.year),
@@ -129,12 +133,33 @@ export default function UserVehicleRegister() {
       });
 
       if (response.status === 200) {
+        // Vehicle request registered successfully
         Swal.fire({
           title: 'Vehicle Registered!',
           text: 'Waiting for government approval.',
           icon: 'info',
           confirmButtonText: 'OK',
         });
+
+        // After registering vehicle, fetch user's email and send a "Pending" status email
+        const userResponse = await axios.get(`http://localhost:8085/api/user/${loggedInUserId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const userData = userResponse.data;
+
+        // Send pending email notification
+        await axios.post('http://localhost:8085/api/send-email', {
+          to: userData.email,
+          subject: 'Registration Request Received',
+          data: {
+            user: userData.name,
+            action: 'registration',
+            vehicle: `${formData.make} ${formData.model}`,
+            status: 'pending'
+          }
+        });
+
+        // Reset form after successful request
         setFormData({
           make: '',
           model: '',
