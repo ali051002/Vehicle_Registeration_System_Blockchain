@@ -13,9 +13,14 @@ import { jwtDecode } from "jwt-decode";
 const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Toggle vehicle details display
   const toggleDetails = () => {
     setIsExpanded(!isExpanded);
   };
+
+  // Determine displayed values
+  const displayedStatus = vehicle.status || "Pending";
+  const displayedRegNumber = vehicle.registrationNumber || "To be assigned";
 
   return (
     <motion.li
@@ -28,7 +33,7 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="font-semibold text-[#373A40]">{vehicle.make} {vehicle.model}</h3>
-          <p className="text-[#373A40]">Owner ID: {vehicle.ownerId}</p>
+          <p className="text-[#373A40]">Owner CNIC: {vehicle.ownerCnic}</p>
         </div>
         <motion.button
           onClick={toggleDetails}
@@ -51,29 +56,33 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
           >
             <p className="text-[#373A40]">Year: {vehicle.year}</p>
             <p className="text-[#373A40]">Color: {vehicle.color}</p>
-            <p className="text-[#373A40]">Status: {vehicle.status}</p>
-            <p className="text-[#373A40]">Registration Number: {vehicle.registrationNumber}</p>
+            <p className="text-[#373A40]">Status: {displayedStatus}</p>
+            <p className="text-[#373A40]">Registration Number: {displayedRegNumber}</p>
             <p className="text-[#373A40]">Chassis Number: {vehicle.chassisNumber}</p>
             <p className="text-[#373A40]">Engine Number: {vehicle.engineNumber}</p>
             <p className="text-[#373A40]">Registration Date: {new Date(vehicle.registrationDate).toLocaleDateString()}</p>
 
             <div className="mt-4 flex space-x-4">
-              <motion.button
-                className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
-                onClick={() => onApprove(vehicle)}
-                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Approve
-              </motion.button>
-              <motion.button
-                className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
-                onClick={() => onReject(vehicle.TransactionId, vehicle.FromUserId, `${vehicle.make} ${vehicle.model}`)}
-                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Reject
-              </motion.button>
+              {displayedStatus === "Pending" && (
+                <>
+                  <motion.button
+                    className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
+                    onClick={() => onApprove(vehicle)}
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Approve
+                  </motion.button>
+                  <motion.button
+                    className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
+                    onClick={() => onReject(vehicle.TransactionId, vehicle.FromUserId, `${vehicle.make} ${vehicle.model}`)}
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Reject
+                  </motion.button>
+                </>
+              )}
             </div>
           </motion.div>
         )}
@@ -95,7 +104,19 @@ const PendingRegistrations = () => {
     const fetchPendingRegistrations = async () => {
       try {
         const response = await axios.get('http://localhost:8085/api/transactions/pending');
-        setPendingRegistrations(response.data);
+        const pending = response.data;
+
+        // For each pending vehicle, fetch user details to get CNIC
+        const enrichedPending = await Promise.all(
+          pending.map(async (vehicle) => {
+            const userResponse = await axios.get(`http://localhost:8085/api/user/${vehicle.FromUserId}`);
+            const userData = userResponse.data; 
+            vehicle.ownerCnic = userData.cnic; 
+            return vehicle;
+          })
+        );
+
+        setPendingRegistrations(enrichedPending);
       } catch (error) {
         console.error('Error fetching pending vehicles:', error);
         Swal.fire('Error', 'Failed to fetch pending registrations', 'error');
@@ -142,9 +163,9 @@ const PendingRegistrations = () => {
         if (response.status === 200) {
           Swal.fire('Success', 'Vehicle registration approved!', 'success');
 
-          // Fetch user details from /api/user/:id using FromUserId
+          // Fetch user details again (or reuse what we had) if needed
           const userResponse = await axios.get(`http://localhost:8085/api/user/${vehicle.FromUserId}`);
-          const userData = userResponse.data; // Should contain { name: '...', email: '...' }
+          const userData = userResponse.data; 
 
           // Send approval email
           await axios.post('http://localhost:8085/api/send-email', {
@@ -158,7 +179,12 @@ const PendingRegistrations = () => {
             }
           });
 
-          setPendingRegistrations(pendingRegistrations.filter(v => v.TransactionId !== vehicle.TransactionId));
+          // Update the vehicle's status and registration number locally
+          setPendingRegistrations(prev => prev.map(v => 
+            v.TransactionId === vehicle.TransactionId 
+              ? { ...v, status: 'Approved', registrationNumber } 
+              : v
+          ));
         }
       } catch (error) {
         console.error('Error approving vehicle registration:', error.response?.data || error.message);
@@ -177,9 +203,8 @@ const PendingRegistrations = () => {
       if (response.status === 200) {
         Swal.fire('Info', 'Vehicle registration request rejected.', 'info');
 
-        // Fetch user details from /api/user/:id using fromUserId
         const userResponse = await axios.get(`http://localhost:8085/api/user/${fromUserId}`);
-        const userData = userResponse.data; // Should contain { name: '...', email: '...' }
+        const userData = userResponse.data;
         
         // Send rejection email
         await axios.post('http://localhost:8085/api/send-email', {
@@ -193,7 +218,12 @@ const PendingRegistrations = () => {
           }
         });
 
-        setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle.TransactionId !== transactionId));
+        // Update the vehicle's status to Rejected and reset registration number
+        setPendingRegistrations(prev => prev.map(v => 
+          v.TransactionId === transactionId
+            ? { ...v, status: 'Rejected', registrationNumber: null }
+            : v
+        ));
       }
     } catch (error) {
       console.error('Error rejecting vehicle registration:', error.response?.data || error.message);
@@ -211,7 +241,12 @@ const PendingRegistrations = () => {
 
       if (response.status === 200) {
         Swal.fire('Success', 'Vehicle registration approved!', 'success');
-        setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== selectedVehicleId));
+        // Update the specific vehicle if needed or remove from list
+        setPendingRegistrations(prev => prev.map(v => 
+          v._id === selectedVehicleId
+            ? { ...v, status: 'Approved', registrationNumber: registrationId }
+            : v
+        ));
         setApprovalModalOpen(false);
         setRegistrationId('');
       }

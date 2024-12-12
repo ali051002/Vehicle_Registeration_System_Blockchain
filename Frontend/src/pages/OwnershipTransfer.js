@@ -2,30 +2,56 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
-import axios from 'axios'; // Import axios for API call
+import axios from 'axios'; 
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
 
 const OwnershipTransfer = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedTransfer, setExpandedTransfer] = useState(null);
-  const [disableHover, setDisableHover] = useState(false);  // To disable hover animations on click
-  const [vehicles, setVehicles] = useState([]);  // State for vehicles fetched from API
-  const [loading, setLoading] = useState(true);  // Loading state
-  const [error, setError] = useState('');  // Error state
+  const [disableHover, setDisableHover] = useState(false);  
+  const [vehicles, setVehicles] = useState([]);  
+  const [loading, setLoading] = useState(true);  
+  const [error, setError] = useState('');  
   const navigate = useNavigate();
 
   const handleLogout = () => {
     navigate('/signin');
   };
 
-  // Fetch pending ownership transfers from the API
   useEffect(() => {
     const fetchPendingTransfers = async () => {
       try {
         const response = await axios.get('http://localhost:8085/api/transactions/pendingtransfers');
-        setVehicles(response.data);  // Update state with the fetched vehicles
-        setLoading(false);  // Stop loading when data is fetched
+        const pendingTransfers = response.data;
+
+        // Enrich each transfer with user details for CNIC and set initial status/registration number
+        const enrichedTransfers = await Promise.all(
+          pendingTransfers.map(async (vehicle) => {
+            // Initially set status to "Pending" and registrationNumber "To be assigned"
+            vehicle.status = 'Pending';
+            vehicle.registrationNumber = 'To be assigned';
+
+            // Fetch from-user details
+            const fromUserRes = await axios.get(`http://localhost:8085/api/user/${vehicle.FromUserId}`);
+            const fromUserData = fromUserRes.data;
+            vehicle.FromUserCnic = fromUserData.cnic;
+
+            // If ToUserId exists, fetch their details as well
+            if (vehicle.ToUserId) {
+              const toUserRes = await axios.get(`http://localhost:8085/api/user/${vehicle.ToUserId}`);
+              const toUserData = toUserRes.data;
+              vehicle.ToUserCnic = toUserData.cnic;
+            } else {
+              vehicle.ToUserCnic = 'Pending';
+            }
+
+            return vehicle;
+          })
+        );
+
+        setVehicles(enrichedTransfers);
+        setLoading(false);
       } catch (err) {
         console.error('Error fetching pending transfers:', err);
         setError('Failed to load pending transfers.');
@@ -36,48 +62,99 @@ const OwnershipTransfer = () => {
     fetchPendingTransfers();
   }, []);
 
-  // Approve Transfer API call
-  const handleAccept = async (transactionId) => {
-    try {
-      // Send transactionId as an object
-      const response = await axios.post('http://localhost:8085/api/approveTransfer', 
-        { transactionId }, 
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      Swal.fire({
-        title: 'Transfer Accepted',
-        text: response.data.msg,
-        icon: 'success',
-        confirmButtonText: 'OK',
-        backdrop: `
-          rgba(0,0,123,0.4)
-          url("/images/nyan-cat.gif")
-          left top
-          no-repeat
-        `,
-      });
+  const handleViewDetails = (vehicleId) => {
+    setExpandedTransfer(expandedTransfer === vehicleId ? null : vehicleId);
+    setDisableHover(!disableHover); 
+  };
 
-      // Optionally, update the UI to remove the approved vehicle from the list
-      setVehicles(vehicles.filter(vehicle => vehicle.TransactionId !== transactionId));
-    } catch (error) {
-      Swal.fire({
-        title: 'Error',
-        text: error.response?.data?.msg || 'Failed to approve the transfer.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
+  const handleApprove = async (transactionId) => {
+    const { value: registrationNumber } = await Swal.fire({
+      title: 'Enter Registration Number',
+      input: 'text',
+      inputLabel: 'Registration Number',
+      inputPlaceholder: 'Enter the new registration number for this vehicle',
+      showCancelButton: true,
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to enter a registration number!';
+        }
+      }
+    });
+
+    if (registrationNumber) {
+      try {
+        const response = await axios.post('http://localhost:8085/api/approveTransfer', 
+          { transactionId }, 
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        Swal.fire({
+          title: 'Transfer Accepted',
+          text: response.data.msg,
+          icon: 'success',
+          confirmButtonText: 'OK',
+        });
+
+        // Update the vehicle's status and registrationNumber locally
+        setVehicles(prev => prev.map(vehicle => 
+          vehicle.TransactionId === transactionId
+            ? { ...vehicle, status: 'Approved', registrationNumber }
+            : vehicle
+        ));
+
+        // Fetch from and to user details to send emails
+        const approvedVehicle = vehicles.find(v => v.TransactionId === transactionId);
+        if (approvedVehicle) {
+          const fromUserRes = await axios.get(`http://localhost:8085/api/user/${approvedVehicle.FromUserId}`);
+          const fromUserData = fromUserRes.data;
+
+          // Send email to from-user
+          await axios.post('http://localhost:8085/api/send-email', {
+            to: fromUserData.email,
+            subject: 'Ownership Transfer Approved',
+            data: {
+              user: fromUserData.name,
+              action: 'ownership transfer',
+              vehicle: approvedVehicle.make + " " + approvedVehicle.model,
+              status: 'approved'
+            }
+          });
+
+          if (approvedVehicle.ToUserId) {
+            const toUserRes = await axios.get(`http://localhost:8085/api/user/${approvedVehicle.ToUserId}`);
+            const toUserData = toUserRes.data;
+
+            // Send email to to-user
+            await axios.post('http://localhost:8085/api/send-email', {
+              to: toUserData.email,
+              subject: 'Ownership Transfer Approved',
+              data: {
+                user: toUserData.name,
+                action: 'ownership transfer',
+                vehicle: approvedVehicle.make + " " + approvedVehicle.model,
+                status: 'approved'
+              }
+            });
+          }
+        }
+
+      } catch (error) {
+        Swal.fire({
+          title: 'Error',
+          text: error.response?.data?.msg || 'Failed to approve the transfer.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      }
     }
   };
 
-  // Reject Transfer API call
   const handleReject = async (transactionId) => {
     try {
-      // Send transactionId as an object to the reject route
       const response = await axios.post('http://localhost:8085/api/rejectTransfer', 
         { transactionId }, 
         {
@@ -86,22 +163,57 @@ const OwnershipTransfer = () => {
           },
         }
       );
-      
+
       Swal.fire({
         title: 'Transfer Rejected',
         text: response.data.msg,
         icon: 'success',
         confirmButtonText: 'OK',
-        backdrop: `
-          rgba(0,0,123,0.4)
-          url("/images/nyan-cat.gif")
-          left top
-          no-repeat
-        `,
       });
 
-      // Optionally, update the UI to remove the rejected vehicle from the list
-      setVehicles(vehicles.filter(vehicle => vehicle.TransactionId !== transactionId));
+      // Update the vehicle's status locally
+      setVehicles(prev => prev.map(vehicle => 
+        vehicle.TransactionId === transactionId
+          ? { ...vehicle, status: 'Rejected', registrationNumber: 'To be assigned' }
+          : vehicle
+      ));
+
+      // Fetch from and to user details to send emails
+      const rejectedVehicle = vehicles.find(v => v.TransactionId === transactionId);
+      if (rejectedVehicle) {
+        const fromUserRes = await axios.get(`http://localhost:8085/api/user/${rejectedVehicle.FromUserId}`);
+        const fromUserData = fromUserRes.data;
+
+        // Send email to from-user
+        await axios.post('http://localhost:8085/api/send-email', {
+          to: fromUserData.email,
+          subject: 'Ownership Transfer Rejected',
+          data: {
+            user: fromUserData.name,
+            action: 'ownership transfer',
+            vehicle: rejectedVehicle.make + " " + rejectedVehicle.model,
+            status: 'rejected'
+          }
+        });
+
+        if (rejectedVehicle.ToUserId) {
+          const toUserRes = await axios.get(`http://localhost:8085/api/user/${rejectedVehicle.ToUserId}`);
+          const toUserData = toUserRes.data;
+
+          // Send email to to-user
+          await axios.post('http://localhost:8085/api/send-email', {
+            to: toUserData.email,
+            subject: 'Ownership Transfer Rejected',
+            data: {
+              user: toUserData.name,
+              action: 'ownership transfer',
+              vehicle: rejectedVehicle.make + " " + rejectedVehicle.model,
+              status: 'rejected'
+            }
+          });
+        }
+      }
+
     } catch (error) {
       Swal.fire({
         title: 'Error',
@@ -112,18 +224,11 @@ const OwnershipTransfer = () => {
     }
   };
 
-  const handleViewDetails = (vehicleId) => {
-    setExpandedTransfer(expandedTransfer === vehicleId ? null : vehicleId);
-    setDisableHover(!disableHover);  // Disable hover animations
-  };
-
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-      {/* Top Navigation Bar */}
       <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Side Navigation Bar */}
         <SideNavBar
           logout={handleLogout}
           navOpen={sidebarOpen}
@@ -131,7 +236,6 @@ const OwnershipTransfer = () => {
           userRole="user"
         />
 
-        {/* Main content */}
         <main className={`flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
           <motion.div
             initial={{ opacity: 0, y: -50 }}
@@ -144,7 +248,6 @@ const OwnershipTransfer = () => {
             </h1>
           </motion.div>
 
-          {/* Display Loading, Error, or Vehicle List */}
           {loading ? (
             <p>Loading pending transfers...</p>
           ) : error ? (
@@ -166,8 +269,10 @@ const OwnershipTransfer = () => {
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <p><strong>From:</strong> {vehicle.FromUserName}</p>
-                      <p><strong>To:</strong> {vehicle.ToUserName || 'Not Assigned'}</p>
+                      <p><strong>From:</strong> {vehicle.FromUserName} (CNIC: {vehicle.FromUserCnic})</p>
+                      <p><strong>To:</strong> {vehicle.ToUserName || 'Pending'} {vehicle.ToUserCnic ? `(CNIC: ${vehicle.ToUserCnic})` : ''}</p>
+                      <p><strong>Status:</strong> {vehicle.status}</p>
+                      <p><strong>Registration Number:</strong> {vehicle.registrationNumber}</p>
                     </div>
                     <motion.button
                       className="bg-[#F38120] text-white px-4 py-2 rounded"
@@ -179,7 +284,6 @@ const OwnershipTransfer = () => {
                     </motion.button>
                   </div>
 
-                  {/* Expanded Details */}
                   <AnimatePresence>
                     {expandedTransfer === vehicle.TransactionId && (
                       <motion.div
@@ -189,38 +293,33 @@ const OwnershipTransfer = () => {
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <h3 className="text-lg font-semibold">User Details:</h3>
-                        <p><strong>From:</strong> {vehicle.FromUserName}</p>
-                        <p><strong>To:</strong> {vehicle.ToUserName || 'Pending'}</p>
-
-                        <h3 className="text-lg font-semibold mt-4">Vehicle Details:</h3>
+                        <h3 className="text-lg font-semibold">Vehicle Details:</h3>
                         <p><strong>Year:</strong> {vehicle.year}</p>
                         <p><strong>Color:</strong> {vehicle.color}</p>
-                        <p><strong>Status:</strong> {vehicle.transactionStatus}</p>
-                        <p><strong>Registration Number:</strong> {vehicle.registrationNumber}</p>
                         <p><strong>Chassis Number:</strong> {vehicle.chassisNumber}</p>
                         <p><strong>Engine Number:</strong> {vehicle.engineNumber}</p>
                         <p><strong>Registration Date:</strong> {new Date(vehicle.registrationDate).toLocaleDateString()}</p>
 
-                        {/* Accept and Reject Buttons */}
-                        <div className="mt-4 flex space-x-4">
-                          <motion.button
-                            className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-all"
-                            onClick={() => handleAccept(vehicle.TransactionId)}
-                            whileHover={disableHover ? {} : { scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Accept
-                          </motion.button>
-                          <motion.button
-                            className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#C24A00] transition-all"
-                            onClick={() => handleReject(vehicle.TransactionId)}
-                            whileHover={disableHover ? {} : { scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Reject
-                          </motion.button>
-                        </div>
+                        {vehicle.status === 'Pending' && (
+                          <div className="mt-4 flex space-x-4">
+                            <motion.button
+                              className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-all"
+                              onClick={() => handleApprove(vehicle.TransactionId)}
+                              whileHover={disableHover ? {} : { scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              Accept
+                            </motion.button>
+                            <motion.button
+                              className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#C24A00] transition-all"
+                              onClick={() => handleReject(vehicle.TransactionId)}
+                              whileHover={disableHover ? {} : { scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              Reject
+                            </motion.button>
+                          </div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>

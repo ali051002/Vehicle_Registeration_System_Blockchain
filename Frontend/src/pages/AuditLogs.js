@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaCarAlt, FaUser, FaClock, FaExchangeAlt } from 'react-icons/fa';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
-const TransactionCard = ({ transaction }) => {
+
+const TransactionCard = ({ transaction, onPrint }) => {
   return (
     <motion.div
       className="bg-white rounded-lg shadow-lg overflow-hidden h-full"
@@ -48,11 +49,29 @@ const TransactionCard = ({ transaction }) => {
             <h4 className="font-semibold text-[#F38120] mb-1">Status</h4>
             <div className="flex items-center">
               <FaExchangeAlt className="text-[#F38120] mr-2" />
-              <span className={`text-gray-600 ${transaction.transactionStatus === 'Approved' ? 'text-green-500' : transaction.transactionStatus === 'Rejected' ? 'text-red-500' : 'text-yellow-500'}`}>
+              <span
+                className={`text-gray-600 ${
+                  transaction.transactionStatus === 'Approved'
+                    ? 'text-green-500'
+                    : transaction.transactionStatus === 'Rejected'
+                    ? 'text-red-500'
+                    : 'text-yellow-500'
+                }`}
+              >
                 {transaction.transactionStatus}
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Print Details Button */}
+        <div className="mt-4 flex justify-end">
+          <button
+            className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-all duration-300 text-sm font-semibold"
+            onClick={() => onPrint(transaction)}
+          >
+            Print Details
+          </button>
         </div>
       </div>
     </motion.div>
@@ -62,7 +81,8 @@ const TransactionCard = ({ transaction }) => {
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // State for Sidebar toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const [selectedTransaction, setSelectedTransaction] = useState(null); // State for currently chosen transaction to print
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -77,6 +97,15 @@ const Transactions = () => {
     };
     fetchTransactions();
   }, []);
+
+  const handlePrint = (transaction) => {
+    // Set the selected transaction and then print
+    setSelectedTransaction(transaction);
+    // Defer the print call slightly to ensure selectedTransaction state is updated
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
@@ -107,7 +136,7 @@ const Transactions = () => {
               >
                 <AnimatePresence>
                   {transactions
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) // Sort by timestamp (most recent first)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) 
                     .map((transaction) => (
                       <motion.div
                         key={transaction.TransactionId}
@@ -116,7 +145,7 @@ const Transactions = () => {
                         exit={{ opacity: 0, y: -50 }}
                         transition={{ duration: 0.5 }}
                       >
-                        <TransactionCard transaction={transaction} />
+                        <TransactionCard transaction={transaction} onPrint={handlePrint} />
                       </motion.div>
                     ))}
                 </AnimatePresence>
@@ -125,6 +154,37 @@ const Transactions = () => {
           </div>
         </main>
       </div>
+
+      {/* Hidden print section for the selected transaction */}
+      {selectedTransaction && (
+        <div id="print-section" className="hiddenOnScreen">
+          <h2 className="text-xl font-bold">{selectedTransaction.transactionType} Details</h2>
+          <p><strong>From:</strong> {selectedTransaction.FromUserName}</p>
+          {selectedTransaction.ToUserName && <p><strong>To:</strong> {selectedTransaction.ToUserName}</p>}
+          <p><strong>Vehicle:</strong> {`${selectedTransaction.make} ${selectedTransaction.model} (${selectedTransaction.year})`}</p>
+          <p><strong>Timestamp:</strong> {new Date(selectedTransaction.timestamp).toLocaleString()}</p>
+          <p><strong>Status:</strong> {selectedTransaction.transactionStatus}</p>
+        </div>
+      )}
+
+      <style jsx>{`
+        @media print {
+          /* Hide everything except #print-section */
+          body * {
+            visibility: hidden;
+          }
+          #print-section, #print-section * {
+            visibility: visible;
+          }
+          #print-section {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right:0;
+            margin:0 auto;
+          }
+        }
+      `}</style>
     </div>
   );
 };
