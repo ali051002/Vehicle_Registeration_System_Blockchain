@@ -13,7 +13,6 @@ import { jwtDecode } from "jwt-decode";
 const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Toggle vehicle details display
   const toggleDetails = () => {
     setIsExpanded(!isExpanded);
   };
@@ -69,7 +68,7 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
               </motion.button>
               <motion.button
                 className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
-                onClick={() => onReject(vehicle.TransactionId)}
+                onClick={() => onReject(vehicle.TransactionId, vehicle.FromUserId, `${vehicle.make} ${vehicle.model}`)}
                 whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -108,7 +107,7 @@ const PendingRegistrations = () => {
 
   const storedToken = localStorage.getItem('token');
   const decoded = jwtDecode(storedToken);
-  const loggedInUserId = decoded.id || decoded.userId; 
+  const loggedInUserId = decoded.id || decoded.userId;
 
   const handleApprove = async (vehicle) => {
     const { value: registrationNumber } = await Swal.fire({
@@ -142,6 +141,23 @@ const PendingRegistrations = () => {
 
         if (response.status === 200) {
           Swal.fire('Success', 'Vehicle registration approved!', 'success');
+
+          // Fetch user details from /api/user/:id using FromUserId
+          const userResponse = await axios.get(`http://localhost:8085/api/user/${vehicle.FromUserId}`);
+          const userData = userResponse.data; // Should contain { name: '...', email: '...' }
+
+          // Send approval email
+          await axios.post('http://localhost:8085/api/send-email', {
+            to: userData.email,
+            subject: 'Registration Approved',
+            data: {
+              user: userData.name,
+              action: 'registration',
+              vehicle: `${vehicle.make} ${vehicle.model}`,
+              status: 'approved'
+            }
+          });
+
           setPendingRegistrations(pendingRegistrations.filter(v => v.TransactionId !== vehicle.TransactionId));
         }
       } catch (error) {
@@ -151,7 +167,7 @@ const PendingRegistrations = () => {
     }
   };
 
-  const handleReject = async (transactionId) => {
+  const handleReject = async (transactionId, fromUserId, vehicleName) => {
     try {
       const response = await axios.post('http://localhost:8085/api/vehicles/reject', {
         transactionId,
@@ -160,6 +176,23 @@ const PendingRegistrations = () => {
 
       if (response.status === 200) {
         Swal.fire('Info', 'Vehicle registration request rejected.', 'info');
+
+        // Fetch user details from /api/user/:id using fromUserId
+        const userResponse = await axios.get(`http://localhost:8085/api/user/${fromUserId}`);
+        const userData = userResponse.data; // Should contain { name: '...', email: '...' }
+        
+        // Send rejection email
+        await axios.post('http://localhost:8085/api/send-email', {
+          to: userData.email,
+          subject: 'Registration Rejected',
+          data: {
+            user: userData.name,
+            action: 'registration',
+            vehicle: vehicleName,
+            status: 'rejected'
+          }
+        });
+
         setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle.TransactionId !== transactionId));
       }
     } catch (error) {
@@ -179,32 +212,13 @@ const PendingRegistrations = () => {
       if (response.status === 200) {
         Swal.fire('Success', 'Vehicle registration approved!', 'success');
         setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== selectedVehicleId));
-        setApprovalModalOpen(false); 
+        setApprovalModalOpen(false);
         setRegistrationId('');
       }
     } catch (error) {
       console.error('Error approving vehicle registration:', error.response?.data || error.message);
       Swal.fire('Error', error.response?.data?.msg || 'Failed to approve vehicle registration', 'error');
     }
-  };
-
-  const showNotification = (message, icon) => {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer)
-        toast.addEventListener('mouseleave', Swal.resumeTimer)
-      }
-    });
-
-    Toast.fire({
-      icon: icon,
-      title: message
-    });
   };
 
   return (
