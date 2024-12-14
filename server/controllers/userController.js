@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const { 
     createUser, 
     loginUser, 
@@ -5,8 +6,8 @@ const {
     getUserByName, 
     getUserById, 
     updateUser, 
-    deleteUser ,
-    
+    updateUserPassword,
+    deleteUser 
 } = require('../db/dbQueries');
 
 // Create User Controller (Signup)
@@ -122,22 +123,46 @@ const removeUser = async (req, res) => {
     }
 
 
-    const fetchGovernmentOfficialById = async (req, res) => {
-        const officialId = req.params.id;
-        if (!officialId) {
-            return res.status(400).json({ msg: "Government Official ID is required" });
+
+};
+
+const fetchGovernmentOfficialById = async (req, res) => {
+    const officialId = req.params.id;
+    if (!officialId) {
+        return res.status(400).json({ msg: "Government Official ID is required" });
+    }
+    try {
+        const result = await getUserById(officialId);
+        
+        if (!result) {
+            return res.status(404).json({ msg: "Government Official not found" });
         }
-        try {
-            const result = await getUserById(officialId);
-            
-            if (!result) {
-                return res.status(404).json({ msg: "Government Official not found" });
-            }
-            res.status(200).json(result.recordsets[0][0]);  // Adjust this to match the returned data structure
-        } catch (err) {
-            res.status(500).json({ msg: err.message });
+        res.status(200).json(result.recordsets[0][0]);  // Adjust this to match the returned data structure
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+const updatePasswordController = async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+
+        if (!email || !newPassword) {
+            return res.status(400).json({ msg: "Email and New Password are required" });
         }
-}
+
+        // Hash the new password before storing it
+        const saltRounds = 10; // Number of rounds for bcrypt
+        const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+        // Call the dbQuery function to update the password
+        const message = await updateUserPassword(email, newPasswordHash);
+
+        // Respond with the success message
+        res.status(200).json({ msg: message });
+    } catch (error) {
+        res.status(500).json({ msg: "Error updating password", error: error.message });
+    }
 };
 
 module.exports = {
@@ -147,5 +172,6 @@ module.exports = {
     fetchUserByName,
     fetchUserById,
     modifyUser,
+    updatePasswordController,
     removeUser   
 };

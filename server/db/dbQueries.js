@@ -124,6 +124,23 @@ const updateUser = async (UserId, Name, Email, Password, Role, cnic, PhoneNumber
         .execute('sp_UpdateUser');
 };
 
+
+const updateUserPassword = async (email, newPasswordHash) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('Email', sql.NVarChar(255), email)
+            .input('NewPassword', sql.NVarChar(255), newPasswordHash)
+            .execute('UpdateUserPassword'); // Name of the stored procedure
+
+        return result.recordset[0].Message; // Return the success message
+    } catch (error) {
+        console.error('Error updating password:', error);
+        throw error;
+    }
+};
+
+
 // Delete user
 const deleteUser = async (userId) => {
     const pool = await poolPromise;
@@ -279,7 +296,38 @@ const approveOwnershipTransfer = async (transactionId) => {
         .execute('ApproveOwnershipTransfer');
 };
 
+// Assign OTP to Email
+const assignOtpToEmail = async (email, otp, expiryMinutes = 5) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('Email', sql.NVarChar(255), email)
+            .input('Otp', sql.NVarChar(6), otp)
+            .input('ExpiryMinutes', sql.Int, expiryMinutes)
+            .execute('AssignOtpToEmail'); // Ensure this matches the stored procedure name
 
+        return result.recordset; // If needed, adjust based on the procedure's return structure
+    } catch (error) {
+        console.error('Error assigning OTP to email:', error);
+        throw error;
+    }
+};
+
+// Verify OTP
+const verifyOtp = async (email, otp) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('Email', sql.NVarChar(255), email)
+            .input('Otp', sql.NVarChar(6), otp)
+            .execute('VerifyOtp'); // Ensure this matches the stored procedure name
+
+        return result.recordset[0].isValid; // Adjust based on the actual return structure
+    } catch (error) {
+        console.error('Error verifying OTP:', error);
+        throw error;
+    }
+};
 
 
 module.exports = {
@@ -290,6 +338,7 @@ module.exports = {
     getUserByName,
     getUserById,
     updateUser,
+    updateUserPassword,
     deleteUser,
     getAllVehicles,
     getVehicleById,
@@ -305,5 +354,7 @@ module.exports = {
     requestOwnershipTransfer,
     approveOwnershipTransfer,
     updateVehicleStatus,
-    getVehiclesByUserId
+    getVehiclesByUserId,
+    verifyOtp,
+    assignOtpToEmail
 };

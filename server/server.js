@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config(); // Load environment variables from .env file
 const bodyParser = require('body-parser');
 const emailRoutes = require('./routes/emailNotificationRoutes');
+const otpRoutes = require('./routes/otpRoutes');
 const userRoutes = require('./routes/userRoutes'); // User-related routes
 const vehicleRoute = require('./routes/vehicleRoutes'); // Vehicle-related routes
 const transactionRoute = require('./routes/transactionRoutes'); // Transaction-related routes
@@ -27,6 +28,7 @@ app.use('/api', userRoutes); // Scoped to '/api/users'
 app.use('/api', vehicleRoute); // Scoped to '/api/vehicles'
 app.use('/api', transactionRoute); // Scoped to '/api/transactions'
 app.use('/api', emailRoutes);
+app.use('/api', otpRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
