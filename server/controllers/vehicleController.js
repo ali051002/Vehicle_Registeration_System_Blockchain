@@ -11,8 +11,8 @@ const {
     approveOwnershipTransfer,
     getVehiclesByOwnerCNIC,
     updateVehicleStatus,
-    getVehiclesByUserId,
-    rejectVehicleRequest // Add the update vehicle status function
+    rejectVehicleRequest,
+    getVehiclesByUserId// Add the update vehicle status function
 } = require('../db/dbQueries');
 
 // Get All Vehicles
@@ -220,6 +220,8 @@ const approveRegistration = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
+
+
 
 
 // Update vehicle status (Approve or Reject)

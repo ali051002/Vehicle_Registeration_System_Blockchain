@@ -9,7 +9,6 @@ import TopNavBar from '../components/TopNavBar';
 import { AuthContext } from '../context/AuthContext';
 import { jwtDecode } from "jwt-decode";
 
-
 // Vehicle List Item Component
 const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -18,6 +17,10 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
   const toggleDetails = () => {
     setIsExpanded(!isExpanded);
   };
+
+  // Determine displayed values
+  const displayedStatus = vehicle.status || "Pending";
+  const displayedRegNumber = vehicle.registrationNumber || "To be assigned";
 
   return (
     <motion.li
@@ -30,7 +33,7 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="font-semibold text-[#373A40]">{vehicle.make} {vehicle.model}</h3>
-          <p className="text-[#373A40]">Owner ID: {vehicle.ownerId}</p>
+          <p className="text-[#373A40]">Owner CNIC: {vehicle.ownerCnic}</p>
         </div>
         <motion.button
           onClick={toggleDetails}
@@ -53,29 +56,33 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
           >
             <p className="text-[#373A40]">Year: {vehicle.year}</p>
             <p className="text-[#373A40]">Color: {vehicle.color}</p>
-            <p className="text-[#373A40]">Status: {vehicle.status}</p>
-            <p className="text-[#373A40]">Registration Number: {vehicle.registrationNumber}</p>
+            <p className="text-[#373A40]">Status: {displayedStatus}</p>
+            <p className="text-[#373A40]">Registration Number: {displayedRegNumber}</p>
             <p className="text-[#373A40]">Chassis Number: {vehicle.chassisNumber}</p>
             <p className="text-[#373A40]">Engine Number: {vehicle.engineNumber}</p>
             <p className="text-[#373A40]">Registration Date: {new Date(vehicle.registrationDate).toLocaleDateString()}</p>
 
             <div className="mt-4 flex space-x-4">
-              <motion.button
-                className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
-                onClick={() => onApprove(vehicle)}
-                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Approve
-              </motion.button>
-              <motion.button
-                className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
-                onClick={() => onReject(vehicle._id)}
-                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Reject
-              </motion.button>
+              {displayedStatus === "Pending" && (
+                <>
+                  <motion.button
+                    className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
+                    onClick={() => onApprove(vehicle)}
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Approve
+                  </motion.button>
+                  <motion.button
+                    className="bg-gradient-to-r from-[#F38120] to-[#F3A620] text-white px-4 py-2 rounded shadow-lg"
+                    onClick={() => onReject(vehicle.TransactionId, vehicle.FromUserId, `${vehicle.make} ${vehicle.model}`)}
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(243, 129, 32, 0.5)' }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Reject
+                  </motion.button>
+                </>
+              )}
             </div>
           </motion.div>
         )}
@@ -87,17 +94,29 @@ const VehicleListItem = ({ vehicle, onApprove, onReject }) => {
 const PendingRegistrations = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingRegistrations, setPendingRegistrations] = useState([]);
-  const [selectedVehicleId, setSelectedVehicleId] = useState(null); // Fix 1: Added state for selectedVehicleId
-  const [registrationId, setRegistrationId] = useState(''); // Fix 2: Added state for registrationId
-  const [approvalModalOpen, setApprovalModalOpen] = useState(false); // Fix 3: Added state for approvalModalOpen
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+  const [registrationId, setRegistrationId] = useState('');
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
   const user = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPendingRegistrations = async () => {
       try {
-        const response = await axios.get('http://localhost:8085/api/vehicles/pending');
-        setPendingRegistrations(response.data);
+        const response = await axios.get('http://localhost:8085/api/transactions/pending');
+        const pending = response.data;
+
+        // For each pending vehicle, fetch user details to get CNIC
+        const enrichedPending = await Promise.all(
+          pending.map(async (vehicle) => {
+            const userResponse = await axios.get(`http://localhost:8085/api/user/${vehicle.FromUserId}`);
+            const userData = userResponse.data; 
+            vehicle.ownerCnic = userData.cnic; 
+            return vehicle;
+          })
+        );
+
+        setPendingRegistrations(enrichedPending);
       } catch (error) {
         console.error('Error fetching pending vehicles:', error);
         Swal.fire('Error', 'Failed to fetch pending registrations', 'error');
@@ -109,7 +128,7 @@ const PendingRegistrations = () => {
 
   const storedToken = localStorage.getItem('token');
   const decoded = jwtDecode(storedToken);
-  const loggedInUserId = decoded.id || decoded.userId; // Adjusted to match your token's payload structure
+  const loggedInUserId = decoded.id || decoded.userId;
 
   const handleApprove = async (vehicle) => {
     const { value: registrationNumber } = await Swal.fire({
@@ -130,7 +149,7 @@ const PendingRegistrations = () => {
         const response = await axios.post(
           'http://localhost:8085/api/approveRegistration',
           {
-            transactionId: vehicle.transactionId,
+            transactionId: vehicle.TransactionId,
             approvedBy: loggedInUserId,
             registrationNumber: registrationNumber
           },
@@ -143,29 +162,72 @@ const PendingRegistrations = () => {
 
         if (response.status === 200) {
           Swal.fire('Success', 'Vehicle registration approved!', 'success');
-          setPendingRegistrations(pendingRegistrations.filter(v => v.transactionId !== vehicle.transactionId));
+
+          // Fetch user details again (or reuse what we had) if needed
+          const userResponse = await axios.get(`http://localhost:8085/api/user/${vehicle.FromUserId}`);
+          const userData = userResponse.data; 
+
+          // Send approval email
+          await axios.post('http://localhost:8085/api/send-email', {
+            to: userData.email,
+            subject: 'Registration Approved',
+            data: {
+              user: userData.name,
+              action: 'registration',
+              vehicle: `${vehicle.make} ${vehicle.model}`,
+              status: 'approved'
+            }
+          });
+
+          // Update the vehicle's status and registration number locally
+          setPendingRegistrations(prev => prev.map(v => 
+            v.TransactionId === vehicle.TransactionId 
+              ? { ...v, status: 'Approved', registrationNumber } 
+              : v
+          ));
         }
       } catch (error) {
-        console.error('Error approving vehicle registration:', error);
-        Swal.fire('Error', error.response?.data.msg || 'Failed to approve vehicle registration', 'error');
+        console.error('Error approving vehicle registration:', error.response?.data || error.message);
+        Swal.fire('Error', error.response?.data?.msg || 'Failed to approve vehicle registration', 'error');
       }
     }
   };
 
-  const handleReject = async (vehicleId) => {
+  const handleReject = async (transactionId, fromUserId, vehicleName) => {
     try {
       const response = await axios.post('http://localhost:8085/api/vehicles/reject', {
-        vehicleId,
+        transactionId,
         status: 'Rejected',
       });
 
       if (response.status === 200) {
-        Swal.fire('Info', 'Vehicle registration rejected.', 'info');
-        setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== vehicleId));
+        Swal.fire('Info', 'Vehicle registration request rejected.', 'info');
+
+        const userResponse = await axios.get(`http://localhost:8085/api/user/${fromUserId}`);
+        const userData = userResponse.data;
+        
+        // Send rejection email
+        await axios.post('http://localhost:8085/api/send-email', {
+          to: userData.email,
+          subject: 'Registration Rejected',
+          data: {
+            user: userData.name,
+            action: 'registration',
+            vehicle: vehicleName,
+            status: 'rejected'
+          }
+        });
+
+        // Update the vehicle's status to Rejected and reset registration number
+        setPendingRegistrations(prev => prev.map(v => 
+          v.TransactionId === transactionId
+            ? { ...v, status: 'Rejected', registrationNumber: null }
+            : v
+        ));
       }
     } catch (error) {
-      console.error('Error rejecting vehicle registration:', error);
-      Swal.fire('Error', 'Failed to reject vehicle registration', 'error');
+      console.error('Error rejecting vehicle registration:', error.response?.data || error.message);
+      Swal.fire('Error', error.response?.data?.msg || 'Failed to reject vehicle registration', 'error');
     }
   };
 
@@ -179,33 +241,19 @@ const PendingRegistrations = () => {
 
       if (response.status === 200) {
         Swal.fire('Success', 'Vehicle registration approved!', 'success');
-        setPendingRegistrations(pendingRegistrations.filter(vehicle => vehicle._id !== selectedVehicleId));
-        setApprovalModalOpen(false); // Close the modal after approval
-        setRegistrationId(''); // Clear the registration ID input
+        // Update the specific vehicle if needed or remove from list
+        setPendingRegistrations(prev => prev.map(v => 
+          v._id === selectedVehicleId
+            ? { ...v, status: 'Approved', registrationNumber: registrationId }
+            : v
+        ));
+        setApprovalModalOpen(false);
+        setRegistrationId('');
       }
     } catch (error) {
-      console.error('Error approving vehicle registration:', error);
-      Swal.fire('Error', 'Failed to approve vehicle registration', 'error');
+      console.error('Error approving vehicle registration:', error.response?.data || error.message);
+      Swal.fire('Error', error.response?.data?.msg || 'Failed to approve vehicle registration', 'error');
     }
-  };
-
-  const showNotification = (message, icon) => {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer)
-        toast.addEventListener('mouseleave', Swal.resumeTimer)
-      }
-    });
-
-    Toast.fire({
-      icon: icon,
-      title: message
-    });
   };
 
   return (
@@ -247,7 +295,7 @@ const PendingRegistrations = () => {
                 <AnimatePresence>
                   {pendingRegistrations.map((vehicle) => (
                     <VehicleListItem
-                      key={vehicle._id}
+                      key={vehicle.TransactionId}
                       vehicle={vehicle}
                       onApprove={handleApprove}
                       onReject={handleReject}
