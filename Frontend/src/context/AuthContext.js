@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { jwtDecode } from "jwt-decode"; // Named import for jwtDecode
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
@@ -8,61 +8,75 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState(''); // State to store email for forgot/reset password flow
 
+  // Retrieve token and user on initial load
   useEffect(() => {
-
-    const storedToken = localStorage.getItem('token'); // Retrieve token from localStorage
+    const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
-      const decoded = jwtDecode(storedToken); // Decode JWT token
-      console.log('Response from JWT', decoded);
-      const userID = decoded.userId; // Extract userId from decoded token
-      console.log("Auth Context user id:", userID);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`; // Set token in axios headers
-
-      // Fetch user data with the token
-      axios.get(`http://localhost:8085/api/user/${userID}`)
+      const decoded = jwtDecode(storedToken);
+      const userID = decoded.userId;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+      
+      axios
+        .get(`http://localhost:8085/api/user/${userID}`)
         .then(response => {
-          console.log(response.data);
-          setUser(response.data); // Set user data from the response
-          setLoading(false); // Stop loading after user data is fetched
+          setUser(response.data);
+          setLoading(false);
         })
         .catch(error => {
           console.error('Error fetching user data:', error);
-          setLoading(false); // Stop loading even if there's an error
+          setLoading(false);
         });
     } else {
-      setLoading(false); // Stop loading if no token is found
+      setLoading(false);
     }
   }, []);
 
+  // Function for user login
   const login = async (email, password) => {
     try {
       const response = await axios.post('http://localhost:8085/api/login', { email, password });
-      localStorage.setItem('token', response.data.token); // Store token in localStorage
+      localStorage.setItem('token', response.data.token);
       setToken(response.data.token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`; // Set token in axios headers
-      console.log('Login successful:', response.data);
-      setUser(response.data.user); // Set user data after successful login
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      setUser(response.data.user);
       setLoading(false);
       return response.data.user;
     } catch (error) {
       console.error('Login error:', error.response?.data?.msg || 'Login failed');
-      setLoading(false); // Stop loading if login fails
+      setLoading(false);
     }
   };
 
   // Function to handle logout
   const logout = () => {
-    localStorage.removeItem('token'); // Remove token from localStorage
-    delete axios.defaults.headers.common['Authorization']; // Remove token from axios headers
-    setUser(null); // Reset user state to null
-    setLoading(false); // Stop loading after logout
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+    setToken(null);
+    setLoading(false);
+  };
+
+  // Function to update email (used in Forgot Password flow)
+  const updateEmail = (newEmail) => {
+    setEmail(newEmail);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
-      {loading ? <div>Loading...</div> : children} {/* Show loading spinner if still loading */}
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        email, // Provide the email to all components
+        login,
+        logout,
+        updateEmail, // Expose the updateEmail function
+      }}
+    >
+      {loading ? <div>Loading...</div> : children}
     </AuthContext.Provider>
   );
 };
