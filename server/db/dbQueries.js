@@ -112,14 +112,13 @@ const getUserById = async (userId) => {
 };
 
 // Update user
-const updateUser = async (UserId, Name, Email, Password, Role, cnic, PhoneNumber, AddressDetails, ProfilePicture) => {
+const updateUser = async (UserId, Name, Email, Password, cnic, PhoneNumber, AddressDetails, ProfilePicture) => {
     const pool = await poolPromise;
     return pool.request()
         .input('UserId', sql.UniqueIdentifier, UserId)
         .input('Name', sql.NVarChar(100), Name)
         .input('Email', sql.NVarChar(100), Email)
         .input('Password', sql.NVarChar(256), Password)
-        .input('Role', sql.NVarChar(50), Role)
         .input('cnic', sql.NVarChar(100), cnic)
         .input('PhoneNumber', sql.NVarChar(20), PhoneNumber)
         .input('AddressDetails', sql.NVarChar(255), AddressDetails)

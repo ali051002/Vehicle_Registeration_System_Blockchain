@@ -97,12 +97,14 @@ const fetchUserById = async (req, res) => {
 
 // Update User Controller
 const modifyUser = async (req, res) => {
-    const { UserId, Name, Email, Password, Role, cnic, PhoneNumber, AddressDetails, ProfilePicture } = req.body;
+    const { UserId, Name, Email, Password, cnic, PhoneNumber, AddressDetails, ProfilePicture } = req.body;
     if (!UserId) {
         return res.status(400).json({ msg: "User ID is required" });
     }
+    const saltRounds = 10; // Number of rounds for bcrypt
+    const newPasswordHash = await bcrypt.hash(Password, saltRounds);
     try {
-        await updateUser(UserId, Name, Email, Password, Role, cnic, PhoneNumber, AddressDetails, ProfilePicture);
+        await updateUser(UserId, Name, Email, newPasswordHash, cnic, PhoneNumber, AddressDetails, ProfilePicture);
         res.status(200).json({ msg: "User updated successfully" });
     } catch (err) {
         res.status(500).json({ msg: err.message });

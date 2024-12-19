@@ -18,7 +18,7 @@ router.get('/userByName', userController.fetchUserByName);
 router.get('/user/:id', userController.fetchUserById);
 
 // Update user details (Modify a user by ID)
-router.put('/user', userController.modifyUser);
+router.put('/updateUser', userController.modifyUser);
 
 // Delete user by ID (Remove a user from the system)
 router.delete('/user/:id', userController.removeUser);
