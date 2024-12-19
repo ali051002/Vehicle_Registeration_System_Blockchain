@@ -1,6 +1,7 @@
 const express = require('express');
-const router = express.Router();
 const transactionController = require('../controllers/transactionController');
+const router = express.Router();
+
 
 
 /* Get transactions with optional filters for status and type(use) 
@@ -13,5 +14,7 @@ router.get('/transactions', transactionController.fetchTransactions);
 router.get('/transactions/pending', transactionController.fetchPendingTransactions);
 router.get('/transactions/pendingtransfers', transactionController.fetchPendingTransfers);
 
+router.post('/generateTransactionPDF', transactionController.GenerateTransactionPDFbyId);
+router.get('/generateAllTransactionsPDF', transactionController.GenerateAllTransactionsPDF);
 
-module.exports = router;
+module.exports = router; 

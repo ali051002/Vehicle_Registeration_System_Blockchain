@@ -329,6 +329,40 @@ const verifyOtp = async (email, otp) => {
     }
 };
 
+const getTransactionDetailsById = async (transactionId) => {
+    const pool = await poolPromise; // Use the pool to manage the connection
+
+    try {
+        // Execute the stored procedure with the input parameter
+        const result = await pool.request()
+            .input('TransactionId', sql.UniqueIdentifier, transactionId) // Pass the transactionId securely
+            .execute('GetTransactionDetailsById'); // Ensure this matches the stored procedure name
+
+        return result.recordset; // Return the result from the stored procedure
+    } catch (error) {
+        console.error('Error getting transaction details by ID:', error);
+        throw error; // Propagate the error
+    }
+};
+
+
+  // Function to get all transaction details
+  const getAllTransactionDetails = async () => {
+    const pool = await poolPromise; // Use the pool to manage the connection
+
+    try {
+        // Execute the stored procedure without any input parameters
+        const result = await pool.request()
+            .execute('GetAllTransactionDetails'); // Ensure this matches the stored procedure name
+
+        return result.recordset; // Return the result from the stored procedure
+    } catch (error) {
+        console.error('Error getting all transaction details:', error);
+        throw error; // Propagate the error
+    }
+};
+
+  
 
 module.exports = {
     createUser,
@@ -356,5 +390,7 @@ module.exports = {
     updateVehicleStatus,
     getVehiclesByUserId,
     verifyOtp,
-    assignOtpToEmail
+    assignOtpToEmail,
+    getTransactionDetailsById,
+    getAllTransactionDetails
 };
