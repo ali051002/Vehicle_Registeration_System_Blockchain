@@ -9,6 +9,7 @@ const createUser = async (userData) => {
 
     // Hash the password before storing it in the database
     const hashedPassword = await bcrypt.hash(userData.password, 10);
+    console.log('Hashed Password:', hashedPassword);  // Debug log
 
     try {
         // Execute the stored procedure and capture the result
@@ -44,7 +45,8 @@ const getUserByEmail = async (email) => {
 const loginUser = async (email, password) => {
     // Fetch the user by email
     const user = await getUserByEmail(email);
-    console.log(user._id)
+    console.log('User:', user);  // Debug log
+
     // If the user does not exist, throw an error
     if (!user) {
         throw new Error('Invalid email or password');
@@ -52,7 +54,8 @@ const loginUser = async (email, password) => {
 
     // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
-    
+    console.log('Password Match:', isMatch);  // Debug log
+
     // If passwords do not match, throw an error
     if (!isMatch) {
         throw new Error('Invalid email or password');

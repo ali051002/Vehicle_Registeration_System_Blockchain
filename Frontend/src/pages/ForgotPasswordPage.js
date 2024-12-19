@@ -8,7 +8,7 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import LoadingPage from './Loading';
 
 export default function ForgotPasswordPage() {
-  const { updateEmail } = useContext(AuthContext); // Access updateEmail function from context
+  const { updateEmail } = useContext(AuthContext); // Access updateEmail function from AuthContext
   const [email, setEmail] = useState('');
   const [otp, setOTP] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,11 +17,9 @@ export default function ForgotPasswordPage() {
 
   const navigate = useNavigate();
 
-  // Loading effect on page load
+  // Simulate loading effect
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
+    const timer = setTimeout(() => setLoading(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -29,7 +27,7 @@ export default function ForgotPasswordPage() {
     return <LoadingPage />;
   }
 
-  // Send OTP API Integration
+  // Handle sending OTP
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -54,7 +52,7 @@ export default function ForgotPasswordPage() {
 
       const data = await response.json();
 
-      if (response.status === 200) {
+      if (response.ok) {
         updateEmail(email); // Save email to context
         setIsLoading(false);
         setStep(2);
@@ -68,7 +66,7 @@ export default function ForgotPasswordPage() {
         setIsLoading(false);
         Swal.fire({
           title: 'Error!',
-          text: data.error || 'Failed to send OTP. Email may not exist.',
+          text: data.error || 'Email does not exist in the database.',
           icon: 'error',
           confirmButtonColor: '#F38120',
         });
@@ -84,7 +82,7 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  // Verify OTP API Integration
+  // Handle verifying OTP
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -109,7 +107,7 @@ export default function ForgotPasswordPage() {
 
       const data = await response.json();
 
-      if (response.status === 200) {
+      if (response.ok) {
         setIsLoading(false);
         Swal.fire({
           title: 'Verified!',
@@ -117,13 +115,13 @@ export default function ForgotPasswordPage() {
           icon: 'success',
           confirmButtonColor: '#F38120',
         }).then(() => {
-          navigate('/reset-password'); // Navigate to Reset Password page
+          navigate('/reset-password'); // Navigate to Reset Password Page
         });
       } else {
         setIsLoading(false);
         Swal.fire({
           title: 'Error!',
-          text: data.msg || 'Invalid OTP. Please try again.',
+          text: data.error || 'Invalid or expired OTP. Please try again.',
           icon: 'error',
           confirmButtonColor: '#F38120',
         });

@@ -51,6 +51,10 @@ const GovernmentOfficialDashboard = () => {
     navigate('/signin');
   };
 
+  // const unauthorized =()=>{
+  //   navigate('/unauthorized');
+  // };
+
   const toggleProfile = () => {
     setProfileOpen(!profileOpen);
   };

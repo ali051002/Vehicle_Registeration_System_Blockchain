@@ -28,7 +28,7 @@ const App = () => {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
+        <Routes >
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/signup" element={<SignupPage />} />

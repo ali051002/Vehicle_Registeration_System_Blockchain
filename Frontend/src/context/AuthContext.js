@@ -9,7 +9,7 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState(''); // State to store email for forgot/reset password flow
-
+  const [role, setRole]=useState('');
   // Retrieve token and user on initial load
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
