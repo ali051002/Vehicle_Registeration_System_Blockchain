@@ -1,43 +1,49 @@
-// SignInPage.js
-import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa';
-import { AuthContext } from '../context/AuthContext';
+import { FaLock, FaArrowRight } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
-import LoadingPage from './Loading'; // Correct component name
+import LoadingPage from './Loading';
 
-export default function SignInPage() {
-  const { login } = useContext(AuthContext);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Updated to only one loading state
+export default function VerifyOtpPage() {
+  const [otp, setOtp] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [loading, setLoading] = useState(true); 
-  
+  const { email } = location.state || {}; // Get email from state
+
+  // Simulate page load timeout
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false); 
+      setLoading(false);
     }, 3000);
-    return () => clearTimeout(timer); 
+    return () => clearTimeout(timer);
   }, []);
 
+  // Redirect if no email exists
+  useEffect(() => {
+    if (!email) {
+      navigate('/forgot-password');
+    }
+  }, [email, navigate]);
+
   if (loading) {
-    return <LoadingPage/>; 
+    return <LoadingPage />;
   }
 
-  const handleSubmit = async (e) => {
+  const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!email || !password) {
+    if (!otp) {
       setIsLoading(false);
       Swal.fire({
         title: 'Error!',
-        text: 'Both email and password fields are required.',
+        text: 'OTP field cannot be empty.',
         icon: 'error',
         confirmButtonColor: '#F38120',
       });
@@ -45,39 +51,36 @@ export default function SignInPage() {
     }
 
     try {
-      const user = await login(email, password);
-      setIsLoading(false);
+      // Simulate OTP verification
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      Swal.fire({
-        title: '<h2 class="text-[#F38120] text-2xl font-bold">Login Successful</h2>',
-        html: `
-          <div class="flex flex-col items-center">
-            <div class="w-16 h-16 border-t-4 border-[#F38120] border-opacity-75 rounded-full animate-spin mb-4"></div>
-            <p class="text-white text-lg">Welcome, ${user.role}! Redirecting to your dashboard...</p>
-          </div>
-        `,
-        showConfirmButton: false,
-        background: '#171717',
-        color: '#EEEEEE',
-        timer: 2000,
-        willClose: () => {
-          if (user.role === 'admin') {
-            navigate('/admin-dashboard');
-          } else if (user.role === 'government official') {
-            navigate('/government-official-dashboard');
-          } else {
-            navigate('/user-dashboard');
-          }
-        }
-      });
+      if (otp === '123456') {
+        Swal.fire({
+          title: 'Success!',
+          text: 'OTP verified successfully. You can now reset your password.',
+          icon: 'success',
+          confirmButtonColor: '#F38120',
+        }).then(() => {
+          navigate('/reset-password', { state: { email } });
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Invalid OTP. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#F38120',
+        });
+      }
     } catch (err) {
       setIsLoading(false);
       Swal.fire({
         title: 'Error!',
-        text: 'Invalid email or password',
+        text: 'An error occurred. Please try again.',
         icon: 'error',
         confirmButtonColor: '#F38120',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,11 +95,13 @@ export default function SignInPage() {
         >
           <img src="/SC.png" alt="SecureChain Logo" className="w-24 h-24 mb-4" />
           <h1 className="text-4xl font-bold text-[#F38120] mb-2">SecureChain</h1>
-          <p className="text-[#F38120] text-center mb-8">Secure your future with blockchain technology</p>
-          <motion.div 
+          <p className="text-[#F38120] text-center mb-8">
+            Secure your future with blockchain technology
+          </p>
+          <motion.div
             className="w-full h-1 bg-[#F38120]"
             initial={{ width: 0 }}
-            animate={{ width: "100%" }}
+            animate={{ width: '100%' }}
             transition={{ duration: 1, delay: 0.5 }}
           />
         </motion.div>
@@ -107,31 +112,18 @@ export default function SignInPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <h2 className="text-3xl font-bold mb-6 text-center text-[#F38120]">Sign In</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <InputField
-              icon={<FaEnvelope />}
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={setEmail}
-            />
+          <h2 className="text-3xl font-bold mb-6 text-center text-[#F38120]">Verify OTP</h2>
+          <p className="text-center text-[#F38120] mb-6">
+            Enter the OTP sent to <span className="font-semibold">{email}</span>
+          </p>
+          <form onSubmit={handleVerifyOTP} className="space-y-6">
             <InputField
               icon={<FaLock />}
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={setPassword}
+              type="text"
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={setOtp}
             />
-            {/* Forgot Password Button */}
-            <div className="flex justify-end">
-              <Link 
-                to="/forgot-password" 
-                className="text-[#F38120] text-sm hover:underline"
-              >
-                Forgot Password?
-              </Link>
-            </div>
             <motion.button
               type="submit"
               className="w-full py-3 px-4 bg-[#F38120] text-white rounded-lg flex items-center justify-center space-x-2 hover:bg-[#e0701c] transition duration-300 ease-in-out transform hover:scale-105"
@@ -143,11 +135,11 @@ export default function SignInPage() {
                 <motion.div
                   className="w-6 h-6 border-t-2 border-white rounded-full animate-spin"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 />
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Verify OTP</span>
                   <FaArrowRight />
                 </>
               )}
@@ -159,10 +151,10 @@ export default function SignInPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-[#F38120] hover:underline">
-              Sign Up
-            </Link>
+            Didn't receive an OTP?{' '}
+            <a href="/forgot-password" className="text-[#F38120] hover:underline">
+              Resend OTP
+            </a>
           </motion.p>
         </motion.div>
       </div>
