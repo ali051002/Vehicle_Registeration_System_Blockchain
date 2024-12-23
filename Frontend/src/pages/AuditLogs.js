@@ -5,7 +5,7 @@ import { FaCarAlt, FaUser, FaClock, FaExchangeAlt } from 'react-icons/fa';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
 
-const TransactionCard = ({ transaction, onPrint }) => {
+const TransactionCard = ({ transaction, onPreview }) => {
   return (
     <motion.div
       className="bg-white rounded-lg shadow-lg overflow-hidden h-full"
@@ -45,32 +45,15 @@ const TransactionCard = ({ transaction, onPrint }) => {
               <span className="text-gray-600">{new Date(transaction.timestamp).toLocaleString()}</span>
             </div>
           </div>
-          <div>
-            <h4 className="font-semibold text-[#F38120] mb-1">Status</h4>
-            <div className="flex items-center">
-              <FaExchangeAlt className="text-[#F38120] mr-2" />
-              <span
-                className={`text-gray-600 ${
-                  transaction.transactionStatus === 'Approved'
-                    ? 'text-green-500'
-                    : transaction.transactionStatus === 'Rejected'
-                    ? 'text-red-500'
-                    : 'text-yellow-500'
-                }`}
-              >
-                {transaction.transactionStatus}
-              </span>
-            </div>
-          </div>
         </div>
 
-        {/* Print Details Button */}
+        {/* Preview PDF Button */}
         <div className="mt-4 flex justify-end">
           <button
             className="bg-[#F38120] text-white px-4 py-2 rounded hover:bg-[#DC5F00] transition-all duration-300 text-sm font-semibold"
-            onClick={() => onPrint(transaction)}
+            onClick={() => onPreview(transaction)}
           >
-            Print Details
+            Preview PDF
           </button>
         </div>
       </div>
@@ -81,8 +64,10 @@ const TransactionCard = ({ transaction, onPrint }) => {
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); 
-  const [selectedTransaction, setSelectedTransaction] = useState(null); // State for currently chosen transaction to print
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [previewTransaction, setPreviewTransaction] = useState(null);
+  const [showAllTransactions, setShowAllTransactions] = useState(true); // Toggle state
+  const [isGenerating, setIsGenerating] = useState(false); // For spinner
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -98,36 +83,79 @@ const Transactions = () => {
     fetchTransactions();
   }, []);
 
-  const handlePrint = (transaction) => {
-    // Set the selected transaction and then print
-    setSelectedTransaction(transaction);
-    // Defer the print call slightly to ensure selectedTransaction state is updated
-    setTimeout(() => {
-      window.print();
-    }, 100);
+  const handlePreviewPDF = (transaction) => {
+    setPreviewTransaction(transaction);
+  };
+
+  const handleDownloadPDF = async (transactionId) => {
+    setIsGenerating(true);
+    try {
+      const response = await axios.post(
+        'http://localhost:8085/api/generateTransactionPDF',
+        { transactionId },
+        { responseType: 'blob' }
+      );
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `transaction-${transactionId}.pdf`;
+      link.click();
+    } catch (error) {
+      console.error('Error generating transaction PDF:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadAllPDFs = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await axios.get('http://localhost:8085/api/generateAllTransactionsPDF', {
+        responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'all-transactions.pdf';
+      link.click();
+    } catch (error) {
+      console.error('Error generating all transactions PDF:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-      {/* Top Navigation Bar */}
       <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Side Navigation Bar */}
         <SideNavBar
           navOpen={sidebarOpen}
           toggleNav={() => setSidebarOpen(!sidebarOpen)}
           userRole="governmentOfficial"
         />
 
-        {/* Main Content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
           <div className="container mx-auto px-6 py-8">
-            <h1 className="text-4xl font-bold text-[#F38120] text-center mb-10">Transactions</h1>
+            <div className="flex justify-between items-center mb-10">
+              <h1 className="text-4xl font-bold text-[#F38120]">Transactions</h1>
+              <div className="flex items-center">
+                <label className="mr-3 font-semibold">View:</label>
+                <select
+                  className="bg-white border border-gray-300 rounded px-4 py-2"
+                  value={showAllTransactions ? 'all' : 'pdf'}
+                  onChange={(e) => setShowAllTransactions(e.target.value === 'all')}
+                >
+                  <option value="all">All Transactions</option>
+                  <option value="pdf">Download All PDFs</option>
+                </select>
+              </div>
+            </div>
 
             {loading ? (
               <div className="text-center text-lg text-gray-600">Loading transactions...</div>
-            ) : (
+            ) : showAllTransactions ? (
               <motion.div
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 initial={{ opacity: 0 }}
@@ -135,56 +163,59 @@ const Transactions = () => {
                 transition={{ duration: 0.5, staggerChildren: 0.1 }}
               >
                 <AnimatePresence>
-                  {transactions
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) 
-                    .map((transaction) => (
-                      <motion.div
-                        key={transaction.TransactionId}
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -50 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <TransactionCard transaction={transaction} onPrint={handlePrint} />
-                      </motion.div>
-                    ))}
+                  {transactions.map((transaction) => (
+                    <motion.div
+                      key={transaction.TransactionId}
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -50 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <TransactionCard transaction={transaction} onPreview={handlePreviewPDF} />
+                    </motion.div>
+                  ))}
                 </AnimatePresence>
               </motion.div>
+            ) : (
+              <button
+                className="bg-[#F38120] text-white px-6 py-3 rounded hover:bg-[#DC5F00] transition-all duration-300 mx-auto block"
+                onClick={handleDownloadAllPDFs}
+              >
+                {isGenerating ? 'Generating PDF...' : 'Download All PDFs'}
+              </button>
             )}
           </div>
         </main>
       </div>
 
-      {/* Hidden print section for the selected transaction */}
-      {selectedTransaction && (
-        <div id="print-section" className="hiddenOnScreen">
-          <h2 className="text-xl font-bold">{selectedTransaction.transactionType} Details</h2>
-          <p><strong>From:</strong> {selectedTransaction.FromUserName}</p>
-          {selectedTransaction.ToUserName && <p><strong>To:</strong> {selectedTransaction.ToUserName}</p>}
-          <p><strong>Vehicle:</strong> {`${selectedTransaction.make} ${selectedTransaction.model} (${selectedTransaction.year})`}</p>
-          <p><strong>Timestamp:</strong> {new Date(selectedTransaction.timestamp).toLocaleString()}</p>
-          <p><strong>Status:</strong> {selectedTransaction.transactionStatus}</p>
+      {previewTransaction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Transaction Preview</h2>
+            <p><strong>From:</strong> {previewTransaction.FromUserName}</p>
+            {previewTransaction.ToUserName && <p><strong>To:</strong> {previewTransaction.ToUserName}</p>}
+            <p><strong>Vehicle:</strong> {`${previewTransaction.make} ${previewTransaction.model}`}</p>
+            <p><strong>Status:</strong> {previewTransaction.transactionStatus}</p>
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded mr-2"
+                onClick={() => setPreviewTransaction(null)}
+              >
+                Close
+              </button>
+              <button
+                className="bg-[#F38120] text-white px-4 py-2 rounded"
+                onClick={() => {
+                  setPreviewTransaction(null);
+                  handleDownloadPDF(previewTransaction.TransactionId);
+                }}
+              >
+                Download PDF
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      <style jsx>{`
-        @media print {
-          /* Hide everything except #print-section */
-          body * {
-            visibility: hidden;
-          }
-          #print-section, #print-section * {
-            visibility: visible;
-          }
-          #print-section {
-            position: absolute;
-            left: 0;
-            top: 0;
-            right:0;
-            margin:0 auto;
-          }
-        }
-      `}</style>
     </div>
   );
 };
