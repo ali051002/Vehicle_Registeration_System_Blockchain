@@ -5,9 +5,6 @@ import { AiOutlineMenu } from 'react-icons/ai';
 import ContactForm from '../components/ChatForm';
 import LoadingPage from './Loading';
 
-
-
-
 const TriangleBackground = () => (
   React.createElement("svg", { className: "absolute inset-0 w-full h-full z-0", xmlns: "http://www.w3.org/2000/svg" },
     React.createElement("pattern", { id: "triangles", width: "50", height: "43.3", patternUnits: "userSpaceOnUse", patternTransform: "scale(2)" },

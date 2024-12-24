@@ -6,9 +6,9 @@ import { FaBars, FaHome } from 'react-icons/fa';
 const TopNavBar = ({ toggleNav }) => {
   const navigate = useNavigate();
 
-  // const goToHomePage = () => {
-  //   navigate('/user-dashboard');
-  // };
+  const goToHomePage = () => {
+    navigate('/x');
+  };
 
   return (
     <motion.div
@@ -53,7 +53,7 @@ const TopNavBar = ({ toggleNav }) => {
       >
         <motion.span
           className="cursor-pointer flex items-center"
-          // onClick={goToHomePage}
+           onClick={goToHomePage}
           whileHover={{ color: '#F38120' }}
           whileTap={{ scale: 0.95 }}
         >
