@@ -1,32 +1,30 @@
-// SignInPage.js
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa';
 import { AuthContext } from '../context/AuthContext';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
-import LoadingPage from './Loading'; // Correct component name
+import LoadingPage from './Loading';
 
 export default function SignInPage() {
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Updated to only one loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true); 
-  
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false); 
+      setLoading(false);
     }, 3000);
-    return () => clearTimeout(timer); 
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
-    return <LoadingPage/>; 
+    return <LoadingPage />;
   }
 
   const handleSubmit = async (e) => {
@@ -68,7 +66,7 @@ export default function SignInPage() {
           } else {
             navigate('/user-dashboard');
           }
-        }
+        },
       });
     } catch (err) {
       setIsLoading(false);
@@ -91,7 +89,7 @@ export default function SignInPage() {
           transition={{ duration: 0.5 }}
         >
           <img src="/SC.png" alt="SecureChain Logo" className="w-24 h-24 mb-4" />
-          <h1 className="text-4xl font-bold text-[#F38120] mb-2">SecureChain</h1>
+          <h1 className="text-4xl font-bold text-[#F38120] mb-2">BlockChain Based Vehicle Registeration System</h1>
           <p className="text-[#F38120] text-center mb-8">Secure your future with blockchain technology</p>
           <motion.div 
             className="w-full h-1 bg-[#F38120]"
@@ -122,8 +120,8 @@ export default function SignInPage() {
               placeholder="Password"
               value={password}
               onChange={setPassword}
+              isPassword
             />
-            {/* Forgot Password Button */}
             <div className="flex justify-end">
               <Link 
                 to="/forgot-password" 
@@ -170,7 +168,13 @@ export default function SignInPage() {
   );
 }
 
-function InputField({ icon, type, placeholder, value, onChange }) {
+function InputField({ icon, type, placeholder, value, onChange, isPassword = false }) {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
   return (
     <motion.div
       className="relative"
@@ -182,12 +186,21 @@ function InputField({ icon, type, placeholder, value, onChange }) {
         {icon}
       </div>
       <input
-        type={type}
+        type={isPassword && isPasswordVisible ? 'text' : type}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 pr-4 py-2 bg-[#686D76] text-white placeholder-[#F38120] rounded-lg border border-[#F38120] focus:border-[#F38120] focus:ring focus:ring-[#F38120] focus:ring-opacity-50 transition duration-300 ease-in-out"
+        className="w-full pl-10 pr-10 py-2 bg-[#686D76] text-white placeholder-[#F38120] rounded-lg border border-[#F38120] focus:border-[#F38120] focus:ring focus:ring-[#F38120] focus:ring-opacity-50 transition duration-300 ease-in-out"
       />
+      {isPassword && (
+        <button
+          type="button"
+          onClick={togglePasswordVisibility}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#F38120] focus:outline-none"
+        >
+          {isPasswordVisible ? '🙈' : '👁️'}
+        </button>
+      )}
     </motion.div>
   );
 }
