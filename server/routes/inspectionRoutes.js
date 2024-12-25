@@ -1,5 +1,5 @@
 const express = require('express');
-const { sendInspectionRequestController, getInspectionRequestsByOfficerIdController, getAllUsersWithInspectionOfficersController } = require('../controllers/inspectionController');
+const { sendInspectionRequestController, getInspectionRequestsByOfficerIdController, getAllUsersWithInspectionOfficersController,approveInspectionRequestController } = require('../controllers/inspectionController');
 
 const router = express.Router();
 
@@ -11,5 +11,7 @@ router.get('/fetch-inspection-request-byOfficialID', getInspectionRequestsByOffi
 
 // Route to fetch all users with the "InspectionOfficer" role
 router.get('/fetch-all-inspection-officers', getAllUsersWithInspectionOfficersController);
+
+router.put('/approveInspection', approveInspectionRequestController);
 
 module.exports = router;

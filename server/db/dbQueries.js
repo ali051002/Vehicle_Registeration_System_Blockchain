@@ -477,6 +477,21 @@ const verifyRegOtp = async (email, otp) => {
     }
 };
 
+// Approve an inspection request
+const approveInspectionRequest = async (requestId) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('RequestId', requestId) // Pass the request ID as input
+            .execute('ApproveInspectionRequest'); // Ensure this matches the stored procedure name
+
+        return result; // Adjust based on what the stored procedure returns, if necessary
+    } catch (error) {
+        console.error('Error approving inspection request:', error);
+        throw error;
+    }
+};
+
 module.exports = {
     createUser,
     getUserByEmail,
@@ -512,5 +527,6 @@ module.exports = {
     getInspectionRequestsByOfficerId,
     getAllUsersWithInspectionOfficers,
     assignRegOtpToEmail,
-    verifyRegOtp
+    verifyRegOtp,
+    approveInspectionRequest
 };
