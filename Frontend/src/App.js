@@ -27,6 +27,8 @@ import EditProfile from './pages/EditProfile';
 import UserChangePassword from './pages/UserChangePassword';
 import EditGovernmentOfficialProfile from './pages/EditGovernmentOfficialProfile';
 import ChangePasswordGovernmentOfficial from './pages/ChangePasswordGovernmentOfficial ';
+import UploadVehicleDocument from './pages/DocumentUpload';
+import DocumentUpload from './pages/DocumentUpload';
 
 const App = () => {
   return (
@@ -54,6 +56,16 @@ const App = () => {
               </PrivateRoute>
             }
           />
+           <Route
+            path="/document-upload"
+            element={
+              <PrivateRoute role="user">
+                <DocumentUpload />
+              </PrivateRoute>
+            }
+          />
+         
+          
           <Route
           path="/edit-profile"
           element={
