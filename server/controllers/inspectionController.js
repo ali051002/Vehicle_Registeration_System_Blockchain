@@ -1,4 +1,7 @@
-const { sendInspectionRequest, getInspectionRequestsByOfficerId, getAllUsersWithInspectionOfficers } = require('../db/dbQueries');
+const { sendInspectionRequest, 
+    getInspectionRequestsByOfficerId, 
+    getAllUsersWithInspectionOfficers,
+    approveInspectionRequest } = require('../db/dbQueries');
 
 // Controller to handle sending an inspection request
 const sendInspectionRequestController = async (req, res) => {
@@ -48,10 +51,30 @@ const getAllUsersWithInspectionOfficersController = async (req, res) => {
     }
 };
 
+// Controller to approve an inspection request
+const approveInspectionRequestController = async (req, res) => {
+    const { requestId } = req.body;
+
+    if (!requestId) {
+        return res.status(400).json({ error: 'Request ID is required' });
+    }
+
+    try {
+        // Approve the inspection request
+        await approveInspectionRequest(requestId);
+
+        res.status(200).json({ message: 'Inspection request approved successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to approve inspection request', details: error.message });
+    }
+};
+
+
 
 
 module.exports = {
     sendInspectionRequestController,
     getInspectionRequestsByOfficerIdController,
-    getAllUsersWithInspectionOfficersController
+    getAllUsersWithInspectionOfficersController,
+    approveInspectionRequestController
 };

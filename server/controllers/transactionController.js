@@ -20,7 +20,6 @@ const fetchPendingTransactions = async (req, res) => {
 
     try {
         const result = await getTransactions(transactionStatus, transactionType);
-        console.log(result.recordset);
         res.status(200).json(result.recordset); // Assuming recordset contains the transaction data
     } catch (err) {
         res.status(500).json({ msg: err.message });
