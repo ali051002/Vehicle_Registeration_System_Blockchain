@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import SignupPage from './pages/SignupPage';
 import SignInPage from './pages/SignInPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage'; // Forgot Password Page
-import VerifyOtpPage from './pages/verifyotp'; // Verify OTP Page
-import ResetPassword from './pages/ResetPassword'; // Reset Password Page
+import ForgotPasswordPage from './pages/ForgotPasswordPage'; 
+import VerifyOtpPage from './pages/verifyotp'; 
+import ResetPassword from './pages/ResetPassword'; 
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import GovernmentOfficialDashboard from './pages/GovernmentOfficialDashboard';
@@ -23,6 +23,10 @@ import ContactForm from './components/ChatForm';
 import RedesignedUnauthorizedPage from './pages/UnAuthorised';
 import LoadingPage from './pages/Loading';
 import LearnMorePage from './pages/LearnMore';
+import EditProfile from './pages/EditProfile';
+import UserChangePassword from './pages/UserChangePassword';
+import EditGovernmentOfficialProfile from './pages/EditGovernmentOfficialProfile';
+import ChangePasswordGovernmentOfficial from './pages/ChangePasswordGovernmentOfficial ';
 
 const App = () => {
   return (
@@ -35,25 +39,43 @@ const App = () => {
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/verifyotp" element={<VerifyOtpPage />} />
-          <Route path="/reset-password" element={<ResetPassword />} /> {/* Reset Password Route */}
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/chat" element={<ContactForm />} />
           <Route path="/unauthorized" element={<RedesignedUnauthorizedPage />} />
           <Route path="/loading" element={<LoadingPage />} />
           <Route path="/learn" element={<LearnMorePage />} />
 
-          {/* User Dashboard Routes */}
+          {/* User Dashboard Routes (restricted to role="user") */}
           <Route
             path="/user-dashboard"
             element={
-              <PrivateRoute>
+              <PrivateRoute role="user">
                 <UserDashboard />
               </PrivateRoute>
             }
           />
           <Route
+          path="/edit-profile"
+          element={
+            <PrivateRoute role="user">
+              <EditProfile/>
+            </PrivateRoute>
+          }
+          />
+           <Route
+          path="/change-password"
+          element={
+            <PrivateRoute role="user">
+              <UserChangePassword/>
+            </PrivateRoute>
+          }
+          />
+
+
+          <Route
             path="/user-vehicle-register"
             element={
-              <PrivateRoute>
+              <PrivateRoute role="user">
                 <UserVehicleRegister />
               </PrivateRoute>
             }
@@ -61,7 +83,7 @@ const App = () => {
           <Route
             path="/user-ownership-transfer"
             element={
-              <PrivateRoute>
+              <PrivateRoute role="user">
                 <UserOwnershipTransfer />
               </PrivateRoute>
             }
@@ -69,7 +91,7 @@ const App = () => {
           <Route
             path="/user-my-vehicles"
             element={
-              <PrivateRoute>
+              <PrivateRoute role="user">
                 <UserMyVehicles />
               </PrivateRoute>
             }
@@ -77,13 +99,13 @@ const App = () => {
           <Route
             path="/user-transfer-to/:vehicleId"
             element={
-              <PrivateRoute>
+              <PrivateRoute role="user">
                 <UserTransferTo />
               </PrivateRoute>
             }
           />
 
-          {/* Admin Dashboard Routes */}
+          {/* Admin Dashboard Routes (restricted to role="admin") */}
           <Route
             path="/admin-dashboard"
             element={
@@ -93,7 +115,7 @@ const App = () => {
             }
           />
 
-          {/* Government Official Routes */}
+          {/* Government Official Routes (restricted to role="government official") */}
           <Route
             path="/government-official-dashboard"
             element={
@@ -101,6 +123,7 @@ const App = () => {
                 <GovernmentOfficialDashboard />
               </PrivateRoute>
             }
+            //hello ji
           />
           <Route
             path="/pending-registrations"
@@ -110,6 +133,24 @@ const App = () => {
               </PrivateRoute>
             }
           />
+           <Route
+            path="/govt-change-password"
+            element={
+              <PrivateRoute role="government official">
+                <  ChangePasswordGovernmentOfficial />
+              </PrivateRoute>
+            }
+          />
+        
+          <Route
+            path="/edit-govt"
+            element={
+              <PrivateRoute role="government official">
+                <EditGovernmentOfficialProfile />
+              </PrivateRoute>
+            }
+          />
+         
           <Route
             path="/ownership-transfers"
             element={
