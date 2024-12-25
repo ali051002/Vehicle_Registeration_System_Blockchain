@@ -70,7 +70,7 @@ const Navbar = () => {
           <div className="flex justify-start lg:w-0 lg:flex-1">
             <a href="#" className="flex items-center">
               <img src="/SC.png" alt="Logo" className="h-12 w-auto sm:h-14" />
-              <span className="ml-2 text-xl font-bold text-[#F38120]">SecureChain</span>
+              <span className="ml-2 text-xl font-bold text-[#F38120]">BlockChain Based Vehicle Registeration System</span>
             </a>
           </div>
 
@@ -284,7 +284,7 @@ const LandingPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                Secure Chain Vehicle Registration brings blockchain technology
+                BlockChain Based Vehcile Registeration System brings blockchain technology
                 to revolutionize how we register and manage vehicle information.
               </motion.p>
 
@@ -591,7 +591,7 @@ const LandingPage = () => {
           <div className="flex flex-wrap items-center md:justify-between justify-center">
             <div className="w-full md:w-4/12 px-4 mx-auto text-center">
               <div className="text-sm text-gray-400 font-semibold py-1">
-                Copyright © {new Date().getFullYear()} Secure Chain by{' '}
+                Copyright © {new Date().getFullYear()} BlockChain Based Vehicle Registeration System  by{' '}
                 <a
                   href="https://www.creative-tim.com?ref=nnjs-footer"
                   className="text-gray-400 hover:text-gray-300"
