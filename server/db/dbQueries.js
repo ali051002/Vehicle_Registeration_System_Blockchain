@@ -315,6 +315,7 @@ const assignOtpToEmail = async (email, otp, expiryMinutes = 5) => {
     }
 };
 
+
 // Verify OTP
 const verifyOtp = async (email, otp) => {
     const pool = await poolPromise;
@@ -396,9 +397,85 @@ const getVehicleDocumentsByVehicleId = async (vehicleId) => {
     }
 };
 
+// Send Inspection Request
+const sendInspectionRequest = async (vehicleId, officerId, appointmentDate) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('VehicleId', sql.UniqueIdentifier, vehicleId)
+            .input('OfficerId', sql.UniqueIdentifier, officerId)
+            .input('AppointmentDate', sql.DateTime, appointmentDate)
+            .execute('SendInspectionRequest'); // Ensure this matches the stored procedure name
+
+        return result.recordset; // Adjust if needed based on procedure's output
+    } catch (error) {
+        console.error('Error sending inspection request:', error);
+        throw error;
+    }
+};
+
+// Fetch all users with the InspectionOfficer role
+const getAllUsersWithInspectionOfficers = async () => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .execute('GetAllInspectionOfficers'); // Ensure this matches the stored procedure name
+
+        return result.recordset; // Adjust if needed based on the procedure's output
+    } catch (error) {
+        console.error('Error fetching users with inspection officers:', error);
+        throw error;
+    }
+};
+
+const getInspectionRequestsByOfficerId = async (officerId) => {
+    const pool = await poolPromise;
+    try {
+        // Execute the stored procedure to fetch inspection requests by officerId
+        const result = await pool.request()
+            .input('OfficerId', sql.UniqueIdentifier, officerId) // Pass officerId as input parameter
+            .execute('GetInspectionRequestsByOfficerId'); // Ensure this matches the stored procedure name
+
+        return result.recordset; // Return the list of inspection requests
+    } catch (error) {
+        console.error('Error fetching inspection requests:', error);
+        throw error;
+    }
+};
 
 
-  
+// Assign OTP to Email Procedure
+const assignRegOtpToEmail = async (email, otp, expiryMinutes = 5) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('Email', sql.NVarChar(255), email)
+            .input('Otp', sql.NVarChar(6), otp)
+            .input('ExpiryMinutes', sql.Int, expiryMinutes)
+            .execute('AssignRegOtpToEmail');
+
+        return result.rowsAffected > 0; // Check if OTP is successfully assigned
+    } catch (error) {
+        console.error('Error assigning OTP to email:', error);
+        throw error;
+    }
+};
+
+// Verify OTP Procedure
+const verifyRegOtp = async (email, otp) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('Email', sql.NVarChar(255), email)
+            .input('Otp', sql.NVarChar(6), otp)
+            .execute('VerifyRegOtp');
+
+        return result.recordset[0].isValid; // Returns 1 for valid OTP, 0 for expired
+    } catch (error) {
+        console.error('Error verifying OTP:', error);
+        throw error;
+    }
+};
 
 module.exports = {
     createUser,
@@ -430,5 +507,10 @@ module.exports = {
     getTransactionDetailsById,
     getAllTransactionDetails,
     insertVehicleDocument,
-    getVehicleDocumentsByVehicleId
+    getVehicleDocumentsByVehicleId,
+    sendInspectionRequest,
+    getInspectionRequestsByOfficerId,
+    getAllUsersWithInspectionOfficers,
+    assignRegOtpToEmail,
+    verifyRegOtp
 };
