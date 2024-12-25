@@ -250,7 +250,7 @@ const getTransactions = async (transactionStatus, transactionType) => {
         .input('TransactionStatus', sql.NVarChar(50), transactionStatus)
         .input('TransactionType', sql.NVarChar(50), transactionType)
         .execute('GetTransactions');
-};
+};//
 
 const requestVehicleRegistration = async (ownerId, make, model, year, color, chassisNumber, engineNumber) => {
     const pool = await poolPromise;
