@@ -1,17 +1,39 @@
-// src/pages/SignUpPage.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { BiUser, BiLockAlt, BiEnvelope, BiPhone, BiIdCard, BiMapPin } from 'react-icons/bi';
-import { FaArrowRight, FaExclamationCircle } from 'react-icons/fa';
-import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
+import { FaArrowRight, FaExclamationCircle, FaHashtag } from 'react-icons/fa';
+import { AiOutlinePhone } from 'react-icons/ai';
 import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import Loading from './Loading';
 
+// Reusable InputField Component
+function InputField({ icon, type, placeholder, value, onChange }) {
+  return (
+    <motion.div
+      className="relative"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#F38120]">
+        {icon}
+      </div>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full pl-10 pr-3 py-2 text-sm bg-[#686D76] text-[#EEEEEE] placeholder-[#EEEEEE] rounded-lg border border-[#EEEEEE] focus:border-[#F38120] focus:ring focus:ring-[#F38120] focus:ring-opacity-50 transition duration-300 ease-in-out"
+      />
+    </motion.div>
+  );
+}
+
 export default function SignupPage() {
-  // State variables
+  // User info fields
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,19 +42,25 @@ export default function SignupPage() {
   const [addressDetails, setAddressDetails] = useState('');
   const [role, setRole] = useState('user');
   const [profilePicture, setProfilePicture] = useState(null);
+
+  // Error/Loading states
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // OTP flow states
+  const [isOtpSent, setIsOtpSent] = useState(false); // Has OTP been sent yet?
+  const [otp, setOtp] = useState('');                // The OTP user enters
+
   const navigate = useNavigate();
 
-  // Simulate initial loading
+  // Simulate initial page loading
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false); 
+      setLoading(false);
     }, 3000);
-    return () => clearTimeout(timer); 
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
@@ -44,28 +72,24 @@ export default function SignupPage() {
   const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%*?&]{8,}$/;
   const cnicPattern = /^\d{5}-\d{7}-\d{1}$/;
 
-  // Form validation function
-  const validateForm = () => {
+  // Validate the form fields
+  const validateFormFields = () => {
     if (!username || !email || !password || !cnic || !phoneNumber || !addressDetails) {
       setError('All fields are required.');
       return false;
     }
-
     if (!namePattern.test(username)) {
-      setError('Username must contain only English letters, spaces, and dots.');
+      setError('Username must contain only letters, spaces, and dots.');
       return false;
     }
-
     if (!passwordPattern.test(password)) {
-      setError('Password must be at least 8 characters long, contain at least one special character, and one number.');
+      setError('Password must be at least 8 characters, include one special character, and one number.');
       return false;
     }
-
     if (!cnicPattern.test(cnic)) {
       setError('CNIC must be in XXXXX-XXXXXXX-X format.');
       return false;
     }
-
     return true;
   };
 
@@ -74,72 +98,109 @@ export default function SignupPage() {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      setProfilePicture(reader.result); // Sets the base64 string for the image
+      setProfilePicture(reader.result); // base64
     };
     if (file) {
       reader.readAsDataURL(file);
     }
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
+  /**
+   * Single button flow:
+   * 1) If OTP not sent => validate form -> send OTP
+   * 2) If OTP sent => verify OTP
+   *    - If OTP is valid => call create user -> success -> redirect
+   */
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    setError(null); // Reset error
+    setError(null);
 
-    if (!validateForm()) return;
+    // STEP 1: If OTP not sent => send OTP
+    if (!isOtpSent) {
+      // Validate form fields first
+      if (!validateFormFields()) return;
 
-    setIsLoading(true);
-
-    try {
-      const response = await axios.post('http://localhost:8085/api/user', {
-        name: username,
-        email,
-        password,
-        cnic,
-        phoneNumber,
-        addressDetails,
-        role,
-        profilePicture,  // Include profile picture in the request
-      });
-
-      if (response.status === 201) {
+      setIsLoading(true);
+      try {
+        const res = await axios.post('http://localhost:8085/api/send-Regotp', { email });
+        if (res.status === 200) {
+          Swal.fire('OTP Sent!', 'Please check your email for the OTP.', 'info');
+          setIsOtpSent(true);
+        }
+      } catch (err) {
+        console.error('Error sending OTP:', err);
+        Swal.fire('Error', 'Failed to send OTP. Please try again.', 'error');
+      } finally {
         setIsLoading(false);
-        setIsRedirecting(true);
-
-        Swal.fire({
-          title: 'Success!',
-          text: 'User created successfully. You can now sign in.',
-          icon: 'success',
-          confirmButtonColor: '#F38120',
-          confirmButtonText: 'Sign In',
-          background: '#EADFB4',
-          backdrop: `
-            rgba(0,0,0,0.4)
-            url("/images/success.gif")
-            left top
-            no-repeat
-          `,
-        }).then(() => {
-          navigate('/signin');
-        });
       }
-    } catch (err) {
-      console.error('Error during registration:', err.response || err.message);
-      setIsLoading(false);
-      Swal.fire({
-        title: 'Error!',
-        text: err.response?.data?.message || 'Registration failed. Please try again.',
-        icon: 'error',
-        confirmButtonColor: '#F38120',
-      });
+      return;
     }
+
+    // STEP 2: OTP was sent => verify it
+    if (isOtpSent) {
+      if (!otp) {
+        setError('Please enter the OTP you received via email.');
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const verifyRes = await axios.post('http://localhost:8085/api/verify-Regotp', { email, otp });
+        if (verifyRes.status === 200) {
+          // OTP is correct => proceed to create user
+          const createRes = await axios.post('http://localhost:8085/api/user', {
+            name: username,
+            email,
+            password,
+            cnic,
+            phoneNumber,
+            addressDetails,
+            role,
+            profilePicture,
+          });
+
+          if (createRes.status === 201) {
+            setIsLoading(false);
+            setIsRedirecting(true);
+
+            Swal.fire({
+              title: 'Success!',
+              text: 'User created successfully. You can now sign in.',
+              icon: 'success',
+              confirmButtonColor: '#F38120',
+              confirmButtonText: 'Sign In',
+              background: '#EADFB4',
+              backdrop: `
+                rgba(0,0,0,0.4)
+                url("/images/success.gif")
+                left top
+                no-repeat
+              `,
+            }).then(() => {
+              navigate('/signin');
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error verifying OTP or creating user:', err);
+        Swal.fire('Error', 'OTP is invalid/expired or registration failed. Check console.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  // Decide the button label
+  const getButtonLabel = () => {
+    if (!isOtpSent) return 'Send OTP';
+    return 'Verify & Register';
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#686D76] text-white p-4">
       <div className="w-full max-w-4xl flex flex-col md:flex-row bg-[#EEEEEE] rounded-lg shadow-2xl overflow-hidden">
         {/* Left Section - Branding */}
-        <motion.div 
+        <motion.div
           className="md:w-1/3 flex flex-col justify-center items-center p-6 bg-[#EEEEEE]"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -147,24 +208,26 @@ export default function SignupPage() {
         >
           <img src="/SC.png" alt="SecureChain Logo" className="w-20 h-20 mb-4" />
           <h1 className="text-2xl font-bold text-[#F38120] mb-2">SecureChain</h1>
-          <p className="text-[#F38120] text-center text-sm mb-6">Secure your future with blockchain technology</p>
-          <motion.div 
+          <p className="text-[#F38120] text-center text-sm mb-6">
+            Secure your future with blockchain technology
+          </p>
+          <motion.div
             className="w-full h-1 bg-[#F38120]"
             initial={{ width: 0 }}
-            animate={{ width: "100%" }}
+            animate={{ width: '100%' }}
             transition={{ duration: 1, delay: 0.5 }}
           />
         </motion.div>
 
         {/* Right Section - Sign Up Form */}
-        <motion.div 
-          className="md:w-2/3 bg-[#171717] rounded-lg p-6 flex flex-col justify-center" // Changed 'rounded-border-20' to 'rounded-lg'
+        <motion.div
+          className="md:w-2/3 bg-[#171717] rounded-lg p-6 flex flex-col justify-center"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <h2 className="text-2xl font-bold mb-4 text-center text-[#F38120]">Sign Up</h2>
-          
+
           {/* Display Error Message */}
           {error && (
             <div className="flex items-center bg-red-500 text-white px-4 py-2 rounded mb-4">
@@ -174,7 +237,7 @@ export default function SignupPage() {
           )}
 
           {/* Sign Up Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSignUp} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <InputField
                 icon={<BiUser />}
@@ -239,7 +302,11 @@ export default function SignupPage() {
                 className="w-full p-3 bg-gray-200 text-black rounded-lg border border-gray-400"
               />
               {profilePicture && (
-                <img src={profilePicture} alt="Profile Preview" className="mt-2 w-24 h-24 object-cover rounded-full" />
+                <img
+                  src={profilePicture}
+                  alt="Profile Preview"
+                  className="mt-2 w-24 h-24 object-cover rounded-full"
+                />
               )}
             </motion.div>
 
@@ -250,11 +317,13 @@ export default function SignupPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <label className="text-[#F38120] font-semibold mb-2 block text-center">Select Your Role</label>
+              <label className="text-[#F38120] font-semibold mb-2 block text-center">
+                Select Your Role
+              </label>
               <div className="flex justify-between">
                 {['user', 'admin', 'government official'].map((roleOption) => (
-                  <motion.div 
-                    key={roleOption} 
+                  <motion.div
+                    key={roleOption}
                     className={`cursor-pointer p-3 text-center rounded-lg transition duration-300 ease-in-out transform ${
                       role === roleOption ? 'bg-[#F38120] text-white' : 'bg-[#3A3A3A] text-[#EEEEEE]'
                     }`}
@@ -268,7 +337,18 @@ export default function SignupPage() {
               </div>
             </motion.div>
 
-            {/* Submit Button */}
+            {/* Show OTP input if we've already sent an OTP */}
+            {isOtpSent && (
+              <InputField
+                icon={<FaHashtag />}
+                type="text"
+                placeholder="Enter the OTP"
+                value={otp}
+                onChange={setOtp}
+              />
+            )}
+
+            {/* Single "Sign Up" Button */}
             <motion.button
               type="submit"
               className="w-full py-2 px-4 bg-[#F38120] text-white rounded-lg flex items-center justify-center space-x-2 hover:bg-[#e0701c] transition duration-300 ease-in-out transform hover:scale-105"
@@ -280,11 +360,11 @@ export default function SignupPage() {
                 <motion.div
                   className="w-6 h-6 border-t-2 border-white rounded-full animate-spin"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 />
               ) : (
                 <>
-                  <span>Sign Up</span>
+                  <span>{getButtonLabel()}</span>
                   <FaArrowRight />
                 </>
               )}
@@ -309,10 +389,10 @@ export default function SignupPage() {
                   <motion.div
                     className="w-16 h-16 border-t-4 border-[#F38120] rounded-full mx-auto mb-4"
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                   />
                   <p className="text-xl font-semibold text-[#F38120]">
-                    {isLoading ? "Signing you up..." : "Redirecting to your dashboard..."}
+                    {isLoading ? 'Processing...' : 'Redirecting...'}
                   </p>
                 </motion.div>
               </motion.div>
@@ -320,7 +400,7 @@ export default function SignupPage() {
           </AnimatePresence>
 
           {/* Sign In Link */}
-          <motion.p 
+          <motion.p
             className="mt-4 text-center text-[#EEEEEE] text-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -334,28 +414,5 @@ export default function SignupPage() {
         </motion.div>
       </div>
     </div>
-  );
-}
-
-// Reusable InputField Component
-function InputField({ icon, type, placeholder, value, onChange }) {
-  return (
-    <motion.div
-      className="relative"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#F38120]">
-        {icon}
-      </div>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 pr-3 py-2 text-sm bg-[#686D76] text-[#EEEEEE] placeholder-[#EEEEEE] rounded-lg border border-[#EEEEEE] focus:border-[#F38120] focus:ring focus:ring-[#F38120] focus:ring-opacity-50 transition duration-300 ease-in-out"
-      />
-    </motion.div>
   );
 }

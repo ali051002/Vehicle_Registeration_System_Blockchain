@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import Swal from 'sweetalert2';
-
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
 import { FaCar, FaPalette, FaCogs, FaBarcode } from 'react-icons/fa';
@@ -38,26 +37,12 @@ const InputField = ({ icon, label, name, type, value, onChange, required }) => (
         value={value}
         onChange={onChange}
       />
-      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-        <motion.div
-          className="w-2 h-2 bg-[#F38120] rounded-full"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </div>
     </motion.div>
   </motion.div>
 );
 
 export default function UserVehicleRegister() {
-  const { user, logout } = useContext(AuthContext);
+  const { logout } = useContext(AuthContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -85,7 +70,6 @@ export default function UserVehicleRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ensure user is logged in
     const storedToken = localStorage.getItem('token');
     if (!storedToken) {
       setError('You must be logged in to register a vehicle.');
@@ -107,7 +91,6 @@ export default function UserVehicleRegister() {
       return;
     }
 
-    // Validate fields
     if (!formData.make || !formData.model || !formData.year || !formData.chassisNumber || !formData.engineNumber) {
       setError('All fields must be filled out.');
       return;
@@ -120,57 +103,36 @@ export default function UserVehicleRegister() {
       year: parseInt(formData.year),
       color: formData.color || null,
       chassisNumber: formData.chassisNumber,
-      engineNumber: formData.engineNumber
+      engineNumber: formData.engineNumber,
     };
 
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:8085/api/registerVehicleRequest', vehicleData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (response.status === 200) {
-        // Vehicle request registered successfully
+        // Extract VehicleId from the nested JSON response
+        const vehicleId = response.data.recordset[0].VehicleId;
+
+        // Store the VehicleId in localStorage
+        localStorage.setItem('vehicleId', vehicleId);
+
         Swal.fire({
           title: 'Vehicle Registered!',
-          text: 'Waiting for government approval.',
+          text: `Vehicle ID: ${vehicleId} has been saved. Waiting for government approval.`,
           icon: 'info',
           confirmButtonText: 'OK',
         });
 
-        // After registering vehicle, fetch user's email and send a "Pending" status email
-        const userResponse = await axios.get(`http://localhost:8085/api/user/${loggedInUserId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const userData = userResponse.data;
-
-        // Send pending email notification
-        await axios.post('http://localhost:8085/api/send-email', {
-          to: userData.email,
-          subject: 'Registration Request Received',
-          data: {
-            user: userData.name,
-            action: 'registration',
-            vehicle: `${formData.make} ${formData.model}`,
-            status: 'pending'
-          }
-        });
-
-        // Reset form after successful request
-        setFormData({
-          make: '',
-          model: '',
-          year: '',
-          color: '',
-          chassisNumber: '',
-          engineNumber: '',
-        });
+        // Redirect to DocumentUpload page
+        navigate('/document-upload');
       }
     } catch (error) {
-      console.error('Error response from server:', error.response ? error.response.data : error.message);
+      console.error('Error registering vehicle:', error.response ? error.response.data : error.message);
       setError('There was an error registering the vehicle. Please make sure all fields are filled.');
     }
   };
