@@ -29,6 +29,8 @@ import EditGovernmentOfficialProfile from './pages/EditGovernmentOfficialProfile
 import ChangePasswordGovernmentOfficial from './pages/ChangePasswordGovernmentOfficial ';
 import UploadVehicleDocument from './pages/DocumentUpload';
 import DocumentUpload from './pages/DocumentUpload';
+import InspectionOfficerDashboard from './pages/InspectionDashboard';
+
 
 const App = () => {
   return (
@@ -119,13 +121,14 @@ const App = () => {
 
           {/* Admin Dashboard Routes (restricted to role="admin") */}
           <Route
-            path="/admin-dashboard"
+            path="/inspector-dashboard"
             element={
-              <PrivateRoute role="admin">
-                <AdminDashboard />
+              <PrivateRoute role="InspectionOfficer">
+                < InspectionOfficerDashboard />
               </PrivateRoute>
             }
           />
+          InspectionOfficerDashboard
 
           {/* Government Official Routes (restricted to role="government official") */}
           <Route

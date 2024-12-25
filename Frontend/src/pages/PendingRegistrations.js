@@ -64,6 +64,7 @@ const VehicleListItem = ({ vehicle }) => {
             <p className="text-[#373A40]">Engine Number: {vehicle.engineNumber}</p>
             <p className="text-[#373A40]">Chassis Number: {vehicle.chassisNumber}</p>
             <p className="text-[#373A40]">Transaction Status: {vehicle.transactionStatus}</p>
+            <p className="text-[#373A40]">Inspection Status: {vehicle.inspectionStatus || 'Not Inspected'}</p>
 
             <div className="mt-4">
               <h4 className="font-semibold text-[#373A40]">

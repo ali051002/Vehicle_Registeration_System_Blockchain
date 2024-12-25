@@ -67,10 +67,11 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
       ],
     },
     {
-      role: 'admin',
+      role: 'InspectionOfficer',
       links: [
-        { path: '/admin-dashboard', label: 'Dashboard', icon: <FaWrench /> },
-        { path: '/admin-settings', label: 'Settings', icon: <FaTools /> },
+        { path: '/inspector-dashboard', label: 'Dashboard', icon: <FaWrench /> },
+        { path: '/inspect-request', label: 'request', icon: <FaTools /> },
+        
       ],
     },
   ];

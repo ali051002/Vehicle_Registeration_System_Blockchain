@@ -59,8 +59,8 @@ export default function SignInPage() {
         color: '#EEEEEE',
         timer: 2000,
         willClose: () => {
-          if (user.role === 'admin') {
-            navigate('/admin-dashboard');
+          if (user.role === 'InspectionOfficer') {
+            navigate('/inspector-dashboard');
           } else if (user.role === 'government official') {
             navigate('/government-official-dashboard');
           } else {
