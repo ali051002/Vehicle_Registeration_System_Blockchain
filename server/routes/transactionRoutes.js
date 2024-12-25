@@ -11,7 +11,7 @@ const router = express.Router();
 }
 */    
 router.get('/transactions', transactionController.fetchTransactions);
-router.get('/transactions/pending', transactionController.fetchPendingTransactions);
+router.get('/transactions/pending', transactionController.fetchPendingTransactions);//
 router.get('/transactions/pendingtransfers', transactionController.fetchPendingTransfers);
 // get transaction pdf donload 
 router.post('/generateTransactionPDF', transactionController.GenerateTransactionPDFbyId);

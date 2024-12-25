@@ -53,7 +53,7 @@ router.post('/vehicle', vehicleController.addVehicle);
 router.put('/vehicle', vehicleController.modifyVehicle);
 
 // Delete a vehicle
-router.delete('/vehicle/:id', vehicleController.removeVehicle);
+router.delete('/vehicle/:id', vehicleController.removeVehicle);//
 
 // Route to upload vehicle document
 router.post('/uploadDocument', vehicleController.uploadVehicleDocument);

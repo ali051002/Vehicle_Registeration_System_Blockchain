@@ -12,7 +12,7 @@ const fetchTransactions = async (req, res) => {
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
-};
+};//
 
 const fetchPendingTransactions = async (req, res) => {
     const transactionStatus = 'Pending'; // Hardcoded as "Pending"
