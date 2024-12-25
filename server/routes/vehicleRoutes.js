@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const vehicleController = require('../controllers/vehicleController');
+const fileUpload = require('express-fileupload');
+
+// Middleware to handle file uploads
+router.use(fileUpload());
 
 
 // Get all vehicles(use)
@@ -50,6 +54,13 @@ router.put('/vehicle', vehicleController.modifyVehicle);
 
 // Delete a vehicle
 router.delete('/vehicle/:id', vehicleController.removeVehicle);
+
+// Route to upload vehicle document
+router.post('/uploadDocument', vehicleController.uploadVehicleDocument);
+
+router.post('/fetchDocuments', vehicleController.fetchDocumentsByVehicleId);
+
+
 
 module.exports = router;
 

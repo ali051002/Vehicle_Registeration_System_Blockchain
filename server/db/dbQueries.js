@@ -364,6 +364,40 @@ const getTransactionDetailsById = async (transactionId) => {
     }
 };
 
+// Insert Vehicle Document
+const insertVehicleDocument = async (vehicleId, documentType, fileName, fileType, fileContent) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('VehicleId', sql.UniqueIdentifier, vehicleId)
+            .input('DocumentType', sql.NVarChar(255), documentType)
+            .input('FileName', sql.NVarChar(255), fileName)
+            .input('FileType', sql.NVarChar(50), fileType)
+            .input('FileContent', sql.VarBinary, fileContent)
+            .execute('InsertVehicleDocument');
+        return result.recordset[0];
+    } catch (error) {
+        console.error('Error inserting vehicle document:', error);
+        throw error;
+    }
+};
+
+// Get Vehicle Documents by Vehicle ID
+const getVehicleDocumentsByVehicleId = async (vehicleId) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('VehicleId', sql.UniqueIdentifier, vehicleId)
+            .execute('GetVehicleDocumentsByVehicleId');
+        return result.recordset; // Return all matching documents
+    } catch (error) {
+        console.error('Error fetching vehicle documents by Vehicle ID:', error);
+        throw error;
+    }
+};
+
+
+
   
 
 module.exports = {
@@ -394,5 +428,7 @@ module.exports = {
     verifyOtp,
     assignOtpToEmail,
     getTransactionDetailsById,
-    getAllTransactionDetails
+    getAllTransactionDetails,
+    insertVehicleDocument,
+    getVehicleDocumentsByVehicleId
 };

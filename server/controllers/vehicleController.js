@@ -12,7 +12,9 @@ const {
     getVehiclesByOwnerCNIC,
     updateVehicleStatus,
     rejectVehicleRequest,
-    getVehiclesByUserId// Add the update vehicle status function
+    insertVehicleDocument,
+    getVehiclesByUserId,// Add the update vehicle status function
+    getVehicleDocumentsByVehicleId
 } = require('../db/dbQueries');
 
 // Get All Vehicles
@@ -313,6 +315,74 @@ const rejectRequest = async (req, res) => {
     }
 };
 
+const uploadVehicleDocument = async (req, res) => {
+    const { vehicleId, documentType } = req.body;
+
+    if (!vehicleId) {
+        return res.status(400).json({ error: 'Vehicle ID is required.' });
+    }
+    if (!documentType) {
+        return res.status(400).json({ error: 'Document type is required.' });
+    }
+    if (!req.files || !req.files.file) {
+        return res.status(400).json({ error: 'File is required.' });
+    }
+
+    const file = req.files.file;
+
+    try {
+        // Insert file data into the database
+        const result = await insertVehicleDocument(
+            vehicleId,
+            documentType,
+            file.name,
+            file.mimetype,
+            file.data // file.data contains the buffer
+        );
+
+        res.status(201).json({
+            message: 'Document uploaded successfully',
+            documentId: result.DocumentId,
+        });
+    } catch (error) {
+        console.error('Error uploading vehicle document:', error);
+        res.status(500).json({ error: 'Failed to upload document.', details: error.message });
+    }
+};
+
+
+// Fetch Documents by Vehicle ID from Body
+const fetchDocumentsByVehicleId = async (req, res) => {
+    const { vehicleId } = req.body; // Now reading from the body
+
+    if (!vehicleId) {
+        return res.status(400).json({ error: 'Vehicle ID is required in the request body.' });
+    }
+
+    try {
+        const documents = await getVehicleDocumentsByVehicleId(vehicleId);
+
+        if (!documents || documents.length === 0) {
+            return res.status(404).json({ error: 'No documents found for the provided Vehicle ID.' });
+        }
+
+        // Convert file content to Base64 for front-end rendering
+        const documentsForFrontend = documents.map(doc => ({
+            DocumentId: doc.DocumentId,
+            DocumentType: doc.DocumentType,
+            FileName: doc.FileName,
+            FileType: doc.FileType,
+            UploadedAt: doc.UploadedAt,
+            FileContent: doc.FileContent.toString('base64') // Convert binary to Base64
+        }));
+
+        return res.status(200).json({ message: 'Documents retrieved successfully.', documents: documentsForFrontend });
+    } catch (error) {
+        console.error('Error fetching documents:', error);
+        res.status(500).json({ error: 'Failed to retrieve documents', details: error.message });
+    }
+};
+
 
 module.exports = {
     fetchAllVehicles,
@@ -331,6 +401,8 @@ module.exports = {
     fetchPendingVehicles,
     getRegisteredVehicles,
     getUserVehiclesController,
-    rejectRequest 
+    rejectRequest,
+    uploadVehicleDocument,
+    fetchDocumentsByVehicleId
 };
 
