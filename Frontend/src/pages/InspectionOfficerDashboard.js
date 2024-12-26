@@ -44,7 +44,13 @@ const InspectionOfficerDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
-  const userRole = 'inspectionOfficer';
+  const userRole = user?.role || '';
+
+  // Check if user is authenticated and has the correct role
+  if (!user || userRole !== 'InspectionOfficer') {
+    navigate(user ? '/unauthorized' : '/signin');
+    return null;
+  }
 
   const handleLogout = () => {
     logout();
@@ -148,7 +154,7 @@ const InspectionOfficerDashboard = () => {
         </main>
       </div>
       <AnimatePresence>
-        
+       
       </AnimatePresence>
     </div>
   );

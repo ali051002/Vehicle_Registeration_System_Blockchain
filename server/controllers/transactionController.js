@@ -14,6 +14,7 @@ const fetchTransactions = async (req, res) => {
     }
 };//
 
+
 const fetchPendingTransactions = async (req, res) => {
     const transactionStatus = 'Pending'; // Hardcoded as "Pending"
     const transactionType = 'Registration'; // Hardcoded for vehicle registrations

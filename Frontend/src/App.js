@@ -9,7 +9,6 @@ import ResetPassword from './pages/ResetPassword';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import GovernmentOfficialDashboard from './pages/GovernmentOfficialDashboard';
-import PendingRegistrationsDetails from './pages/PendingRegistrations';
 import OwnershipTransfer from './pages/OwnershipTransfer';
 import VehicleRegistry from './pages/VehicleRegistry';
 import AuditLogs from './pages/AuditLogs';
@@ -29,7 +28,9 @@ import EditGovernmentOfficialProfile from './pages/EditGovernmentOfficialProfile
 import ChangePasswordGovernmentOfficial from './pages/ChangePasswordGovernmentOfficial ';
 import UploadVehicleDocument from './pages/DocumentUpload';
 import DocumentUpload from './pages/DocumentUpload';
-import InspectionOfficerDashboard from './pages/InspectionDashboard';
+import PendingRegistrations from './pages/PendingRegistrations';
+import InspectionOfficerDashboard from './pages/InspectionOfficerDashboard';
+import InspectionRequest from './pages/InspectionRequest';
 
 
 const App = () => {
@@ -58,6 +59,7 @@ const App = () => {
               </PrivateRoute>
             }
           />
+
            <Route
             path="/document-upload"
             element={
@@ -128,8 +130,15 @@ const App = () => {
               </PrivateRoute>
             }
           />
-          InspectionOfficerDashboard
-
+            <Route
+            path="/inspect-request"
+            element={
+              <PrivateRoute role="InspectionOfficer">
+                < InspectionRequest />
+              </PrivateRoute>
+            }
+          />
+         
           {/* Government Official Routes (restricted to role="government official") */}
           <Route
             path="/government-official-dashboard"
@@ -144,7 +153,7 @@ const App = () => {
             path="/pending-registrations"
             element={
               <PrivateRoute role="government official">
-                <PendingRegistrationsDetails />
+          <PendingRegistrations/>
               </PrivateRoute>
             }
           />
@@ -190,6 +199,7 @@ const App = () => {
               </PrivateRoute>
             }
           />
+      
 
           {/* Fallback Route */}
           <Route path="*" element={<RedesignedUnauthorizedPage />} />

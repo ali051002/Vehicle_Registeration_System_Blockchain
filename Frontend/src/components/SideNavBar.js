@@ -11,6 +11,7 @@ import {
   FaWrench,
   FaUserEdit,
   FaEdit,
+  FaDotCircle,
 } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -54,6 +55,9 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
         { path: '/user-dashboard', label: 'Dashboard', icon: <FaListAlt /> },
         { path: '/edit-profile', label: 'Profile Change', icon: <FaUserEdit /> },
         { path: '/change-password', label: 'Password', icon: <FaKey /> },
+        
+
+       
       ],
     },
     {
@@ -64,6 +68,7 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
         { path: '/govt-change-password', label: 'Change Password', icon: <FaKey /> },
         { path: '/vehicle-registry', label: 'Vehicle Registry', icon: <FaCarAlt /> },
         { path: '/edit-govt', label: 'Edit Profile', icon: <FaEdit /> },
+
       ],
     },
     {
