@@ -5,16 +5,16 @@ const { sendInspectionRequest,
 
 // Controller to handle sending an inspection request
 const sendInspectionRequestController = async (req, res) => {
-    const { vehicleId, officerId, appointmentDate } = req.body;
+    const { VehicleId, OfficerId, AppointmentDate } = req.body;
 
     // Validate input
-    if (!vehicleId || !officerId || !appointmentDate) {
-        return res.status(400).json({ error: 'Missing required fields: vehicleId, officerId, appointmentDate' });
+    if (!VehicleId || !OfficerId || !AppointmentDate) {
+        return res.status(400).json({ error: 'Missing required fields: VehicleId, OfficerId, AppointmentDate' });
     }
 
     try {
         // Call the DB query to send the inspection request
-        const result = await sendInspectionRequest(vehicleId, officerId, appointmentDate);
+        const result = await sendInspectionRequest(VehicleId, OfficerId, AppointmentDate);
         res.status(200).json({ message: 'Inspection request created successfully', data: result });
     } catch (error) {
         if (error.message.includes('The officer already has two appointments')) {
@@ -27,11 +27,11 @@ const sendInspectionRequestController = async (req, res) => {
 
 // Controller to fetch inspection requests by officer ID
 const getInspectionRequestsByOfficerIdController = async (req, res) => {
-    const { officerId } = req.body;
+    const { OfficerId } = req.body;
 
     try {
         // Fetch the inspection requests from the database
-        const requests = await getInspectionRequestsByOfficerId(officerId);
+        const requests = await getInspectionRequestsByOfficerId(OfficerId);
 
         res.status(200).json({ message: 'Inspection requests fetched successfully', data: requests });
     } catch (error) {
