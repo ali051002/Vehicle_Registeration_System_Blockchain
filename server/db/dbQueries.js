@@ -306,9 +306,9 @@ const assignOtpToEmail = async (email, otp, expiryMinutes = 5) => {
             .input('Email', sql.NVarChar(255), email)
             .input('Otp', sql.NVarChar(6), otp)
             .input('ExpiryMinutes', sql.Int, expiryMinutes)
-            .execute('AssignOtpToEmail'); // Ensure this matches the stored procedure name
+            .execute('AssignOtpToEmail'); 
 
-        return result.recordset; // If needed, adjust based on the procedure's return structure
+        return result.rowsAffected > 0; 
     } catch (error) {
         console.error('Error assigning OTP to email:', error);
         throw error;
