@@ -9,7 +9,6 @@ const createUser = async (userData) => {
 
     // Hash the password before storing it in the database
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    console.log('Hashed Password:', hashedPassword);  // Debug log
 
     try {
         // Execute the stored procedure and capture the result

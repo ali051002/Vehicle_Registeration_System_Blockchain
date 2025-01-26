@@ -67,7 +67,7 @@ const sendRegOtpController = async (req, res) => {
 
     if (!isEmailFound) {
       // If email is not found, return a 404 error
-      return res.status(404).json({ error: 'Email not found in the database.' });
+      return res.status(404).json({ error: 'Email already in use.' });
     }
 
     // Read the HTML template file
