@@ -94,18 +94,7 @@ export default function SignupPage() {
   };
 
   // Handle profile picture upload
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfilePicture(reader.result); // base64
-    };
-    if (file) {
-      reader.readAsDataURL(file);
-    }
-  };
-
-  /**
+ /**
    * Single button flow:
    * 1) If OTP not sent => validate form -> send OTP
    * 2) If OTP sent => verify OTP
