@@ -22,7 +22,9 @@ const InspectionModal = ({ isOpen, onClose, vehicleId }) => {
 
   const fetchOfficers = async () => {
     try {
+      console.log('Fetching inspection officers...');
       const response = await axios.get('http://localhost:8085/api/fetch-all-inspection-officers');
+      console.log('Officers fetched:', response.data?.data);
       if (response.data?.data) {
         setOfficers(response.data.data);
       } else {
@@ -35,21 +37,30 @@ const InspectionModal = ({ isOpen, onClose, vehicleId }) => {
   };
 
   const handleSubmitInspection = async () => {
+    console.log('Submitting inspection request with:', {
+      vehicleId,
+      selectedOfficer,
+      appointmentDate,
+    });
+
     if (!selectedOfficer || !appointmentDate) {
       Swal.fire('Validation', 'Please select an officer and appointment date', 'warning');
       return;
     }
     try {
-      await axios.post('http://localhost:8085/api/send-inspection-request', {
-        vehicleId,
-        officerId: selectedOfficer,
-        appointmentDate,
-      });
+      const payload = {
+        VehicleId: vehicleId,
+        OfficerId: selectedOfficer,
+        AppointmentDate: appointmentDate,
+      };
+      console.log('Payload being sent to the server:', payload);
+      await axios.post('http://localhost:8085/api/send-inspection-request', payload);
       Swal.fire('Success', 'Inspection request sent!', 'success');
       onClose();
     } catch (error) {
       console.error('Error sending inspection request:', error);
-      Swal.fire('Error', 'Failed to send inspection request', 'error');
+      const errorMessage = error.response?.data?.error || 'Failed to send inspection request';
+      Swal.fire('Error', errorMessage, 'error');
     }
   };
 
@@ -114,6 +125,8 @@ const VehicleListItem = ({ vehicle, onBookInspection }) => {
     return `data:image/jpeg;base64,${btoa(String.fromCharCode(...byteArray))}`;
   };
 
+  console.log('Vehicle data in list item:', vehicle);
+
   return (
     <motion.li
       className="border-b border-gray-200 p-4 hover:bg-white hover:bg-opacity-20 transition-colors duration-300"
@@ -159,31 +172,6 @@ const VehicleListItem = ({ vehicle, onBookInspection }) => {
             >
               Send for Inspection
             </button>
-            {vehicle.documents.length > 0 && (
-              <>
-                <motion.button
-                  className="mt-2 text-[#F38120] underline cursor-pointer"
-                  onClick={toggleDocuments}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {showDocuments ? 'Hide Documents' : 'Show Documents'}
-                </motion.button>
-                {showDocuments && (
-                  <div className="mt-4 space-y-4">
-                    {vehicle.documents.map((doc, index) => (
-                      <div key={index} className="space-y-2">
-                        <img
-                          src={getBase64Document(doc.data)}
-                          alt={`Document ${index + 1}`}
-                          className="rounded-lg shadow-md max-w-full h-auto"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -204,6 +192,7 @@ const PendingRegistrations = () => {
   let decoded = null;
   try {
     decoded = storedToken ? jwtDecode(storedToken) : null;
+    console.log('Decoded JWT:', decoded);
   } catch (err) {
     console.error('Error decoding JWT:', err);
   }
@@ -213,6 +202,7 @@ const PendingRegistrations = () => {
     const fetchPendingRegistrations = async () => {
       try {
         const response = await axios.get('http://localhost:8085/api/transactions/pending');
+        console.log('Pending registrations API response:', response.data);
         const groupedVehicles = response.data.reduce((acc, vehicle) => {
           const existingVehicle = acc.find((v) => v.vehicleId === vehicle.vehicleId);
           if (existingVehicle) {
@@ -238,6 +228,7 @@ const PendingRegistrations = () => {
   }, []);
 
   const handleBookInspection = (vehicleId) => {
+    console.log('Booking inspection for vehicle ID:', vehicleId);
     setModalVehicleId(vehicleId);
     setShowInspectionModal(true);
   };
