@@ -39,7 +39,7 @@ const fetchPendingVehicles = async (req, res) => {
 
 // Get Vehicle by ID
 const fetchVehicleById = async (req, res) => {
-    const vehicleId = req.params.id;
+    const { vehicleId } = req.body;
     if (!vehicleId) {
         return res.status(400).json({ msg: "Vehicle ID is required" });
     }

@@ -40,7 +40,7 @@ router.get('/vehicles/user/:id', vehicleController.getUserVehiclesController);
 
 
 // Get a single vehicle by ID
-router.get('/vehicle/:id', vehicleController.fetchVehicleById);
+router.get('/vehicleById', vehicleController.fetchVehicleById);
 
 
 // Get vehicles by owner's CNIC
