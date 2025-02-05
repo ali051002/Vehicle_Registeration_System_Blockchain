@@ -44,7 +44,6 @@ const getUserByEmail = async (email) => {
 const loginUser = async (email, password) => {
     // Fetch the user by email
     const user = await getUserByEmail(email);
-    console.log('User:', user);  // Debug log
 
     // If the user does not exist, throw an error
     if (!user) {
@@ -61,7 +60,7 @@ const loginUser = async (email, password) => {
     }
 
     // Generate JWT token if credentials are correct
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Return token and user data including role and id
     return {
