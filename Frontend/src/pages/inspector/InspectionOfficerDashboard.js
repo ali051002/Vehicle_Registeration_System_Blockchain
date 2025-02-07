@@ -2,9 +2,9 @@ import React, { useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaClipboardCheck, FaSearch, FaCarCrash, FaListAlt, FaChevronRight, FaUser } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import SideNavBar from '../components/SideNavBar';
-import TopNavBar from '../components/TopNavBar';
+import { AuthContext } from '../../context/AuthContext';
+import SideNavBar from '../../components/SideNavBar';
+import TopNavBar from '../../components/TopNavBar';
 
 
 const FeatureCard = ({ icon, title, description, onClick }) => {

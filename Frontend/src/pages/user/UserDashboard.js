@@ -2,10 +2,10 @@ import React, { useEffect, useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCarAlt, FaExchangeAlt, FaFileAlt, FaChevronRight, FaUser } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import SideNavBar from '../components/SideNavBar';
-import TopNavBar from '../components/TopNavBar';
-import UserProfile from '../components/UserProfile';
+import { AuthContext } from '../../context/AuthContext';
+import SideNavBar from '../../components/SideNavBar';
+import TopNavBar from '../../components/TopNavBar';
+import UserProfile from '../../components/UserProfile';
 
 const FeatureCard = ({ icon, title, description, onClick }) => {
   return (

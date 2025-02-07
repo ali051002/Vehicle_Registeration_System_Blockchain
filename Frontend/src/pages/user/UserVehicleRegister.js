@@ -1,12 +1,12 @@
 import React, { useContext, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {jwtDecode} from 'jwt-decode';
 import Swal from 'sweetalert2';
-import SideNavBar from '../components/SideNavBar';
-import TopNavBar from '../components/TopNavBar';
+import SideNavBar from '../../components/SideNavBar';
+import TopNavBar from '../../components/TopNavBar';
 import { FaCar, FaPalette, FaCogs, FaBarcode } from 'react-icons/fa';
 
 const InputField = ({ icon, label, name, type, value, onChange, required }) => (

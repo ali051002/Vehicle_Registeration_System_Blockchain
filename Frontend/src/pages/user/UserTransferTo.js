@@ -2,9 +2,9 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaIdCard, FaMoneyBillWave, FaExchangeAlt } from 'react-icons/fa';
-import { AuthContext } from '../context/AuthContext';
-import SideNavBar from '../components/SideNavBar';
-import TopNavBar from '../components/TopNavBar';
+import { AuthContext } from '../../context/AuthContext';
+import SideNavBar from '../../components/SideNavBar';
+import TopNavBar from '../../components/TopNavBar';
 import axios from 'axios'; // Import axios for API calls
 import { jwtDecode } from 'jwt-decode';
 
