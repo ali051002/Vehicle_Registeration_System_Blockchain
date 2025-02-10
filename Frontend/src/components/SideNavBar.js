@@ -76,6 +76,7 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
       links: [
         { path: '/inspector-dashboard', label: 'Dashboard', icon: <FaWrench /> },
         { path: '/inspect-request', label: 'request', icon: <FaTools /> },
+        {path: '/vehicle-details/:vehicleId', label: 'Vehicle Details', icon: <FaCarAlt />},
         
       ],
     },

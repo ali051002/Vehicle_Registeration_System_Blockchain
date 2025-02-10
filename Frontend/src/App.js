@@ -31,7 +31,7 @@ import DocumentUpload from './pages/DocumentUpload';
 import PendingRegistrations from './pages/PendingRegistrations';
 import InspectionOfficerDashboard from './pages/InspectionOfficerDashboard';
 import InspectionOfficerRequests from './pages/InspectionOfficerRequests';
-
+import VehicleDetails from './pages/VehicleDetails';
 
 const App = () => {
   return (
@@ -135,6 +135,15 @@ const App = () => {
             element={
               <PrivateRoute role="InspectionOfficer">
                 < InspectionOfficerRequests />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/vehicle-details/:vehicleId"
+            element={
+              <PrivateRoute role="InspectionOfficer">
+                <VehicleDetails/>
               </PrivateRoute>
             }
           />

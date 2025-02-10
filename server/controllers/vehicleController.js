@@ -39,18 +39,29 @@ const fetchPendingVehicles = async (req, res) => {
 
 // Get Vehicle by ID
 const fetchVehicleById = async (req, res) => {
-    const vehicleId = req.query.vehicleId; // Use query parameters
+    const vehicleId = req.query.vehicleId;
+
     if (!vehicleId) {
+        console.error("❌ Vehicle ID missing in request.");
         return res.status(400).json({ msg: "Vehicle ID is required" });
     }
+
     try {
+        console.log("📡 Fetching vehicle details from DB for ID:", vehicleId);
         const result = await getVehicleById(vehicleId);
-        if (!result) {
+
+        console.log("✅ Raw DB Response:", result);
+
+        if (!result || !result.recordset || result.recordset.length === 0) {
+            console.warn("⚠ Vehicle not found in DB.");
             return res.status(404).json({ msg: "Vehicle not found" });
         }
-        res.status(200).json(result);
+
+        // Returning the first object from `recordset` instead of an array
+        res.status(200).json(result.recordset[0]);
     } catch (err) {
-        res.status(500).json({ msg: err.message });
+        console.error("❌ Error fetching vehicle:", err.message);
+        res.status(500).json({ msg: "Internal server error" });
     }
 };
 
