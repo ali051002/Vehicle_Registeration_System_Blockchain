@@ -57,23 +57,27 @@ const InspectionOfficerRequests = () => {
 
     const fetchInspectionRequests = async () => {
       try {
-        const response = await axios.get("http://localhost:8085/api/fetch-inspection-request-byOfficialID", {
-          params: { officerId: loggedInUserId },
-        })
-
-        if (response.status === 200 && Array.isArray(response.data?.data)) {
-          setInspectionRequests(response.data.data)
-        } else {
-          Swal.fire("Info", "No requests found.", "info")
-        }
+        const response = await axios.get(
+          "http://localhost:8085/api/fetch-inspection-request-byOfficialID",
+          { params: { officerId: loggedInUserId } }
+        );
+        const allRequests = response.data.data;
+  
+        // Separate requests based on their Status
+        const pending = allRequests.filter((req) => req.Status === "Pending");
+        const approved = allRequests.filter((req) => req.Status === "Approved");
+  
+        setInspectionRequests(pending);
+        setAcceptedRequests(approved);
       } catch (error) {
-        Swal.fire("Error", "Failed to fetch inspection requests.", "error")
+        Swal.fire("Error", "Failed to fetch inspection requests.", "error");
       }
+    };
+  
+    if (loggedInUserId) {
+      fetchInspectionRequests();
     }
-
-    fetchInspectionRequests()
-  }, [loggedInUserId])
-
+  }, [loggedInUserId]);
   // Sort requests by appointment date
   const sortByDate = () => {
     const sorted = [...inspectionRequests].sort((a, b) => {

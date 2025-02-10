@@ -481,15 +481,21 @@ const approveInspectionRequest = async (requestId) => {
     const pool = await poolPromise;
     try {
         const result = await pool.request()
-            .input('RequestId', requestId) // Pass the request ID as input
-            .execute('ApproveInspectionRequest'); // Ensure this matches the stored procedure name
+            .input('RequestId', sql.UniqueIdentifier, requestId) 
+            .execute('ApproveInspectionRequest'); // Calls the stored procedure
 
-        return result; // Adjust based on what the stored procedure returns, if necessary
+        // Confirm that the update was successful
+        if (result.rowsAffected[0] === 0) {
+            throw new Error("Inspection request not found or already approved.");
+        }
+
+        return result;
     } catch (error) {
         console.error('Error approving inspection request:', error);
         throw error;
     }
 };
+
 
 module.exports = {
     createUser,
