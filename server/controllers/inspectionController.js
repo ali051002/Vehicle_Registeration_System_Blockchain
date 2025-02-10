@@ -26,18 +26,30 @@ const sendInspectionRequestController = async (req, res) => {
 };
 
 // Controller to fetch inspection requests by officer ID
+// Controller to fetch inspection requests by officer ID
 const getInspectionRequestsByOfficerIdController = async (req, res) => {
-    const { OfficerId } = req.body;
+    // Instead of reading from req.body:
+    // const { OfficerId } = req.body;
+
+    // Read from req.query:
+    const { officerId } = req.query;
 
     try {
         // Fetch the inspection requests from the database
-        const requests = await getInspectionRequestsByOfficerId(OfficerId);
+        const requests = await getInspectionRequestsByOfficerId(officerId);
 
-        res.status(200).json({ message: 'Inspection requests fetched successfully', data: requests });
+        res.status(200).json({ 
+            message: 'Inspection requests fetched successfully', 
+            data: requests 
+        });
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch inspection requests', details: error.message });
+        res.status(500).json({ 
+            error: 'Failed to fetch inspection requests', 
+            details: error.message 
+        });
     }
 };
+
 
 // Controller to fetch all users with inspection officers
 const getAllUsersWithInspectionOfficersController = async (req, res) => {

@@ -30,7 +30,7 @@ import UploadVehicleDocument from './pages/DocumentUpload';
 import DocumentUpload from './pages/DocumentUpload';
 import PendingRegistrations from './pages/PendingRegistrations';
 import InspectionOfficerDashboard from './pages/InspectionOfficerDashboard';
-import InspectionRequest from './pages/InspectionRequest';
+import InspectionOfficerRequests from './pages/InspectionOfficerRequests';
 
 
 const App = () => {
@@ -134,7 +134,7 @@ const App = () => {
             path="/inspect-request"
             element={
               <PrivateRoute role="InspectionOfficer">
-                < InspectionRequest />
+                < InspectionOfficerRequests />
               </PrivateRoute>
             }
           />
