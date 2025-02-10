@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
 import SideNavBar from '../components/SideNavBar';
 import TopNavBar from '../components/TopNavBar';
@@ -14,8 +14,8 @@ const InspectionOfficerRequests = () => {
   const userRole = user?.role || '';
   const [loggedInUserId, setLoggedInUserId] = useState(null);
 
+  // Decode JWT to get the logged-in user's ID
   useEffect(() => {
-    // Decode JWT to fetch logged-in user's ID
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       try {
@@ -29,36 +29,58 @@ const InspectionOfficerRequests = () => {
     }
   }, [logout]);
 
+  // Redirect unauthorized users
   useEffect(() => {
-    // Redirect unauthorized users
     if (!user || userRole !== 'InspectionOfficer') {
       Swal.fire('Unauthorized', 'Access denied!', 'error');
       logout();
     }
   }, [user, userRole, logout]);
 
+  // Fetch inspection requests along with vehicle details
   useEffect(() => {
     if (!loggedInUserId) return;
+
     const fetchInspectionRequests = async () => {
       try {
-          const response = await axios.get('http://localhost:8085/api/fetch-inspection-request-byOfficialID', {
-              params: { officerId: loggedInUserId },
-          });
-          console.log('API Response:', response.data); // Debugging
-          if (response.status === 200 && Array.isArray(response.data?.data)) {
-              setInspectionRequests(response.data.data);
-          } else {
-              Swal.fire('Error', 'No requests found for the officer.', 'info');
+        const response = await axios.get(
+          'http://localhost:8085/api/fetch-inspection-request-byOfficialID',
+          {
+            params: { officerId: loggedInUserId },
           }
+        );
+
+        if (response.status === 200 && Array.isArray(response.data?.data)) {
+          const enrichedRequests = await Promise.all(
+            response.data.data.map(async (request) => {
+              try {
+                const vehicleResponse = await axios.get(
+                  `http://localhost:8085/api/vehicle/${request.vehicleId}`
+                );
+                return {
+                  ...request,
+                  vehicleDetails: vehicleResponse.data || {},
+                };
+              } catch (vehicleError) {
+                console.error(`Error fetching vehicle ID ${request.vehicleId}:`, vehicleError);
+                return { ...request, vehicleDetails: null };
+              }
+            })
+          );
+          setInspectionRequests(enrichedRequests);
+        } else {
+          Swal.fire('Info', 'No requests found for the officer.', 'info');
+        }
       } catch (error) {
-          console.error('Error fetching inspection requests:', error);
-          Swal.fire('Error', 'Failed to fetch inspection requests.', 'error');
+        console.error('Error fetching inspection requests:', error);
+        Swal.fire('Error', 'Failed to fetch inspection requests.', 'error');
       }
-  };
-  
+    };
+
     fetchInspectionRequests();
   }, [loggedInUserId]);
 
+  // Approve an inspection request
   const approveRequest = async (requestId) => {
     try {
       const response = await axios.put('http://localhost:8085/api/approveInspection', { requestId });
@@ -74,9 +96,10 @@ const InspectionOfficerRequests = () => {
     }
   };
 
+  // Reject an inspection request
   const rejectRequest = async (requestId) => {
     try {
-      const response = await axios.put('http://localhost:8085/api/rejectInspection', { requestId }); // Adjust route if needed
+      const response = await axios.put('http://localhost:8085/api/rejectInspection', { requestId });
       if (response.status === 200) {
         Swal.fire('Success', 'Inspection request rejected!', 'success');
         setInspectionRequests((prev) => prev.filter((request) => request.id !== requestId));
@@ -114,49 +137,55 @@ const InspectionOfficerRequests = () => {
             Inspection Requests
           </motion.h1>
           <div className="bg-white shadow-lg rounded-lg p-6">
-          {inspectionRequests.length === 0 ? (
-    <p className="text-center text-xl font-semibold text-gray-500 py-10">
-        No inspection requests found.
-    </p>
-) : (
-    <table className="min-w-full border-collapse">
-        <thead>
-            <tr className="bg-gray-200">
-                <th className="p-4 border">Request ID</th>
-                <th className="p-4 border">Vehicle ID</th>
-                <th className="p-4 border">Appointment Date</th>
-                <th className="p-4 border">Status</th>
-                <th className="p-4 border">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {inspectionRequests.map((request) => (
-                <tr key={request.id} className="text-center hover:bg-gray-100">
-                    <td className="p-4 border">{request.id}</td>
-                    <td className="p-4 border">{request.vehicleId}</td>
-                    <td className="p-4 border">
+            {inspectionRequests.length === 0 ? (
+              <p className="text-center text-xl font-semibold text-gray-500 py-10">
+                No inspection requests found.
+              </p>
+            ) : (
+              <table className="min-w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-200">
+                    <th className="p-4 border">Request ID</th>
+                    <th className="p-4 border">Vehicle Details</th>
+                    <th className="p-4 border">Appointment Date</th>
+                    <th className="p-4 border">Status</th>
+                    <th className="p-4 border">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inspectionRequests.map((request) => (
+                    <tr key={request.id} className="text-center hover:bg-gray-100">
+                      <td className="p-4 border">{request.id}</td>
+                      <td className="p-4 border">
+                        {request.vehicleDetails
+                          ? `${request.vehicleDetails.make || 'N/A'} ${
+                              request.vehicleDetails.model || ''
+                            }`
+                          : 'Vehicle not found'}
+                      </td>
+                      <td className="p-4 border">
                         {new Date(request.appointmentDate).toLocaleDateString()}
-                    </td>
-                    <td className="p-4 border">{request.status || 'Pending'}</td>
-                    <td className="p-4 border">
+                      </td>
+                      <td className="p-4 border">{request.status || 'Pending'}</td>
+                      <td className="p-4 border">
                         <button
-                            onClick={() => approveRequest(request.id)}
-                            className="py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 mr-2"
+                          onClick={() => approveRequest(request.id)}
+                          className="py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 mr-2"
                         >
-                            Approve
+                          Approve
                         </button>
                         <button
-                            onClick={() => rejectRequest(request.id)}
-                            className="py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700"
+                          onClick={() => rejectRequest(request.id)}
+                          className="py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700"
                         >
-                            Reject
+                          Reject
                         </button>
-                    </td>
-                </tr>
-            ))}
-        </tbody>
-    </table>
-)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </main>
       </div>

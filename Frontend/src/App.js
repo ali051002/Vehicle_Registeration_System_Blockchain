@@ -6,7 +6,7 @@ import SignInPage from './pages/SignInPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; 
 import VerifyOtpPage from './pages/verifyotp'; 
 import ResetPassword from './pages/ResetPassword'; 
-import UserDashboard from './pages/UserDashboard';
+import UserDashboard from './pages/user/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import GovernmentOfficialDashboard from './pages/GovernmentOfficialDashboard';
 import OwnershipTransfer from './pages/OwnershipTransfer';
