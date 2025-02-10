@@ -5,6 +5,6 @@ const { sendEmail } = require('../controllers/emailNotificationController');
 const router = express.Router();
 
 // Route to send email
-router.post('/send-email',authorize(['user','government official','InspectionOfficer']), sendEmail);
+router.post('/send-email', sendEmail);
 
 module.exports = router;
