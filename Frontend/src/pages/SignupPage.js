@@ -94,12 +94,12 @@ export default function SignupPage() {
   };
 
   // Handle profile picture upload
- /**
-   * Single button flow:
-   * 1) If OTP not sent => validate form -> send OTP
-   * 2) If OTP sent => verify OTP
-   *    - If OTP is valid => call create user -> success -> redirect
-   */
+                /**
+                   * Single button flow:
+                   * 1) If OTP not sent => validate form -> send OTP
+                   * 2) If OTP sent => verify OTP
+                   *    - If OTP is valid => call create user -> success -> redirect
+                   **/
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError(null);
