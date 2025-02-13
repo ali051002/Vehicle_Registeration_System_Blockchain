@@ -44,7 +44,7 @@ const InputField = ({ icon: Icon, label, name, type, value, onChange, required, 
 }
 
 const UserChangePassword = () => {
-  const { token } = useContext(AuthContext)
+  const { logout, token } = useContext(AuthContext)
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [formData, setFormData] = useState({
@@ -87,12 +87,16 @@ const UserChangePassword = () => {
       setError(err.response?.data?.msg || "Failed to update password.")
     }
   }
-
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
   return (
+
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
       <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-1 overflow-hidden">
-        <SideNavBar navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} userRole="user" />
+        <SideNavBar logout={handleLogout} navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} userRole="user" />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-5 flex flex-col">
           <motion.div
             initial={{ opacity: 0, y: -50 }}
@@ -100,7 +104,7 @@ const UserChangePassword = () => {
             transition={{ duration: 0.5 }}
             className="mb-6"
           >
-            <h1 className="text-4xl m-2 font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620] text-center">
+            <h1 className="text-4xl m-2 font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620] text-center leading-relaxed py-2">
               Change Password
             </h1>
           </motion.div>
