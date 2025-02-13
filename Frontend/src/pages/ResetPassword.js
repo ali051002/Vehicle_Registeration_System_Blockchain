@@ -149,6 +149,7 @@ export default function ResetPassword() {
               value={confirmPassword}
               onChange={setConfirmPassword}
             />
+            
             <SubmitButton isLoading={isLoading} text="Update Password" />
           </form>
         </motion.div>
