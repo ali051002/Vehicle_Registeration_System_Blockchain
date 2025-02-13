@@ -68,6 +68,7 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
         { path: '/govt-change-password', label: 'Change Password', icon: <FaKey /> },
         { path: '/vehicle-registry', label: 'Vehicle Registry', icon: <FaCarAlt /> },
         { path: '/edit-govt', label: 'Edit Profile', icon: <FaEdit /> },
+        
 
       ],
     },
