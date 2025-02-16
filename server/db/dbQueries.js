@@ -497,6 +497,40 @@ const approveInspectionRequest = async (requestId) => {
 };
 
 
+const rejectInspectionRequest = async (requestId) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('RequestId', sql.UniqueIdentifier, requestId) 
+            .execute('RejectInspectionRequest'); 
+
+        
+        if (result.rowsAffected[0] === 0) {
+            throw new Error("Inspection request not found or already proceeded.");
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error rejecting inspection request:', error);
+        throw error;
+    }
+};
+
+const getInspectionRequestsByVehicleId = async (vehicleId) => {
+    const pool = await poolPromise;
+    try {
+        const result = await pool.request()
+            .input('VehicleId', sql.UniqueIdentifier, vehicleId) 
+            .execute('GetInspectionDetailByVehicleId');
+
+        return result.recordset; // Return the list of inspection requests
+    } catch (error) {
+        console.error('Error fetching inspection requests:', error);
+        throw error;
+    }
+};
+
+
 module.exports = {
     createUser,
     getUserByEmail,
@@ -533,5 +567,7 @@ module.exports = {
     getAllUsersWithInspectionOfficers,
     assignRegOtpToEmail,
     verifyRegOtp,
-    approveInspectionRequest
+    approveInspectionRequest,
+    rejectInspectionRequest,
+    getInspectionRequestsByVehicleId
 };
