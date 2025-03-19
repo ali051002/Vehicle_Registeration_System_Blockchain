@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes'); // User-related routes
 const vehicleRoute = require('./routes/vehicleRoutes'); // Vehicle-related routes
 const transactionRoute = require('./routes/transactionRoutes'); // Transaction-related routes
 const inspectionRoutes = require('./routes/inspectionRoutes');
+const blockchainRoutes = require('./routes/blockchainRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 8085; // Fallback to 8085 if no PORT specified in .env
@@ -31,6 +32,7 @@ app.use('/api', transactionRoute); // Scoped to '/api/transactions'
 app.use('/api', emailRoutes);
 app.use('/api', otpRoutes);
 app.use('/api', inspectionRoutes);
+app.use('/api/blockchain', blockchainRoutes);
 
 
 // Error handling middleware

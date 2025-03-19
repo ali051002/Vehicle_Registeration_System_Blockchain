@@ -6,7 +6,6 @@ const fileUpload = require('express-fileupload');
 // Middleware to handle file uploads
 router.use(fileUpload());
 
-
 // Get all vehicles(use)
 router.get('/vehicles', vehicleController.fetchAllVehicles);
 // Get vehicles by owner using owner ID(use)
