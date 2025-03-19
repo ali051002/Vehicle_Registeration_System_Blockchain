@@ -63,8 +63,8 @@ const EditProfile = () => {
         if (userId) {
           setFormData((prevState) => ({ ...prevState, UserId: userId }));
           axios
-            .get(`http://localhost:8085/api/user/${userId}`, {
-              headers: { Authorization: `Bearer ${token}` },
+            .get(http://localhost:8085/api/user/${userId}, {
+              headers: { Authorization: Bearer ${token} },
             })
             .then((response) => {
               const userData = response.data;
@@ -109,7 +109,7 @@ const EditProfile = () => {
 
     try {
       await axios.put("http://localhost:8085/api/updateUser", updatedFormData, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: Bearer ${token} },
       });
       Swal.fire({
         title: "Success!",
