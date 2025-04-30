@@ -111,17 +111,16 @@ const InspectionOfficerRequests = () => {
     }
   }
 
-  // (If needed) Reject request => Remove from inspectionRequests
-  // const rejectRequest = async (requestId, reason) => {
-  //   try {
-  //     await axios.put("http://localhost:8085/api/rejectInspection", { requestId, reason })
-  //     Swal.fire("Rejected", "Inspection request rejected!", "error")
-  //     setInspectionRequests((prev) => prev.filter((req) => req.InspectionId !== requestId))
-  //     setShowRejectionModal(false)
-  //   } catch (error) {
-  //     Swal.fire("Error", "Failed to reject request.", "error")
-  //   }
-  // }
+  const rejectRequest = async (requestId, reason) => {
+    try {
+      await axios.put("http://localhost:8085/api/rejectInspection", { requestId, reason })
+      Swal.fire("Rejected", "Inspection request rejected!", "error")
+      setInspectionRequests((prev) => prev.filter((req) => req.InspectionId !== requestId))
+      setShowRejectionModal(false)
+    } catch (error) {
+      Swal.fire("Error", "Failed to reject request.", "error")
+    }
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-300">
@@ -268,14 +267,14 @@ const InspectionOfficerRequests = () => {
         onConfirm={approveRequest}
         requestId={selectedRequestId}
       />
-      {/* 
+      
       <RejectionModal
         isOpen={showRejectionModal}
         onClose={() => setShowRejectionModal(false)}
         onConfirm={rejectRequest}
         requestId={selectedRequestId}
       /> 
-      */}
+     
     </div>
   )
 }
