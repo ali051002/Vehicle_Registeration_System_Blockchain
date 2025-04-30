@@ -1,5 +1,6 @@
 const { createChallan, updateChallanPayment, getChallanDetailsByUserId } = require('../db/dbQueries');
-const stripe = require('stripe')('sk_test_51RIbXmPRFhNKOsWlv8ftFZiHzH6Bv3VHpm61V97SFgKr15YgfHNtVJl0hxRkRrpqYdGu3e60c40fgzdcMHNv7f1J00hbwu61UI');
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const createChallanController = async (req, res) => {
     const { vehicleId, amount, type } = req.body;
