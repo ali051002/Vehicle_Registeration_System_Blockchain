@@ -576,6 +576,26 @@ const createChallan = async (vehicleId, amount, type) => {
       throw err;
     }
   };
+
+  const getChallanDetailsByChallanId = async (challanId) => {
+    const pool = await poolPromise;
+    try {
+      const result = await pool.request()
+        .input('ChallanId', sql.UniqueIdentifier, challanId)
+        .execute('sp_GetChallanDetailsByChallanId');
+  
+      if (result.recordset.length === 0) {
+        return null;
+      }
+  
+      return result.recordset[0];
+    } catch (err) {
+      console.error('Error executing sp_GetChallanDetailsByChallanId:', err);
+      throw err;
+    }
+  };
+  
+  
   
 module.exports = {
     createUser,
@@ -618,5 +638,6 @@ module.exports = {
     getInspectionRequestsByVehicleId,
     createChallan,
     updateChallanPayment,
-    getChallanDetailsByUserId
+    getChallanDetailsByUserId,
+    getChallanDetailsByChallanId
 };
