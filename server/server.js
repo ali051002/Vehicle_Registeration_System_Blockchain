@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes'); // User-related routes
 const vehicleRoute = require('./routes/vehicleRoutes'); // Vehicle-related routes
 const transactionRoute = require('./routes/transactionRoutes'); // Transaction-related routes
 const inspectionRoutes = require('./routes/inspectionRoutes');
+const challanRoutes = require('./routes/challanRoutes');
 const blockchainRoutes = require('./routes/blockchainRoutes');
 
 const app = express();
@@ -26,12 +27,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Define routes
-app.use('/api', userRoutes); // Scoped to '/api/users'
-app.use('/api', vehicleRoute); // Scoped to '/api/vehicles'
-app.use('/api', transactionRoute); // Scoped to '/api/transactions'
+app.use('/api', userRoutes);
+app.use('/api', vehicleRoute); 
+app.use('/api', transactionRoute); 
 app.use('/api', emailRoutes);
 app.use('/api', otpRoutes);
 app.use('/api', inspectionRoutes);
+app.use('/api', challanRoutes);
 app.use('/api/blockchain', blockchainRoutes);
 
 
