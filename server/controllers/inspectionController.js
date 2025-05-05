@@ -77,7 +77,6 @@ const approveInspectionRequestController = async (req, res) => {
     try {
         // Approve the inspection request
         await approveInspectionRequest(requestId);
-
         res.status(200).json({ message: 'Inspection request approved successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to approve inspection request', details: error.message });
