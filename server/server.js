@@ -25,6 +25,7 @@ app.use(cors({
 // Middleware to parse JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+//app.use(bodyParser.json());
 
 // Define routes
 app.use('/api', userRoutes);
