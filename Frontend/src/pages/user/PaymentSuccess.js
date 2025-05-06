@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useContext, useRef } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
 import { FaCheckCircle, FaHome, FaDownload, FaPrint } from "react-icons/fa"
 import axios from "axios"
@@ -12,6 +12,7 @@ import jsPDF from "jspdf"
 
 const PaymentSuccess = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isAuthenticated } = useContext(AuthContext)
   const [verifying, setVerifying] = useState(true)
   const [success, setSuccess] = useState(false)
@@ -28,8 +29,10 @@ const PaymentSuccess = () => {
 
     const verifyPayment = async () => {
       try {
-        const sessionId = localStorage.getItem("stripe_session_id")
-        const challanId = localStorage.getItem("challan_id")
+        // Get parameters from URL query string
+        const queryParams = new URLSearchParams(location.search)
+        const sessionId = queryParams.get("session_id") || localStorage.getItem("stripe_session_id")
+        const challanId = queryParams.get("challan_id") || localStorage.getItem("challan_id")
         const token = localStorage.getItem("token")
 
         if (!sessionId || !challanId) {
@@ -102,8 +105,9 @@ const PaymentSuccess = () => {
     }
 
     verifyPayment()
-  }, [navigate, isAuthenticated])
+  }, [navigate, location, isAuthenticated])
 
+  // Rest of your component remains the same...
   const handleGoToDashboard = () => {
     navigate("/user-dashboard")
   }

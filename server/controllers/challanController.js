@@ -135,8 +135,8 @@ const createStripePaymentSessionController = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:3000/payment-success",
-      cancel_url: "http://localhost:3000/payment-cancelled",
+      success_url: "http://localhost:3000/payment-success?session_id={CHECKOUT_SESSION_ID}&challan_id=${challanId}",
+      cancel_url: "http://localhost:3000/payment-cancelled?challan_id=${challanId}",
       metadata: {
         challanId: challanId.toString(),
       },
