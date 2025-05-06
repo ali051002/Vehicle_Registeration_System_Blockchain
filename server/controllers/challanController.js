@@ -67,7 +67,18 @@ const getChallanDetailsByUserIdController = async (req, res) => {
 const createStripePaymentSessionController = async (req, res) => {
   const { challanId, successUrl, cancelUrl } = req.body
 
+  console.log("Request received for payment session creation:")
+  console.log("- challanId:", challanId)
+  console.log("- successUrl:", successUrl)
+  console.log("- cancelUrl:", cancelUrl)
+  console.log("- Headers:", JSON.stringify(req.headers, null, 2))
+
+  // Check if Authorization header is present
+  const authHeader = req.headers.authorization
+  console.log("Authorization header present:", !!authHeader)
+
   if (!challanId) {
+    console.error("Missing challanId in request")
     return res.status(400).json({ error: "ChallanId is required." })
   }
 
@@ -75,12 +86,15 @@ const createStripePaymentSessionController = async (req, res) => {
     console.log(`Creating payment session for challan: ${challanId}`)
 
     // Get challan details from database
+    console.log("Fetching challan details from database...")
     const challan = await getChallanDetailsByChallanId(challanId)
 
     if (!challan) {
       console.error(`Challan not found: ${challanId}`)
       return res.status(404).json({ error: "Challan not found." })
     }
+
+    console.log("Challan details retrieved:", JSON.stringify(challan, null, 2))
 
     if (challan.PaymentStatus !== "Pending") {
       console.error(`Challan already paid: ${challanId}`)
@@ -95,6 +109,11 @@ const createStripePaymentSessionController = async (req, res) => {
     console.log(`Using cancel URL: ${cancel_url}`)
 
     // Create Stripe checkout session
+    console.log("Creating Stripe checkout session with the following data:")
+    console.log("- Currency: pkr")
+    console.log("- Product name:", `Challan Type: ${challan.Type}`)
+    console.log("- Amount:", Math.round(challan.Amount * 100))
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -124,7 +143,11 @@ const createStripePaymentSessionController = async (req, res) => {
     return res.status(200).json({ url: session.url, sessionId: session.id })
   } catch (error) {
     console.error("Stripe session error:", error)
-    return res.status(500).json({ error: "Failed to create payment session." })
+    console.error("Error details:", error.message)
+    if (error.type) {
+      console.error("Stripe error type:", error.type)
+    }
+    return res.status(500).json({ error: "Failed to create payment session.", details: error.message })
   }
 }
 

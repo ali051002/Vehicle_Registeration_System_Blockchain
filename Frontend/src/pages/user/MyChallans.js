@@ -238,6 +238,7 @@ const UserMyChallans = () => {
     setIsProcessingPayment(true)
     try {
       console.log("Starting payment process for challan:", selectedChallan.ChallanId)
+      console.log("User token available:", !!token)
 
       // Store challan details in localStorage for receipt generation
       localStorage.setItem("challan_amount", selectedChallan.Amount)
@@ -248,33 +249,61 @@ const UserMyChallans = () => {
       localStorage.setItem("user_cnic", selectedChallan.UserCNIC)
       localStorage.setItem("challan_type", selectedChallan.Type)
 
+      console.log("Challan details stored in localStorage")
+
       // Get the current domain for success/cancel URLs
       const currentDomain = window.location.origin
       const successUrl = `${currentDomain}/payment-success`
       const cancelUrl = `${currentDomain}/payment-cancelled`
 
+      console.log("Success URL:", successUrl)
+      console.log("Cancel URL:", cancelUrl)
+
+      // Prepare request data
+      const requestData = {
+        challanId: selectedChallan.ChallanId,
+        successUrl: successUrl,
+        cancelUrl: cancelUrl,
+      }
+
+      console.log("Request data:", JSON.stringify(requestData))
+
+      // Prepare headers - Authorization header is required for authenticated endpoints
+      const headers = {
+        "Content-Type": "application/json",
+      }
+
+      // Only add Authorization header if token exists
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+        console.log("Authorization header added")
+      } else {
+        console.warn("No token available for Authorization header")
+      }
+
+      console.log("Making API request to create payment session...")
+
       // Call your API to create a Stripe checkout session
       const response = await axios({
         method: "POST",
         url: "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/stripe/payChallanbyId",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data: {
-          challanId: selectedChallan.ChallanId,
-          successUrl: successUrl,
-          cancelUrl: cancelUrl,
-        },
+        headers: headers,
+        data: requestData,
       })
 
+      console.log("API response received:", response.status)
+      console.log("Response data:", JSON.stringify(response.data))
+
       if (!response.data || !response.data.url) {
+        console.error("Invalid response structure:", response.data)
         throw new Error("Invalid response from server: Missing Stripe checkout URL")
       }
 
       // Store session ID and challan ID in localStorage for verification on return
       localStorage.setItem("stripe_session_id", response.data.sessionId)
       localStorage.setItem("challan_id", selectedChallan.ChallanId)
+
+      console.log("Session data stored, redirecting to:", response.data.url)
 
       // Redirect to Stripe checkout
       window.location.href = response.data.url
@@ -283,18 +312,23 @@ const UserMyChallans = () => {
 
       // More detailed error logging
       if (error.response) {
-        console.error("Error response data:", error.response.data)
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
         console.error("Error response status:", error.response.status)
-        
+        console.error("Error response headers:", error.response.headers)
+        console.error("Error response data:", error.response.data)
+
         Swal.fire(
           "Error",
           `Server error: ${error.response.status} - ${error.response.data?.error || error.response.data?.message || "Unknown error"}`,
           "error",
         )
       } else if (error.request) {
+        // The request was made but no response was received
         console.error("No response received:", error.request)
         Swal.fire("Network Error", "No response received from server. Please check your internet connection.", "error")
       } else {
+        // Something happened in setting up the request that triggered an Error
         console.error("Error message:", error.message)
         Swal.fire("Error", error.message || "Failed to initialize payment", "error")
       }

@@ -1,19 +1,26 @@
-const express = require('express');
-const { createChallanController, updateChallanPaymentController, getChallanDetailsByUserIdController, createStripePaymentSessionController,confirmChallanPayment,stripeWebhook} = require('../controllers/challanController');
+const express = require("express")
+const {
+  createChallanController,
+  updateChallanPaymentController,
+  getChallanDetailsByUserIdController,
+  createStripePaymentSessionController,
+  confirmChallanPayment,
+} = require("../controllers/challanController")
+const { authenticateToken } = require("../middleware/auth") // Assuming you have auth middleware
 
-const router = express.Router();
+const router = express.Router()
 
-router.post('/createChallan', createChallanController);
+// Apply authentication middleware to all routes EXCEPT the payment route
+// This makes it clear which routes require authentication
+router.post("/createChallan", authenticateToken, createChallanController)
+router.put("/update-payment", authenticateToken, updateChallanPaymentController)
+router.get("/challan-details-byUserId", authenticateToken, getChallanDetailsByUserIdController)
 
-router.put('/update-payment', updateChallanPaymentController);
+// Make the payment route public (no authentication required)
+// If you DO need authentication, use: router.post("/stripe/payChallanbyId", authenticateToken, createStripePaymentSessionController)
+router.post("/stripe/payChallanbyId", createStripePaymentSessionController)
+router.post("/stripe/confirm-payment", authenticateToken, confirmChallanPayment)
 
-router.get('/challan-details-byUserId', getChallanDetailsByUserIdController);
+// Note: The webhook route is defined in server.js because it needs special body parsing
 
-router.post('/stripe/payChallanbyId', createStripePaymentSessionController);
-
-router.post('/stripe/confirm-payment', confirmChallanPayment);
-
-//router.post('/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
-
-module.exports = router;
-
+module.exports = router
