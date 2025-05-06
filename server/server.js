@@ -26,8 +26,16 @@ app.use(cors({
 // Handle preflight OPTIONS requests
 app.options('*', cors());
 
-// Stripe webhook (raw body parser for Stripe)
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
+// IMPORTANT: Stripe webhook route must come before body parsers
+// This is because Stripe needs the raw body for signature verification
+app.post('/api/stripe/webhook', 
+    express.raw({ type: 'application/json' }), 
+    (req, res, next) => {
+        // Log webhook received (but don't log the body for security)
+        console.log(`Stripe webhook received: ${new Date().toISOString()}`);
+        stripeWebhook(req, res, next);
+    }
+);
 
 // Other middleware
 app.use(express.json());

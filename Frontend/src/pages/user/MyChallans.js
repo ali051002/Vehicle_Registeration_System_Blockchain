@@ -88,6 +88,7 @@ const ChallanCard = ({ challan, onPayNow }) => (
 
 /* -------------------------------------------------------------------------- */
 /*  🔸 Payment Processing Modal                                               */
+/* -------------------------------------------------------------------------- */
 const PaymentModal = ({ isOpen, challan, onClose, onConfirm, isLoading }) => {
   if (!isOpen) return null
 
@@ -183,8 +184,8 @@ const UserMyChallans = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
-  /* ── get userId from stored JWT ──────────────────��─────────────────────── */
-  const token = localStorage.getItem("jwtToken")
+  /* ── get userId from stored JWT ────────────────────────────────────────── */
+  const token = localStorage.getItem("token")
   let userId = null
   try {
     userId = jwtDecode(token)?.userId
@@ -236,8 +237,6 @@ const UserMyChallans = () => {
 
     setIsProcessingPayment(true)
     try {
-      console.log("Starting payment process for challan:", selectedChallan.ChallanId)
-
       // Store challan details in localStorage for receipt generation
       localStorage.setItem("challan_amount", selectedChallan.Amount)
       localStorage.setItem("vehicle_make", selectedChallan.VehicleMake)
@@ -246,9 +245,6 @@ const UserMyChallans = () => {
       localStorage.setItem("user_name", selectedChallan.UserName)
       localStorage.setItem("user_cnic", selectedChallan.UserCNIC)
       localStorage.setItem("challan_type", selectedChallan.Type)
-
-      console.log("Challan details stored in localStorage")
-      console.log("Making API request to create Stripe session...")
 
       // Call your API to create a Stripe checkout session
       const response = await axios.post(
@@ -261,48 +257,16 @@ const UserMyChallans = () => {
         },
       )
 
-      console.log("API response received:", response.data)
-
-      if (!response.data || !response.data.url) {
-        throw new Error("Invalid response from server: Missing Stripe checkout URL")
-      }
-
       // Store session ID and challan ID in localStorage for verification on return
       localStorage.setItem("stripe_session_id", response.data.sessionId)
       localStorage.setItem("challan_id", selectedChallan.ChallanId)
-
-      console.log("Session data stored, redirecting to:", response.data.url)
 
       // Redirect to Stripe checkout
       window.location.href = response.data.url
     } catch (error) {
       console.error("Payment initialization failed:", error)
-
-      // More detailed error logging
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error("Error response data:", error.response.data)
-        console.error("Error response status:", error.response.status)
-        console.error("Error response headers:", error.response.headers)
-
-        Swal.fire(
-          "Error",
-          `Server error: ${error.response.status} - ${error.response.data?.error || error.response.data?.message || "Unknown error"}`,
-          "error",
-        )
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error("No response received:", error.request)
-        Swal.fire("Network Error", "No response received from server. Please check your internet connection.", "error")
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error("Error message:", error.message)
-        Swal.fire("Error", error.message || "Failed to initialize payment", "error")
-      }
-
+      Swal.fire("Error", error.response?.data?.error || "Failed to initialize payment", "error")
       setIsProcessingPayment(false)
-      closePaymentModal()
     }
   }
 
