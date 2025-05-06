@@ -33,6 +33,8 @@ import InspectionOfficerDashboard from './pages/InspectionOfficerDashboard';
 import InspectionOfficerRequests from './pages/InspectionOfficerRequests';
 import VehicleDetails from './pages/VehicleDetails';
 import UserMyChallans from './pages/user/MyChallans';
+import PaymentSuccess from './pages/user/PaymentSuccess';
+import PaymentCancelled from './pages/user/PaymentCancelled';
 
 const App = () => {
   return (
@@ -129,6 +131,24 @@ const App = () => {
               </PrivateRoute>
             }
           />
+          
+          {/* Payment Routes */}
+          <Route
+            path="/payment-success"
+            element={
+              <PrivateRoute role="user">
+                <PaymentSuccess />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/payment-cancelled"
+            element={
+              <PrivateRoute role="user">
+                <PaymentCancelled />
+              </PrivateRoute>
+            }
+          />
 
           {/* Admin Dashboard Routes (restricted to role="admin") */}
           <Route
@@ -165,7 +185,6 @@ const App = () => {
                 <GovernmentOfficialDashboard />
               </PrivateRoute>
             }
-            //hello ji
           />
           <Route
             path="/pending-registrations"

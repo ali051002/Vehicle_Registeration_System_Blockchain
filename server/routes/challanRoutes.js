@@ -17,4 +17,3 @@ router.post('/stripe/confirm-payment', confirmChallanPayment);
 
 module.exports = router;
 
-// Removed duplicate code to fix the redeclaration error.
