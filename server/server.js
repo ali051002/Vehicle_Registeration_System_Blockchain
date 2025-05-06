@@ -65,6 +65,8 @@ app.use((req, res, next) => {
 app.use('/api', userRoutes);
 app.use('/api', vehicleRoute);
 app.use('/api', transactionRoute);
+app.use('/api', vehicleRoute);
+app.use('/api', transactionRoute);
 app.use('/api', emailRoutes);
 app.use('/api', otpRoutes);
 app.use('/api', inspectionRoutes);
@@ -117,6 +119,7 @@ app.use((err, req, res, next) => {
     });
 });
 
+// 404 handler
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ 
