@@ -9,20 +9,39 @@ import Swal from "sweetalert2"
 import { AuthContext } from "../../context/AuthContext"
 import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
+import { jwtDecode } from "jwt-decode"
 
 const PaymentSuccess = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated } = useContext(AuthContext)
+  const { logout } = useContext(AuthContext)
   const [verifying, setVerifying] = useState(true)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [paymentDetails, setPaymentDetails] = useState(null)
   const receiptRef = useRef(null)
 
+  // Get token and decode userId similar to UserMyChallans
+  const token = localStorage.getItem("token")
+  let userId = null
+  let isAuthenticated = false
+
+  try {
+    const decoded = jwtDecode(token)
+    userId = decoded?.userId
+    isAuthenticated = !!userId // Set to true if userId exists
+    console.log("Decoded token:", decoded)
+    console.log("User ID from token:", userId)
+  } catch (error) {
+    console.error("Error decoding token:", error)
+    // Don't logout here, we'll handle it in useEffect
+  }
+
   useEffect(() => {
-    // Check if user is authenticated
+    // Check if token is valid
     if (!isAuthenticated) {
+      console.log("User not authenticated, redirecting to signin")
+      Swal.fire("Error", "Invalid session. Please sign in again.", "error")
       navigate("/signin")
       return
     }
@@ -31,15 +50,22 @@ const PaymentSuccess = () => {
       try {
         // Get parameters from URL query string
         const queryParams = new URLSearchParams(location.search)
+        console.log("URL query params:", queryParams.toString())
+
         const sessionId = queryParams.get("session_id") || localStorage.getItem("stripe_session_id")
         const challanId = queryParams.get("challan_id") || localStorage.getItem("challan_id")
-        const token = localStorage.getItem("token")
+
+        console.log("Session ID from URL:", queryParams.get("session_id"))
+        console.log("Challan ID from URL:", queryParams.get("challan_id"))
+        console.log("Session ID from localStorage:", localStorage.getItem("stripe_session_id"))
+        console.log("Challan ID from localStorage:", localStorage.getItem("challan_id"))
 
         if (!sessionId || !challanId) {
           throw new Error("Payment information not found")
         }
 
         console.log(`Verifying payment for session: ${sessionId}, challan: ${challanId}`)
+        console.log(`User ID for verification: ${userId}`)
 
         // Call your backend to confirm the payment
         const response = await axios.post(
@@ -47,6 +73,13 @@ const PaymentSuccess = () => {
           {
             sessionId,
             challanId,
+            userId, // Include userId in the request
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Include token in headers
+            },
           },
         )
 
@@ -105,9 +138,8 @@ const PaymentSuccess = () => {
     }
 
     verifyPayment()
-  }, [navigate, location, isAuthenticated])
+  }, [navigate, location, isAuthenticated, userId, token])
 
-  // Rest of your component remains the same...
   const handleGoToDashboard = () => {
     navigate("/user-dashboard")
   }

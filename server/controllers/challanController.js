@@ -116,6 +116,13 @@ const createStripePaymentSessionController = async (req, res) => {
     // Create Stripe checkout session
     console.log("Creating Stripe checkout session...")
 
+    // FIX: Properly format the success_url and cancel_url with the actual challanId
+    const success_url = `http://localhost:3000/payment-success?session_id={CHECKOUT_SESSION_ID}&challan_id=${challanId}`
+    const cancel_url = `http://localhost:3000/payment-cancelled?challan_id=${challanId}`
+
+    console.log(`Success URL: ${success_url}`)
+    console.log(`Cancel URL: ${cancel_url}`)
+
     // Prepare session data
     const sessionData = {
       payment_method_types: ["card"],
@@ -135,8 +142,8 @@ const createStripePaymentSessionController = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:3000/payment-success?session_id={CHECKOUT_SESSION_ID}&challan_id=${challanId}",
-      cancel_url: "http://localhost:3000/payment-cancelled?challan_id=${challanId}",
+      success_url: success_url,
+      cancel_url: cancel_url,
       metadata: {
         challanId: challanId.toString(),
       },
