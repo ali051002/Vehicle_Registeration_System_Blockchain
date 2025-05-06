@@ -237,6 +237,8 @@ const UserMyChallans = () => {
 
     setIsProcessingPayment(true)
     try {
+      console.log("Starting payment process for challan:", selectedChallan.ChallanId)
+
       // Store challan details in localStorage for receipt generation
       localStorage.setItem("challan_amount", selectedChallan.Amount)
       localStorage.setItem("vehicle_make", selectedChallan.VehicleMake)
@@ -246,16 +248,29 @@ const UserMyChallans = () => {
       localStorage.setItem("user_cnic", selectedChallan.UserCNIC)
       localStorage.setItem("challan_type", selectedChallan.Type)
 
+      // Get the current domain for success/cancel URLs
+      const currentDomain = window.location.origin
+      const successUrl = `${currentDomain}/payment-success`
+      const cancelUrl = `${currentDomain}/payment-cancelled`
+
       // Call your API to create a Stripe checkout session
-      const response = await axios.post(
-        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/stripe/payChallanbyId",
-        {
+      const response = await axios({
+        method: "POST",
+        url: "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/stripe/payChallanbyId",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: {
           challanId: selectedChallan.ChallanId,
+          successUrl: successUrl,
+          cancelUrl: cancelUrl,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      )
+      })
+
+      if (!response.data || !response.data.url) {
+        throw new Error("Invalid response from server: Missing Stripe checkout URL")
+      }
 
       // Store session ID and challan ID in localStorage for verification on return
       localStorage.setItem("stripe_session_id", response.data.sessionId)
@@ -265,8 +280,27 @@ const UserMyChallans = () => {
       window.location.href = response.data.url
     } catch (error) {
       console.error("Payment initialization failed:", error)
-      Swal.fire("Error", error.response?.data?.error || "Failed to initialize payment", "error")
+
+      // More detailed error logging
+      if (error.response) {
+        console.error("Error response data:", error.response.data)
+        console.error("Error response status:", error.response.status)
+        
+        Swal.fire(
+          "Error",
+          `Server error: ${error.response.status} - ${error.response.data?.error || error.response.data?.message || "Unknown error"}`,
+          "error",
+        )
+      } else if (error.request) {
+        console.error("No response received:", error.request)
+        Swal.fire("Network Error", "No response received from server. Please check your internet connection.", "error")
+      } else {
+        console.error("Error message:", error.message)
+        Swal.fire("Error", error.message || "Failed to initialize payment", "error")
+      }
+
       setIsProcessingPayment(false)
+      closePaymentModal()
     }
   }
 

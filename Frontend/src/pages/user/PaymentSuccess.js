@@ -36,6 +36,8 @@ const PaymentSuccess = () => {
           throw new Error("Payment information not found")
         }
 
+        console.log(`Verifying payment for session: ${sessionId}, challan: ${challanId}`)
+
         // Call your backend to confirm the payment
         const response = await axios.post(
           "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/stripe/confirm-payment",
@@ -47,6 +49,8 @@ const PaymentSuccess = () => {
             headers: { Authorization: `Bearer ${token}` },
           },
         )
+
+        console.log("Payment verification response:", response.data)
 
         if (!response.data.success) {
           throw new Error(response.data.message || "Payment verification failed")
