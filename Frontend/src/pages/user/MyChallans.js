@@ -369,4 +369,4 @@ const UserMyChallans = () => {
   )
 }
 
-export default UserMyChallans
+export default UserMyChallans;
