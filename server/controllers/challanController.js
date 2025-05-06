@@ -96,6 +96,9 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
         mode: 'payment',
         success_url: 'http://localhost:3000/payment-success',
         cancel_url: 'http://localhost:3000/payment-cancelled',
+        metadata: {
+          challanId: challanId.toString(),
+        },
       });
   
       return res.status(200).json({ url: session.url, sessionId: session.id });
@@ -124,52 +127,48 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
     }
   };
 
-  // const stripeWebhook = async (req, res) => {
-  //   const sig = req.headers['stripe-signature'];  // Stripe sends a signature to verify the message
-  //   const payload = req.body;
+  const stripeWebhook = async (req, res) => {
+    const sig = req.headers['stripe-signature'];  
+    const payload = req.body;
   
-  //   let event;
+    let event;
   
-  //   // Replace with your endpoint secret from Stripe Dashboard
-  //   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
   
-  //   // Verify the webhook signature to ensure it's from Stripe
-  //   try {
-  //     event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
-  //   } catch (err) {
-  //     console.error('Webhook signature verification failed:', err);
-  //     return res.status(400).send(`Webhook Error: ${err.message}`);
-  //   }
+    try {
+      event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
   
-  //   // Handle successful payment event (checkout session completed)
-  //   if (event.type === 'checkout.session.completed') {
-  //     const session = event.data.object;  // Get session details from Stripe
-  //     const challanId = session.metadata.challanId;  // Metadata contains the Challan ID
-  //     const paymentIntentId = session.payment_intent;  // Payment Intent ID from Stripe
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;  
+      const challanId = session.metadata?.challanId; 
+      const paymentIntentId = session.payment_intent;  
   
-  //     try {
-  //       // Update Challan status and Payment Intent ID in the database
-  //       await updateChallanPayment(challanId, paymentIntentId);
-  //       console.log(`Payment for Challan ID: ${challanId} was successful`);
+      try {
+        await updateChallanPayment(challanId, paymentIntentId);
+        console.log(`Payment for Challan ID: ${challanId} was successful`);
   
-  //       res.json({ received: true });
-  //     } catch (err) {
-  //       console.error('Error updating Challan status:', err);
-  //       res.status(500).json({ error: 'Failed to update Challan payment status' });
-  //     }
-  //   } else {
-  //     // Handle other event types if needed (e.g., payment failed)
-  //     res.json({ received: true });
-  //   }
-  // };
+        res.json({ received: true });
+      } catch (err) {
+        console.error('Error updating Challan status:', err);
+        res.status(500).json({ error: 'Failed to update Challan payment status' });
+      }
+    } else {
+      res.json({ received: true });
+    }
+  };
 
 module.exports = {
   createChallanController,
   updateChallanPaymentController,
   getChallanDetailsByUserIdController,
   createStripePaymentSessionController,
-  confirmChallanPayment
-  //stripeWebhook
+  confirmChallanPayment,
+  stripeWebhook
 };
 
 
