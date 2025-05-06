@@ -20,7 +20,7 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), strip
 
 
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000','https://securechain-inky.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
