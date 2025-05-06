@@ -45,9 +45,6 @@ const PaymentSuccess = () => {
             sessionId,
             challanId,
           },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
         )
 
         console.log("Payment verification response:", response.data)
