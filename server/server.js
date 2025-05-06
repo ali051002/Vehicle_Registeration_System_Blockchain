@@ -148,4 +148,4 @@ process.on('SIGTERM', () => {
     }, 10000);
 });
 
-module.exports = app; // Export for testing
+module.exports = app; 
