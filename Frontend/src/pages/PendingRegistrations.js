@@ -72,7 +72,7 @@ const InspectionModal = ({ isOpen, onClose, vehicleId, onInspectionSent }) => {
   const fetchOfficers = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8085/api/fetch-all-inspection-officers"
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/fetch-all-inspection-officers"
       );
       if (res.data?.data) setOfficers(res.data.data);
       else Swal.fire("Error", "Invalid response from server", "error");
@@ -92,7 +92,7 @@ const InspectionModal = ({ isOpen, onClose, vehicleId, onInspectionSent }) => {
     }
 
     try {
-      await axios.post("http://localhost:8085/api/send-inspection-request", {
+      await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-inspection-request", {
         VehicleId: vehicleId,
         OfficerId: selectedOfficer,
         AppointmentDate: appointmentDate,
@@ -286,7 +286,7 @@ const PendingRegistrations = () => {
     const fetchPendingRegistrations = async () => {
       try {
         const { data } = await axios.get(
-          "http://localhost:8085/api/transactions/pending"
+          "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions/pending"
         );
 
         /* ---------- helpers ---------- */

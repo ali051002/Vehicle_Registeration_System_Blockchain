@@ -530,49 +530,49 @@ const getInspectionRequestsByVehicleId = async (vehicleId) => {
     }
 };
 
-const createChallan = async (vehicleId, amount, type) => {
-    const pool = await poolPromise;
-    try {
-      const result = await pool.request()
-        .input('VehicleId', sql.UniqueIdentifier, vehicleId)
-        .input('Amount', sql.Decimal(10, 2), amount)
-        .input('Type', sql.NVarChar(50), type)
-        .execute('sp_CreateChallan');
-      return result.rowsAffected[0];
-    } catch (err) {
-      console.error('Error executing sp_CreateChallan:', err);
-      throw err;
-    }
-  };
+// const createChallan = async (vehicleId, amount, type) => {
+//     const pool = await poolPromise;
+//     try {
+//       const result = await pool.request()
+//         .input('VehicleId', sql.UniqueIdentifier, vehicleId)
+//         .input('Amount', sql.Decimal(10, 2), amount)
+//         .input('Type', sql.NVarChar(50), type)
+//         .execute('sp_CreateChallan');
+//       return result.rowsAffected[0];
+//     } catch (err) {
+//       console.error('Error executing sp_CreateChallan:', err);
+//       throw err;
+//     }
+//   };
   
 
-  const updateChallanPayment = async (challanId, paymentIntentId) => {
-    const pool = await poolPromise;
-    try {
-      const result = await pool.request()
-        .input('ChallanId', sql.UniqueIdentifier, challanId)
-        .input('PaymentIntentID', sql.NVarChar(255), paymentIntentId)
-        .execute('sp_UpdateChallanPayment');
-      return result.rowsAffected[0];
-    } catch (err) {
-      console.error('Error executing sp_UpdateChallanPayment:', err);
-      throw err;
-    }
-  };
+//   const updateChallanPayment = async (challanId, paymentIntentId) => {
+//     const pool = await poolPromise;
+//     try {
+//       const result = await pool.request()
+//         .input('ChallanId', sql.UniqueIdentifier, challanId)
+//         .input('PaymentIntentID', sql.NVarChar(255), paymentIntentId)
+//         .execute('sp_UpdateChallanPayment');
+//       return result.rowsAffected[0];
+//     } catch (err) {
+//       console.error('Error executing sp_UpdateChallanPayment:', err);
+//       throw err;
+//     }
+//   };
   
 
-  const getChallanDetailsByUserId = async (userId) => {
-    const pool = await poolPromise;
-    try {
-      const result = await pool.request()
-        .input('UserId', sql.UniqueIdentifier, userId)
-        .execute('sp_GetChallanDetailsByUserId');
-      return result.recordset; 
-    } catch (err) {
-      console.error('Error executing sp_GetChallanDetailsByUserId:', err);
-      throw err;
-    }
-  };
+//   const getChallanDetailsByUserId = async (userId) => {
+//     const pool = await poolPromise;
+//     try {
+//       const result = await pool.request()
+//         .input('UserId', sql.UniqueIdentifier, userId)
+//         .execute('sp_GetChallanDetailsByUserId');
+//       return result.recordset; 
+//     } catch (err) {
+//       console.error('Error executing sp_GetChallanDetailsByUserId:', err);
+//       throw err;
+//     }
+//   };
   
 
 
@@ -682,10 +682,6 @@ module.exports = {
     getInspectionRequestsByVehicleId,
     createChallan,
     updateChallanPayment,
-<<<<<<< HEAD
-    getChallanDetailsByUserId
-=======
     getChallanDetailsByUserId,
     getChallanDetailsByChallanId
->>>>>>> 17250021d6353fb4c41b476fc3ea56486ac2c28f
-};
+}

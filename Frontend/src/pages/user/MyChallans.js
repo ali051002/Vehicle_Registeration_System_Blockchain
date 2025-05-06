@@ -100,7 +100,7 @@ const UserMyChallans = () => {
 
       try {
         const { data } = await axios.get(
-          'http://localhost:8085/api/challan-details-byUserId',
+          'https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/challan-details-byUserId',
           {
             params: { userId },
             headers: { Authorization: `Bearer ${token}` },

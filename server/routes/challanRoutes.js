@@ -17,15 +17,4 @@ router.post('/stripe/confirm-payment', confirmChallanPayment);
 
 module.exports = router;
 
-const express = require('express');
-const { createChallanController, updateChallanPaymentController, getChallanDetailsByUserIdController } = require('../controllers/challanController');
-
-const router = express.Router();
-
-router.post('/createChallan', createChallanController);
-
-router.put('/update-payment', updateChallanPaymentController);
-
-router.get('/challan-details-byUserId', getChallanDetailsByUserIdController);
-
-module.exports = router;
+// Removed duplicate code to fix the redeclaration error.
