@@ -183,7 +183,7 @@ const UserMyChallans = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
-  /* ── get userId from stored JWT ────────────────────────────────────────── */
+  /* ── get userId from stored JWT ──────────────────��─────────────────────── */
   const token = localStorage.getItem("jwtToken")
   let userId = null
   try {
@@ -248,24 +248,18 @@ const UserMyChallans = () => {
       localStorage.setItem("challan_type", selectedChallan.Type)
 
       console.log("Challan details stored in localStorage")
+      console.log("Making API request to create Stripe session...")
 
-      // Get the current domain for success/cancel URLs
-      const currentDomain = window.location.origin
-
-      // Create a direct API call to create the Stripe checkout session
-      const response = await axios({
-        method: "POST",
-        url: "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/stripe/payChallanbyId",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({
+      // Call your API to create a Stripe checkout session
+      const response = await axios.post(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/stripe/payChallanbyId",
+        {
           challanId: selectedChallan.ChallanId,
-          successUrl: `${currentDomain}/payment-success`,
-          cancelUrl: `${currentDomain}/payment-cancelled`,
-        }),
-      })
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
 
       console.log("API response received:", response.data)
 
