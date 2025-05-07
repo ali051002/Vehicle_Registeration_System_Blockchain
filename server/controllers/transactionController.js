@@ -2,17 +2,18 @@ const { getTransactionDetailsById, getAllTransactionDetails, getTransactions,get
 const pdf = require('html-pdf'); // Using 'html-pdf' to generate PDFs
 const fs = require('fs');
 
-// Fetch transactions based on status and type
+
 const fetchTransactions = async (req, res) => {
     const { transactionStatus, transactionType } = req.body;
 
     try {
-        const result = await getTransactions(transactionStatus, transactionType);
-        res.status(200).json(result.recordset);
+        const transactions = await getTransactions(transactionStatus, transactionType);
+        return res.status(200).json(transactions);  
     } catch (err) {
-        res.status(500).json({ msg: err.message });
+        console.error('Error fetching transactions:', err);
+        return res.status(500).json({ msg: err.message });
     }
-};//
+};
 
 
 const fetchPendingTransactions = async (req, res) => {
