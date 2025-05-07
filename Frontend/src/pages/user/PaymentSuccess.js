@@ -89,22 +89,25 @@ const PaymentSuccess = () => {
           throw new Error(response.data.message || "Payment verification failed")
         }
 
-        // Set payment details for receipt
+        // Set payment details for receipt using the enhanced response data
         setPaymentDetails({
           challanId: challanId,
           paymentId: sessionId,
           paymentDate: new Date().toLocaleString(),
           amount: response.data.amount || localStorage.getItem("challan_amount"),
+          challanType: response.data.challanType || localStorage.getItem("challan_type"),
+          // Use the vehicle details from the response
           vehicleDetails: response.data.vehicleDetails || {
             make: localStorage.getItem("vehicle_make"),
             model: localStorage.getItem("vehicle_model"),
             chassisNumber: localStorage.getItem("chassis_number"),
           },
+          // Use the user details from the response
           userDetails: response.data.userDetails || {
             name: localStorage.getItem("user_name"),
             cnic: localStorage.getItem("user_cnic"),
+            phoneNumber: localStorage.getItem("user_phone_number"),
           },
-          challanType: response.data.challanType || localStorage.getItem("challan_type"),
         })
 
         // Clear the stored session data
@@ -118,6 +121,7 @@ const PaymentSuccess = () => {
         localStorage.removeItem("chassis_number")
         localStorage.removeItem("user_name")
         localStorage.removeItem("user_cnic")
+        localStorage.removeItem("user_phone_number")
         localStorage.removeItem("challan_type")
 
         setSuccess(true)
@@ -302,6 +306,12 @@ const PaymentSuccess = () => {
                       <span className="font-semibold text-gray-600 w-32">CNIC:</span>
                       <span className="text-gray-800">{paymentDetails?.userDetails?.cnic}</span>
                     </div>
+                    {paymentDetails?.userDetails?.phoneNumber && (
+                      <div className="flex">
+                        <span className="font-semibold text-gray-600 w-32">Phone:</span>
+                        <span className="text-gray-800">{paymentDetails.userDetails.phoneNumber}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
