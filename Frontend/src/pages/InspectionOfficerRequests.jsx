@@ -117,7 +117,7 @@ const InspectionOfficerRequests = () => {
     const fetchInspectionRequests = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8085/api/fetch-inspection-request-byOfficialID",
+          "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/fetch-inspection-request-byOfficialID",
           { params: { officerId: loggedInUserId } }
         )
         const allRequests = response.data.data
@@ -150,8 +150,8 @@ const InspectionOfficerRequests = () => {
 
   const approveRequest = async (requestId, amount, type) => {
     try {
-      await axios.put("http://localhost:8085/api/approveInspection", { requestId })
-      await axios.post("http://localhost:8085/api/createChallan", {
+      await axios.put("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/approveInspection", { requestId })
+      await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/createChallan", {
         vehicleId: inspectionRequests.find((req) => req.InspectionId === requestId).VehicleId,
         amount: parseFloat(amount),
         type,
@@ -171,7 +171,7 @@ const InspectionOfficerRequests = () => {
 
   const createChallanForApproved = async (requestId, amount, type) => {
     try {
-      await axios.post("http://localhost:8085/api/createChallan", {
+      await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/createChallan", {
         vehicleId: acceptedRequests.find((req) => req.InspectionId === requestId).VehicleId,
         amount: parseFloat(amount),
         type,
@@ -198,7 +198,7 @@ const InspectionOfficerRequests = () => {
 
   const rejectRequest = async (requestId, reason) => {
     try {
-      await axios.put("http://localhost:8085/api/rejectInspection", { requestId, reason })
+      await axios.put("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/rejectInspection", { requestId, reason })
       Swal.fire("Rejected", "Inspection request rejected!", "error")
       setInspectionRequests((prev) => prev.filter((req) => req.InspectionId !== requestId))
       setShowRejectionModal(false)
