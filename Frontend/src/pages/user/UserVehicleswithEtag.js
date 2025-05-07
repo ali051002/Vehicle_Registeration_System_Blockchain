@@ -17,8 +17,6 @@ import {
   FaSyncAlt,
   FaDownload,
   FaFileAlt,
-  FaCubes,
-  FaSpinner,
 } from "react-icons/fa"
 import { AuthContext } from "../../context/AuthContext"
 import SideNavBar from "../../components/SideNavBar"
@@ -27,7 +25,7 @@ import axios from "axios"
 import { jwtDecode } from "jwt-decode"
 import Swal from "sweetalert2"
 
-const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockchain, isRegistering }) => {
+const VehicleCard = ({ vehicle, transactionData, onDownloadPDF }) => {
   // Determine if this vehicle has an E-Tag
   const hasEtag = !!vehicle.registrationNumber
 
@@ -39,9 +37,6 @@ const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockc
 
   // Transaction status
   const isApproved = transaction?.transactionStatus === "Approved"
-
-  // Check if vehicle is already registered on blockchain
-  const isOnBlockchain = vehicle.isOnBlockchain
 
   // E-Tag status message
   const getStatusMessage = () => {
@@ -63,17 +58,6 @@ const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockc
     if (hasEtag) return <FaCheckCircle className="text-green-600" />
     if (isPaid && !isApproved) return <FaSyncAlt className="text-yellow-600" />
     return <FaExclamationTriangle className="text-red-600" />
-  }
-
-  // Get user CNIC from localStorage or context
-  const getUserCnic = () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"))
-      return user?.cnic || ""
-    } catch (error) {
-      console.error("Error getting user CNIC:", error)
-      return ""
-    }
   }
 
   return (
@@ -100,14 +84,6 @@ const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockc
             </div>
           )}
         </div>
-
-        {/* Blockchain Status Badge (if applicable) */}
-        {isOnBlockchain && (
-          <div className="mb-4 px-3 py-2 rounded-md border border-blue-300 bg-blue-50 flex items-center">
-            <FaCubes className="text-blue-600 mr-2" />
-            <span className="font-medium text-blue-800">Registered on Blockchain</span>
-          </div>
-        )}
 
         {/* Vehicle Details Grid */}
         <div className="grid grid-cols-2 gap-4 flex-grow">
@@ -178,7 +154,7 @@ const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockc
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <div className="mt-4 flex justify-end gap-2">
           {transaction && (
             <button
               onClick={() => onDownloadPDF(transaction.TransactionId)}
@@ -212,26 +188,6 @@ const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockc
               View E-Tag
             </button>
           )}
-          {/* Blockchain Registration Button - only show for vehicles with E-Tag that aren't already on blockchain */}
-          {hasEtag && !isOnBlockchain && (
-            <button
-              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-md flex items-center text-sm transition-colors"
-              onClick={() => onRegisterBlockchain(vehicle)}
-              disabled={isRegistering === vehicle._id}
-            >
-              {isRegistering === vehicle._id ? (
-                <>
-                  <FaSpinner className="animate-spin mr-1.5" />
-                  Registering...
-                </>
-              ) : (
-                <>
-                  <FaCubes className="mr-1.5" />
-                  Register on Blockchain
-                </>
-              )}
-            </button>
-          )}
         </div>
       </div>
     </motion.div>
@@ -248,23 +204,17 @@ const UserVehiclesWithEtag = () => {
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all") // all, etag, pending, unpaid
-  const [registeringVehicle, setRegisteringVehicle] = useState(null) // Track which vehicle is being registered
 
   // Get token and decode userId
   const token = localStorage.getItem("token")
   let userId = null
   let isAuthenticated = false
-  let userCnic = ""
 
   try {
     if (token) {
       const decoded = jwtDecode(token)
       userId = decoded?.userId
       isAuthenticated = !!userId
-
-      // Try to get user CNIC from localStorage
-      const user = JSON.parse(localStorage.getItem("user"))
-      userCnic = user?.cnic || ""
     } else {
       console.error("No token found in localStorage")
       isAuthenticated = false
@@ -288,79 +238,49 @@ const UserVehiclesWithEtag = () => {
       return
     }
 
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        // Fetch user's vehicles
+        const vehiclesResponse = await axios.get(
+          `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles/user/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+
+        // Fetch all transactions using the transactions endpoint with filters
+        const transactionsResponse = await axios.get(
+          `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              fromUserId: userId, // Filter by the current user
+            },
+          },
+        )
+
+        console.log("Vehicles data:", vehiclesResponse.data)
+        console.log("Transactions data:", transactionsResponse.data)
+
+        setVehicles(vehiclesResponse.data || [])
+        setTransactions(transactionsResponse.data || [])
+        setError(null)
+      } catch (err) {
+        console.error("Error fetching data:", err)
+        setError("Failed to load your vehicles. Please try again.")
+        Swal.fire("Error", "Failed to fetch your vehicles", "error")
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchData()
   }, [userId, token])
-
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      // Fetch user's vehicles
-      const vehiclesResponse = await axios.get(
-        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
-
-      // Fetch all transactions using the transactions endpoint with filters
-      const transactionsResponse = await axios.get(
-        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            fromUserId: userId, // Filter by the current user
-          },
-        },
-      )
-
-      // Check blockchain status for each vehicle with E-Tag
-      const vehiclesData = vehiclesResponse.data || []
-
-      // For vehicles with E-Tags, check if they're on the blockchain
-      // This is a mock implementation - in a real app, you'd check with your blockchain API
-      for (let i = 0; i < vehiclesData.length; i++) {
-        if (vehiclesData[i].registrationNumber) {
-          try {
-            // Check if this vehicle is on the blockchain
-            const blockchainResponse = await axios.get(
-              `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/blockchain/details`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-                params: {
-                  registrationNo: vehiclesData[i].registrationNumber,
-                },
-              },
-            )
-
-            // If we get a successful response, the vehicle is on the blockchain
-            vehiclesData[i].isOnBlockchain = !!blockchainResponse.data
-          } catch (error) {
-            // If there's an error or no data returned, the vehicle is not on the blockchain
-            vehiclesData[i].isOnBlockchain = false
-          }
-        }
-      }
-
-      console.log("Vehicles data:", vehiclesData)
-      console.log("Transactions data:", transactionsResponse.data)
-
-      setVehicles(vehiclesData)
-      setTransactions(transactionsResponse.data || [])
-      setError(null)
-    } catch (err) {
-      console.error("Error fetching data:", err)
-      setError("Failed to load your vehicles. Please try again.")
-      Swal.fire("Error", "Failed to fetch your vehicles", "error")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleLogout = () => {
     logout()
@@ -368,6 +288,52 @@ const UserVehiclesWithEtag = () => {
   }
 
   const refreshData = () => {
+    setLoading(true)
+    // Re-fetch data
+    const fetchData = async () => {
+      try {
+        // Fetch user's vehicles
+        const vehiclesResponse = await axios.get(
+          `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles/user/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+
+        // Fetch all transactions using the transactions endpoint with filters
+        const transactionsResponse = await axios.get(
+          `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              fromUserId: userId, // Filter by the current user
+            },
+          },
+        )
+
+        setVehicles(vehiclesResponse.data || [])
+        setTransactions(transactionsResponse.data || [])
+        setError(null)
+
+        Swal.fire({
+          icon: "success",
+          title: "Data Refreshed",
+          text: "Your vehicle information has been updated.",
+          confirmButtonColor: "#F38120",
+        })
+      } catch (err) {
+        console.error("Error refreshing data:", err)
+        setError("Failed to refresh your vehicles. Please try again.")
+        Swal.fire("Error", "Failed to refresh your vehicles", "error")
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchData()
   }
 
@@ -393,15 +359,24 @@ const UserVehiclesWithEtag = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          responseType: "arraybuffer", // Changed to arraybuffer for base64 conversion
+          responseType: "blob", // Important for handling PDF binary data
         },
       )
 
-      // Convert ArrayBuffer to Base64
-      const base64String = arrayBufferToBase64(response.data)
+      // Create a blob URL for the PDF
+      const blob = new Blob([response.data], { type: "application/pdf" })
+      const url = window.URL.createObjectURL(blob)
 
-      // Create a download link with the base64 data
-      downloadBase64AsPDF(base64String, `transaction-${transactionId}.pdf`)
+      // Create a temporary link and trigger download
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", `transaction-${transactionId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Clean up the blob URL
+      window.URL.revokeObjectURL(url)
 
       Swal.fire({
         icon: "success",
@@ -417,111 +392,6 @@ const UserVehiclesWithEtag = () => {
         icon: "error",
         confirmButtonColor: "#F38120",
       })
-    }
-  }
-
-  // Helper function to convert ArrayBuffer to Base64
-  const arrayBufferToBase64 = (buffer) => {
-    let binary = ""
-    const bytes = new Uint8Array(buffer)
-    const len = bytes.byteLength
-
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i])
-    }
-
-    return btoa(binary)
-  }
-
-  // Helper function to download a Base64 string as a PDF file
-  const downloadBase64AsPDF = (base64String, filename) => {
-    const link = document.createElement("a")
-    link.href = `data:application/pdf;base64,${base64String}`
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
-  const handleRegisterOnBlockchain = async (vehicle) => {
-    // Make sure we have all required data
-    if (!vehicle.registrationNumber || !vehicle.chassisNumber || !vehicle.engineNumber || !userCnic) {
-      Swal.fire({
-        title: "Missing Information",
-        text: "Registration number, chassis number, engine number, and your CNIC are required for blockchain registration.",
-        icon: "error",
-        confirmButtonColor: "#F38120",
-      })
-      return
-    }
-
-    // Find the transaction for this vehicle to get payment intent ID
-    const transaction = transactions.find((t) => t.vehicleId === vehicle._id || t.vehicleId === vehicle.id)
-    const paymentIntentId = transaction?.paymentIntentId || "unknown_payment"
-
-    try {
-      setRegisteringVehicle(vehicle._id)
-
-      Swal.fire({
-        title: "Registering on Blockchain",
-        text: "Please wait while we register your vehicle on the blockchain...",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading()
-        },
-      })
-
-      // Call the blockchain registration API
-      const response = await axios.post(
-        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/blockchain/registerBC",
-        {
-          chassisNo: vehicle.chassisNumber,
-          engineNo: vehicle.engineNumber,
-          ownerCnic: userCnic,
-          paymentIntentId: paymentIntentId,
-          registrationNo: vehicle.registrationNumber,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      )
-
-      // Update the vehicle's blockchain status in our local state
-      const updatedVehicles = vehicles.map((v) => {
-        if (v._id === vehicle._id) {
-          return { ...v, isOnBlockchain: true }
-        }
-        return v
-      })
-      setVehicles(updatedVehicles)
-
-      Swal.fire({
-        title: "Registration Successful",
-        html: `
-          <div class="text-center">
-            <p class="mb-4">Your vehicle has been successfully registered on the blockchain.</p>
-            <div class="bg-gray-100 p-3 rounded-lg text-left">
-              <p class="text-sm mb-1"><strong>Transaction Hash:</strong></p>
-              <p class="font-mono text-xs break-all">${response.data.txHash}</p>
-            </div>
-          </div>
-        `,
-        icon: "success",
-        confirmButtonColor: "#F38120",
-      })
-    } catch (error) {
-      console.error("Error registering on blockchain:", error)
-      Swal.fire({
-        title: "Registration Failed",
-        text: error.response?.data?.msg || "Failed to register your vehicle on the blockchain. Please try again.",
-        icon: "error",
-        confirmButtonColor: "#F38120",
-      })
-    } finally {
-      setRegisteringVehicle(null)
     }
   }
 
@@ -617,15 +487,24 @@ const UserVehiclesWithEtag = () => {
                             params: {
                               userId: userId, // Filter by the current user
                             },
-                            responseType: "arraybuffer", // Changed to arraybuffer for base64 conversion
+                            responseType: "blob", // Important for handling PDF binary data
                           },
                         )
 
-                        // Convert ArrayBuffer to Base64
-                        const base64String = arrayBufferToBase64(response.data)
+                        // Create a blob URL for the PDF
+                        const blob = new Blob([response.data], { type: "application/pdf" })
+                        const url = window.URL.createObjectURL(blob)
 
-                        // Create a download link with the base64 data
-                        downloadBase64AsPDF(base64String, "all-transactions.pdf")
+                        // Create a temporary link and trigger download
+                        const link = document.createElement("a")
+                        link.href = url
+                        link.setAttribute("download", "all-transactions.pdf")
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+
+                        // Clean up the blob URL
+                        window.URL.revokeObjectURL(url)
 
                         Swal.fire({
                           icon: "success",
@@ -653,8 +532,7 @@ const UserVehiclesWithEtag = () => {
 
               <p className="text-gray-600 mb-6">
                 View all your registered vehicles and check their E-Tag status. Vehicles with completed payments will
-                have E-Tags generated after approval. You can also register your vehicles on the blockchain for enhanced
-                security.
+                have E-Tags generated after approval.
               </p>
 
               {/* Search and Filter */}
@@ -700,10 +578,6 @@ const UserVehiclesWithEtag = () => {
                   <div className="flex items-center">
                     <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
                     <span className="text-sm text-gray-600">Payment Required</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                    <span className="text-sm text-gray-600">Registered on Blockchain</span>
                   </div>
                 </div>
               </div>
@@ -773,8 +647,6 @@ const UserVehiclesWithEtag = () => {
                         vehicle={vehicle}
                         transactionData={transactions}
                         onDownloadPDF={handleDownloadPDF}
-                        onRegisterBlockchain={handleRegisterOnBlockchain}
-                        isRegistering={registeringVehicle}
                       />
                     </motion.div>
                   ))}
@@ -788,4 +660,4 @@ const UserVehiclesWithEtag = () => {
   )
 }
 
-export default UserVehiclesWithEtag
+export default UserVehiclesWithEtag;
