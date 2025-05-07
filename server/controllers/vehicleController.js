@@ -8,6 +8,7 @@ const {
     requestVehicleRegistration,
     approveVehicleRegistration,
     requestOwnershipTransfer,
+    checkRegistrationNumberExists,
     approveOwnershipTransfer,
     getVehiclesByOwnerCNIC,
     updateVehicleStatus,
@@ -217,18 +218,57 @@ const registerVehicle = async (req, res) => {
 };
 
 // Approve vehicle registration
-const approveRegistration = async (req, res) => {
-    const { transactionId, approvedBy, registrationNumber } = req.body;
+// const approveRegistration = async (req, res) => {
+//     const { transactionId, approvedBy, registrationNumber } = req.body;
 
-    // Check if all required fields are provided
-    if (!transactionId || !approvedBy || !registrationNumber) {
-        return res.status(400).json({ msg: "All required fields must be provided" });
+//     // Check if all required fields are provided
+//     if (!transactionId || !approvedBy || !registrationNumber) {
+//         return res.status(400).json({ msg: "All required fields must be provided" });
+//     }
+
+//     try {
+//         // Call the function to approve the vehicle registration
+//         await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
+//         res.status(200).json({ msg: "Vehicle registration approved successfully." });
+//     } catch (err) {
+//         res.status(500).json({ msg: err.message });
+//     }
+// };
+
+const approveRegistration = async (req, res) => {
+    const { transactionId, approvedBy } = req.body;
+
+    if (!transactionId || !approvedBy) {
+        return res.status(400).json({ msg: "Transaction ID and Approver must be provided" });
     }
 
     try {
-        // Call the function to approve the vehicle registration
+        const year = new Date().getFullYear().toString().slice(-2);
+        const generateCode = () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 4; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        };
+
+        let registrationNumber;
+        let isUnique = false;
+
+        while (!isUnique) {
+            const code = generateCode();
+            registrationNumber = `ETG-${year}-${code}`;
+            const exists = await checkRegistrationNumberExists(registrationNumber);
+            if (!exists) isUnique = true;
+        }
+
         await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
-        res.status(200).json({ msg: "Vehicle registration approved successfully." });
+
+        res.status(200).json({
+            msg: "Vehicle registration approved successfully.",
+            registrationNumber
+        });
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }

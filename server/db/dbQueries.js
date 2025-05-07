@@ -264,6 +264,16 @@ const requestVehicleRegistration = async (ownerId, make, model, year, color, cha
         .execute('RequestVehicleRegistration');
 };
 
+const checkRegistrationNumberExists = async (registrationNumber) => {
+    const pool = await poolPromise;
+    const result = await pool.request()
+        .input('RegistrationNumber', sql.NVarChar(50), registrationNumber)
+        .output('Exists', sql.Bit)
+        .execute('sp_CheckRegistrationNumberExists');
+
+    return result.output.Exists;
+};
+
 const approveVehicleRegistration = async (transactionId, approvedBy, registrationNumber) => {
     const pool = await poolPromise;
     return pool.request()
@@ -616,6 +626,7 @@ module.exports = {
     deleteVehicle,
     getTransactions,
     requestVehicleRegistration,
+    checkRegistrationNumberExists,
     approveVehicleRegistration,
     rejectVehicleRequest,
     requestOwnershipTransfer,
