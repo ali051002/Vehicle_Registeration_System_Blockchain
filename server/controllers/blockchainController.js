@@ -17,14 +17,13 @@ const AUTH_HEADER = {
     }
 };
 
-//  Register a New Vehicle
 const registerVehicleBC = async (req, res) => {
     try {
-        const { engineNo, chassisNo, registrationNo, ownerCnic, registrationDate } = req.body;
+        const { chassisNo, engineNo,ownerCnic, paymentIntentId, registrationNo } = req.body;
         
         const response = await axios.post(
             `${KALEIDO_BASE_URL}/${CONTRACT_ADDRESS}/registerVehicle?kld-from=${KALEIDO_FROM_ADDRESS}&kld-sync=true`, 
-            { engineNo, chassisNo, registrationNo, ownerCnic, registrationDate },
+            { chassisNo, engineNo,ownerCnic, paymentIntentId, registrationNo  },
             AUTH_HEADER
         );
 
@@ -40,24 +39,64 @@ const registerVehicleBC = async (req, res) => {
     }
 };
 
-//  Get Vehicle Details
-const getVehicleDetailsBC = async (req, res) => {
-    try {
-        const { registrationNo } = req.body;
+const MAX_UINT256 = (1n << 256n) - 1n;
 
-        const response = await axios.get(
-            `${KALEIDO_BASE_URL}/${CONTRACT_ADDRESS}/getVehicleDetails?registrationNo=${registrationNo}&kld-from=${KALEIDO_FROM_ADDRESS}`,
-            AUTH_HEADER
-        );
+function toISO(timestampStr) {
+  try {
+    const ts = BigInt(timestampStr);
+    if (ts === MAX_UINT256) {
 
-        res.status(200).json(response.data);
-    } catch (error) {
-        console.error(' Error fetching vehicle details:', error.response?.data || error.message);
-        res.status(500).json({ msg: 'Failed to get vehicle details', error: error.response?.data || error.message });
+      return new Date(0).toISOString();
     }
+    const ms = ts * 1000n;
+    if (ms > BigInt(Number.MAX_SAFE_INTEGER)) {
+
+      return null;
+    }
+    return new Date(Number(ms)).toISOString();
+  } catch {
+    return null;
+  }
+}
+
+const getVehicleDetailsBC = async (req, res) => {
+  try {
+    const { registrationNo } = req.body;
+    const response = await axios.get(
+      `${KALEIDO_BASE_URL}/${CONTRACT_ADDRESS}/getVehicleDetails?registrationNo=${registrationNo}&kld-from=${KALEIDO_FROM_ADDRESS}`,
+      AUTH_HEADER
+    );
+
+
+    const vehicleDetails = { ...response.data };
+
+
+    if (vehicleDetails.registrationDate !== undefined) {
+      vehicleDetails.registrationDate = toISO(vehicleDetails.registrationDate);
+    }
+
+
+    if (Array.isArray(vehicleDetails.history)) {
+      vehicleDetails.history = vehicleDetails.history.map(entry => ({
+        ...entry,
+        transferDate: entry.transferDate !== undefined
+          ? toISO(entry.transferDate)
+          : null
+      }));
+    }
+
+    return res.status(200).json(vehicleDetails);
+  } catch (error) {
+    console.error('Error fetching vehicle details:', error.response?.data || error.message);
+    res.status(500).json({
+      msg: 'Failed to get vehicle details',
+      error: error.response?.data || error.message
+    });
+  }
 };
 
-//  Get All Registered Vehicles
+
+
 const getAllRegistrationNumbersBC = async (req, res) => {
     try {
         const response = await axios.get(
@@ -72,31 +111,42 @@ const getAllRegistrationNumbersBC = async (req, res) => {
     }
 };
 
-//  Get Ownership History
+
 const getOwnershipHistoryBC = async (req, res) => {
     try {
-        const { registrationNo } = req.query;
+        const { registrationNo } = req.body;
 
-        const response = await axios.get(
+        const { data } = await axios.get(
             `${KALEIDO_BASE_URL}/${CONTRACT_ADDRESS}/getOwnershipHistory?kld-from=${KALEIDO_FROM_ADDRESS}&registrationNo=${registrationNo}`,
             AUTH_HEADER
         );
 
-        res.status(200).json(response.data);
+    const rawHistory = Array.isArray(data.output) ? data.output : [];
+
+
+    const convertedHistory = rawHistory.map(entry => ({
+      ownerCnic:   entry.ownerCnic,
+      performedBy: entry.performedBy,
+      transferDate: entry.transferDate != null
+        ? toISO(entry.transferDate)
+        : null
+    }));
+
+    return res.status(200).json(convertedHistory);
     } catch (error) {
         console.error(' Error fetching ownership history:', error.response?.data || error.message);
         res.status(500).json({ msg: 'Failed to get ownership history', error: error.response?.data || error.message });
     }
 };
 
-//  Transfer Ownership
+
 const transferOwnershipBC = async (req, res) => {
     try {
-        const { registrationNo, fromCnic, toCnic, transferDate } = req.body;
+        const { registrationNo, fromCnic, toCnic } = req.body;
 
         const response = await axios.post(
             `${KALEIDO_BASE_URL}/${CONTRACT_ADDRESS}/transferOwnership?kld-from=${KALEIDO_FROM_ADDRESS}&kld-sync=true`,
-            { registrationNo, fromCnic, toCnic, transferDate },
+            { registrationNo, fromCnic, toCnic },
             AUTH_HEADER
         );
 
