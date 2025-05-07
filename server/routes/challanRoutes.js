@@ -1,6 +1,6 @@
 const express = require('express');
 const { createChallanController, updateChallanPaymentController, getChallanDetailsByUserIdController, createStripePaymentSessionController,confirmChallanPayment,stripeWebhook} = require('../controllers/challanController');
-const { createChallanController, updateChallanPaymentController, getChallanDetailsByUserIdController } = require('../controllers/challanController');
+
 
 const router = express.Router();
 
