@@ -245,10 +245,19 @@ const deleteVehicle = async (vehicleId) => {
 
 const getTransactions = async (transactionStatus, transactionType) => {
     const pool = await poolPromise;
-    return pool.request()
+    const result = await pool.request()
         .input('TransactionStatus', sql.NVarChar(50), transactionStatus)
         .input('TransactionType', sql.NVarChar(50), transactionType)
         .execute('GetTransactions');
+
+        const formattedRecords = result.recordset.map(record => {
+            if (record.FileContent) {
+                record.FileContent = Buffer.from(record.FileContent).toString('base64');
+            }
+            return record;
+        });
+    
+        return formattedRecords;
 };//
 
 const requestVehicleRegistration = async (ownerId, make, model, year, color, chassisNumber, engineNumber) => {
@@ -650,10 +659,23 @@ const createChallan = async (vehicleId, amount, type) => {
   };
 
   const getPaidTransactions = async () => {
-    const pool = await poolPromise;
-    const result = await pool.request().execute('GetPaidTransactions');
-    return result.recordset;
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request().execute('GetPaidTransactions');
+
+        const transactions = result.recordset.map(tx => ({
+            ...tx,
+            FileContent: tx.FileContent ? Buffer.from(tx.FileContent).toString('base64') : null,
+        }));
+
+        return transactions;
+    } catch (err) {
+        console.error('Error in getPaidTransactions:', err);
+        throw new Error('Failed to fetch paid transactions.');
+    }
 };
+
+
   
   
   
