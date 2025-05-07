@@ -1,112 +1,120 @@
-/**
- * PendingRegistrations.js
- * Full code with "hide Send for Inspection button once clicked" functionality
- */
+"use client";
 
-import React, { useContext, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import axios from 'axios';
-import Swal from 'sweetalert2';
+import { useContext, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaChevronDown, FaChevronUp, FaFilePdf, FaFile } from "react-icons/fa";
+import axios from "axios";
+import Swal from "sweetalert2";
+import SideNavBar from "../components/SideNavBar";
+import TopNavBar from "../components/TopNavBar";
+import { AuthContext } from "../context/AuthContext";
+import { jwtDecode } from "jwt-decode";
 
-// Components (Update these imports according to your actual file paths)
-import SideNavBar from '../components/SideNavBar';
-import TopNavBar from '../components/TopNavBar';
+/* =======================================================================
+   DOCUMENT VIEWER COMPONENT
+   ===================================================================== */
+const DocumentViewer = ({ document }) => {
+  const isPdf = document.mime === "application/pdf";
+  const isImage = document.mime.startsWith("image/");
 
-// Context & Utilities
-import { AuthContext } from '../context/AuthContext';
-import { jwtDecode } from 'jwt-decode';
+  if (isPdf) {
+    return (
+      <div className="w-32 h-32 flex flex-col items-center justify-center bg-gray-100 rounded shadow">
+        <FaFilePdf className="text-red-500 text-3xl mb-2" />
+        <a
+          href={`data:${document.mime};base64,${document.b64}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-blue-600 hover:underline text-center px-2"
+        >
+          {document.name || "View PDF"}
+        </a>
+      </div>
+    );
+  }
 
-// --------------------------------------------------------------------------
-//                          INSPECTION MODAL COMPONENT
-// --------------------------------------------------------------------------
-const InspectionModal = ({
-  isOpen,
-  onClose,
-  vehicleId,
-  onInspectionSent, // <-- Callback to inform parent when inspection is sent
-}) => {
+  if (isImage) {
+    return (
+      <img
+        src={`data:${document.mime};base64,${document.b64}`}
+        alt={document.name || "Document"}
+        className="w-32 h-32 object-cover rounded shadow"
+      />
+    );
+  }
+
+  return (
+    <div className="w-32 h-32 flex flex-col items-center justify-center bg-gray-100 rounded shadow">
+      <FaFile className="text-gray-500 text-3xl mb-2" />
+      <a
+        href={`data:${document.mime};base64,${document.b64}`}
+        download={document.name || "document"}
+        className="text-xs text-blue-600 hover:underline text-center px-2"
+      >
+        {document.name || "Download"}
+      </a>
+    </div>
+  );
+};
+
+/* =======================================================================
+   INSPECTION MODAL
+   ===================================================================== */
+const InspectionModal = ({ isOpen, onClose, vehicleId, onInspectionSent }) => {
   const [officers, setOfficers] = useState([]);
-  const [selectedOfficer, setSelectedOfficer] = useState('');
-  const [appointmentDate, setAppointmentDate] = useState('');
+  const [selectedOfficer, setSelectedOfficer] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState("");
 
-  // --------------------------------------------------------------------------
-  //   Fetch Officers whenever the modal is opened
-  // --------------------------------------------------------------------------
   useEffect(() => {
-    if (isOpen) {
-      fetchOfficers();
-    }
+    if (isOpen) fetchOfficers();
   }, [isOpen]);
 
   const fetchOfficers = async () => {
     try {
-      const response = await axios.get(
-        'http://localhost:8085/api/fetch-all-inspection-officers'
+      const res = await axios.get(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/fetch-all-inspection-officers"
       );
-      if (response.data?.data) {
-        setOfficers(response.data.data);
-      } else {
-        Swal.fire('Error', 'Invalid response from server', 'error');
-      }
-    } catch (error) {
-      Swal.fire('Error', 'Failed to fetch inspection officers', 'error');
+      if (res.data?.data) setOfficers(res.data.data);
+      else Swal.fire("Error", "Invalid response from server", "error");
+    } catch {
+      Swal.fire("Error", "Failed to fetch inspection officers", "error");
     }
   };
 
-  // --------------------------------------------------------------------------
-  //   Handle Submit Inspection
-  // --------------------------------------------------------------------------
   const handleSubmitInspection = async () => {
-    // Basic validation
     if (!selectedOfficer || !appointmentDate) {
       Swal.fire(
-        'Validation',
-        'Please select an officer and appointment date',
-        'warning'
+        "Validation",
+        "Please select an officer and appointment date",
+        "warning"
       );
       return;
     }
 
     try {
-      // Construct payload
-      const payload = {
+      await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-inspection-request", {
         VehicleId: vehicleId,
         OfficerId: selectedOfficer,
         AppointmentDate: appointmentDate,
-      };
+      });
 
-      // Send API request
-      await axios.post('http://localhost:8085/api/send-inspection-request', payload);
-
-      Swal.fire('Success', 'Inspection request sent!', 'success');
-
-      // Notify parent that this vehicle has been inspected
-      if (onInspectionSent) {
-        onInspectionSent(vehicleId);
-      }
-
-      // Close modal
+      Swal.fire("Success", "Inspection request sent!", "success");
+      onInspectionSent?.(vehicleId);
       onClose();
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.error || 'Failed to send inspection request';
-      Swal.fire('Error', errorMessage, 'error');
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.error || "Failed to send inspection request",
+        "error"
+      );
     }
   };
 
-  // --------------------------------------------------------------------------
-  //   If modal is closed, don't render anything
-  // --------------------------------------------------------------------------
   if (!isOpen) return null;
 
-  // --------------------------------------------------------------------------
-  //   Return Modal JSX
-  // --------------------------------------------------------------------------
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg w-full max-w-md relative">
-        {/* Close button (top-right X) */}
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 font-bold text-xl"
@@ -118,7 +126,6 @@ const InspectionModal = ({
           Book Inspection
         </h2>
 
-        {/* Officer Select */}
         <label htmlFor="officerSelect" className="block mb-1 font-medium">
           Select Officer:
         </label>
@@ -129,14 +136,13 @@ const InspectionModal = ({
           onChange={(e) => setSelectedOfficer(e.target.value)}
         >
           <option value="">-- Choose an Officer --</option>
-          {officers.map((officer) => (
-            <option key={officer.UserId} value={officer.UserId}>
-              {officer.Name} ({officer.Email})
+          {officers.map((o) => (
+            <option key={o.UserId} value={o.UserId}>
+              {o.Name} ({o.Email})
             </option>
           ))}
         </select>
 
-        {/* Appointment Date */}
         <label htmlFor="appointmentDate" className="block mb-1 font-medium">
           Appointment Date:
         </label>
@@ -148,7 +154,6 @@ const InspectionModal = ({
           onChange={(e) => setAppointmentDate(e.target.value)}
         />
 
-        {/* Action Buttons */}
         <div className="flex justify-end space-x-4">
           <button
             onClick={onClose}
@@ -168,28 +173,22 @@ const InspectionModal = ({
   );
 };
 
-// --------------------------------------------------------------------------
-//                       VEHICLE LIST ITEM COMPONENT
-// --------------------------------------------------------------------------
+/* =======================================================================
+   VEHICLE LIST ITEM
+   ===================================================================== */
 const VehicleListItem = ({
   vehicle,
   onBookInspection,
   inspectedVehicles = [],
 }) => {
-  // Local states
   const [isExpanded, setIsExpanded] = useState(false);
+  const toggleDetails = () => setIsExpanded((p) => !p);
 
-  // Toggle expand/collapse details
-  const toggleDetails = () => {
-    setIsExpanded((prev) => !prev);
-  };
+  const isSent = inspectedVehicles.includes(vehicle.vehicleId);
+  const isApproved =
+    (vehicle.inspectionStatus || "").toLowerCase() === "approved";
+  const hideButton = isSent || isApproved;
 
-  // Determine if this vehicle is already inspected (button should be hidden)
-  const isInspected = inspectedVehicles.includes(vehicle.vehicleId);
-
-  // --------------------------------------------------------------------------
-  //   Render
-  // --------------------------------------------------------------------------
   return (
     <motion.li
       className="border-b border-gray-200 p-4 hover:bg-white hover:bg-opacity-20 transition-colors duration-300"
@@ -199,7 +198,6 @@ const VehicleListItem = ({
       transition={{ duration: 0.3 }}
     >
       <div className="flex justify-between items-center">
-        {/* Vehicle Basic Info */}
         <div>
           <h3 className="font-semibold text-[#373A40]">
             {vehicle.make} {vehicle.model}
@@ -207,7 +205,6 @@ const VehicleListItem = ({
           <p className="text-[#373A40]">Owner: {vehicle.FromUserName}</p>
         </div>
 
-        {/* Expand/Collapse Button */}
         <motion.button
           onClick={toggleDetails}
           className="text-[#373A40] hover:text-gray-900"
@@ -223,31 +220,39 @@ const VehicleListItem = ({
           <motion.div
             className="mt-4"
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Vehicle Details */}
             <p className="text-[#373A40]">Year: {vehicle.year}</p>
             <p className="text-[#373A40]">Color: {vehicle.color}</p>
             <p className="text-[#373A40]">Engine Number: {vehicle.engineNumber}</p>
             <p className="text-[#373A40]">Chassis Number: {vehicle.chassisNumber}</p>
+            <p className="text-[#373A40]">Transaction Status: {vehicle.transactionStatus}</p>
             <p className="text-[#373A40]">
-              Transaction Status: {vehicle.transactionStatus}
-            </p>
-            <p className="text-[#373A40]">
-              Inspection Status: {vehicle.inspectionStatus || 'Not Inspected'}
+              Inspection Status: {vehicle.inspectionStatus || "Not Inspected"}
             </p>
 
-            {/* Conditional Button */}
-            {isInspected ? (
-              <span className="mt-2 inline-block text-green-600 font-semibold">
-                Sent for Inspection
+            {/* ---------- DOCUMENT GALLERY ---------- */}
+            {vehicle.documents?.length > 0 && (
+              <>
+                <p className="mt-4 font-semibold text-[#373A40]">Documents:</p>
+                <div className="mt-2 flex flex-wrap gap-4">
+                  {vehicle.documents.map((doc, idx) => (
+                    <DocumentViewer key={idx} document={doc} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {hideButton ? (
+              <span className="mt-4 inline-block text-green-600 font-semibold">
+                {isApproved ? "Approved" : "Sent for Inspection"}
               </span>
             ) : (
               <button
                 onClick={() => onBookInspection(vehicle.vehicleId)}
-                className="mt-2 inline-block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                className="mt-4 inline-block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
               >
                 Send for Inspection
               </button>
@@ -259,112 +264,150 @@ const VehicleListItem = ({
   );
 };
 
-// --------------------------------------------------------------------------
-//                    PENDING REGISTRATIONS COMPONENT
-// --------------------------------------------------------------------------
+/* =======================================================================
+   PENDING REGISTRATIONS
+   ===================================================================== */
 const PendingRegistrations = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingRegistrations, setPendingRegistrations] = useState([]);
   const [showInspectionModal, setShowInspectionModal] = useState(false);
   const [modalVehicleId, setModalVehicleId] = useState(null);
-
-  // This state will track vehicle IDs that have been sent for inspection
   const [inspectedVehicles, setInspectedVehicles] = useState([]);
 
-  // Access auth context if needed
   const auth = useContext(AuthContext);
-
-  // Decode JWT if needed (if you actually use it in your logic)
-  const storedToken = localStorage.getItem('token');
+  const storedToken = localStorage.getItem("token");
   let decoded = null;
   try {
     decoded = storedToken ? jwtDecode(storedToken) : null;
-  } catch (err) {
-    console.error('Error decoding JWT:', err);
-  }
+  } catch {}
   const loggedInUserId = decoded?.id || decoded?.userId;
 
-  // --------------------------------------------------------------------------
-  //   Fetch pending registrations once on component mount
-  // --------------------------------------------------------------------------
   useEffect(() => {
     const fetchPendingRegistrations = async () => {
       try {
-        const response = await axios.get(
-          'http://localhost:8085/api/transactions/pending'
+        const { data } = await axios.get(
+          "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions/pending"
         );
-        // If your API returns an array of vehicles directly:
-        //   setPendingRegistrations(response.data);
 
-        // If you need to group documents by VehicleId:
-        // (Based on your original code that groups documents)
-        const groupedVehicles = response.data.reduce((acc, vehicle) => {
-          const existingVehicle = acc.find(
-            (v) => v.vehicleId === vehicle.vehicleId
-          );
-          if (existingVehicle) {
-            if (vehicle.FileContent) {
-              existingVehicle.documents.push(vehicle.FileContent);
-            }
-          } else {
-            acc.push({
-              ...vehicle,
-              documents: vehicle.FileContent ? [vehicle.FileContent] : [],
-            });
+        /* ---------- helpers ---------- */
+        const toBase64 = (fc) => {
+          if (!fc) return null;
+          if (typeof fc === "string") {
+            return fc.includes(",") ? fc.split(",")[1] : fc;
           }
-          return acc;
-        }, []);
+          if (Array.isArray(fc)) {
+            try {
+              return btoa(String.fromCharCode(...fc));
+            } catch {
+              return null;
+            }
+          }
+          if (fc instanceof ArrayBuffer || fc.buffer instanceof ArrayBuffer) {
+            const bytes = new Uint8Array(
+              fc instanceof ArrayBuffer ? fc : fc.buffer
+            );
+            return btoa(String.fromCharCode(...bytes));
+          }
+          return null;
+        };
 
-        setPendingRegistrations(groupedVehicles);
-      } catch (error) {
-        console.error('Error fetching pending registrations:', error);
-        Swal.fire('Error', 'Failed to fetch pending registrations', 'error');
+        const guessMime = (row) => {
+          const name =
+            row.FileName ||
+            row.OriginalName ||
+            row.fileName ||
+            row.originalName ||
+            "";
+          const ext = name.split(".").pop().toLowerCase();
+          const m = {
+            png: "image/png",
+            jpg: "image/jpeg",
+            jpeg: "image/jpeg",
+            gif: "image/gif",
+            webp: "image/webp",
+            bmp: "image/bmp",
+            pdf: "application/pdf",
+          };
+          return m[ext] || "application/octet-stream";
+        };
+
+        const toCamel = (r) => ({
+          ...r,
+          inspectionStatus:
+            r.inspectionStatus ?? r.InspectionStatus ?? r.inspection_status,
+          transactionStatus:
+            r.transactionStatus ?? r.TransactionStatus ?? r.transaction_status,
+        });
+
+        /* ---------- build map keyed by vehicleId ---------- */
+        const map = new Map();
+
+        data.forEach((raw) => {
+          const row = toCamel(raw);
+          const existing = map.get(row.vehicleId) || { ...row, documents: [] };
+
+          if (row.FileContent) {
+            const b64 = toBase64(row.FileContent);
+            if (b64) {
+              existing.documents.push({
+                b64,
+                mime: guessMime(row),
+                name:
+                  row.FileName ||
+                  row.OriginalName ||
+                  `document-${existing.documents.length + 1}`,
+              });
+            }
+          }
+
+          existing.inspectionStatus =
+            row.inspectionStatus || existing.inspectionStatus;
+          existing.transactionStatus =
+            row.transactionStatus || existing.transactionStatus;
+
+          map.set(row.vehicleId, existing);
+        });
+
+        setPendingRegistrations([...map.values()]);
+      } catch (err) {
+        console.error("Error fetching pending registrations:", err);
+        Swal.fire("Error", "Failed to fetch pending registrations", "error");
       }
     };
 
     fetchPendingRegistrations();
   }, []);
 
-  // --------------------------------------------------------------------------
-  //   Handler to open "Book Inspection" modal
-  // --------------------------------------------------------------------------
   const handleBookInspection = (vehicleId) => {
     setModalVehicleId(vehicleId);
     setShowInspectionModal(true);
   };
-
-  // --------------------------------------------------------------------------
-  //   Handler to close "Book Inspection" modal
-  // --------------------------------------------------------------------------
   const closeInspectionModal = () => {
     setModalVehicleId(null);
     setShowInspectionModal(false);
   };
-
-  // --------------------------------------------------------------------------
-  //   Handler to mark a vehicle as inspected once the request is sent
-  // --------------------------------------------------------------------------
   const handleInspectionSent = (vehicleId) => {
     setInspectedVehicles((prev) => [...prev, vehicleId]);
+    setPendingRegistrations((prev) =>
+      prev.map((v) =>
+        v.vehicleId === vehicleId
+          ? { ...v, inspectionStatus: "Sent for Inspection" }
+          : v
+      )
+    );
   };
 
-  // --------------------------------------------------------------------------
-  //   Render
-  // --------------------------------------------------------------------------
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-      {/* Top Navigation Bar */}
       <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Side Navigation Bar */}
         <SideNavBar
           navOpen={sidebarOpen}
           toggleNav={() => setSidebarOpen(!sidebarOpen)}
           userRole="governmentOfficial"
         />
 
-        {/* Main Content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
           <motion.h1
             className="text-4xl font-bold text-[#F38120] mb-10 pt-16"
@@ -381,7 +424,6 @@ const PendingRegistrations = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Check if there are pending registrations */}
             {pendingRegistrations.length === 0 ? (
               <motion.p
                 className="text-center text-2xl font-semibold text-[#373A40] py-10"
@@ -409,7 +451,6 @@ const PendingRegistrations = () => {
         </main>
       </div>
 
-      {/* Inspection Modal */}
       <InspectionModal
         isOpen={showInspectionModal}
         onClose={closeInspectionModal}

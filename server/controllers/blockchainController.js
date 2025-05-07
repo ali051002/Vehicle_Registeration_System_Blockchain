@@ -75,7 +75,7 @@ const getAllRegistrationNumbersBC = async (req, res) => {
 //  Get Ownership History
 const getOwnershipHistoryBC = async (req, res) => {
     try {
-        const { registrationNo } = req.body;
+        const { registrationNo } = req.query;
 
         const response = await axios.get(
             `${KALEIDO_BASE_URL}/${CONTRACT_ADDRESS}/getOwnershipHistory?kld-from=${KALEIDO_FROM_ADDRESS}&registrationNo=${registrationNo}`,
