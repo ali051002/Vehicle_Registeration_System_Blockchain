@@ -648,6 +648,12 @@ const createChallan = async (vehicleId, amount, type) => {
       throw err;
     }
   };
+
+  const getPaidTransactions = async () => {
+    const pool = await poolPromise;
+    const result = await pool.request().execute('GetPaidTransactions');
+    return result.recordset;
+};
   
   
   
@@ -694,5 +700,6 @@ module.exports = {
     createChallan,
     updateChallanPayment,
     getChallanDetailsByUserId,
-    getChallanDetailsByChallanId
+    getChallanDetailsByChallanId,
+    getPaidTransactions
 }

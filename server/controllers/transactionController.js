@@ -1,4 +1,4 @@
-const { getTransactionDetailsById, getAllTransactionDetails, getTransactions } = require('../db/dbQueries');
+const { getTransactionDetailsById, getAllTransactionDetails, getTransactions,getPaidTransactions } = require('../db/dbQueries');
 const pdf = require('html-pdf'); // Using 'html-pdf' to generate PDFs
 const fs = require('fs');
 
@@ -424,10 +424,22 @@ const generateAllTransactionDetailsHTML = (transactions) => {
     `;
 };
 
+const fetchPaidTransactions = async (req, res) => {
+    try {
+        const transactions = await getPaidTransactions();
+        res.status(200).json(transactions);
+    } catch (err) {
+        console.error('Error fetching paid transactions:', err);
+        res.status(500).json({ msg: 'Failed to fetch paid transactions.' });
+    }
+};
+
+
 module.exports = {
     fetchTransactions,
     fetchPendingTransactions,
     fetchPendingTransfers,
     GenerateTransactionPDFbyId,
-    GenerateAllTransactionsPDF
+    GenerateAllTransactionsPDF,
+    fetchPaidTransactions
 };
