@@ -1,46 +1,47 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import SignupPage from './pages/SignupPage';
-import SignInPage from './pages/SignInPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage'; 
-import VerifyOtpPage from './pages/verifyotp'; 
-import ResetPassword from './pages/ResetPassword'; 
-import UserDashboard from './pages/user/UserDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import GovernmentOfficialDashboard from './pages/GovernmentOfficialDashboard';
-import OwnershipTransfer from './pages/OwnershipTransfer';
-import VehicleRegistry from './pages/VehicleRegistry';
-import AuditLogs from './pages/AuditLogs';
-import { AuthProvider } from './context/AuthContext';
-import PrivateRoute from './components/PrivateRoute';
-import UserVehicleRegister from './pages/UserVehicleRegister';
-import UserOwnershipTransfer from './pages/UserOwnershipTransfer';
-import UserMyVehicles from './pages/UserMyVehicles';
-import UserTransferTo from './pages/UserTransferTo';
-import ContactForm from './components/ChatForm';
-import RedesignedUnauthorizedPage from './pages/UnAuthorised';
-import LoadingPage from './pages/Loading';
-import LearnMorePage from './pages/LearnMore';
-import EditProfile from './pages/EditProfile';
-import UserChangePassword from './pages/UserChangePassword';
-import EditGovernmentOfficialProfile from './pages/EditGovernmentOfficialProfile';
-import ChangePasswordGovernmentOfficial from './pages/ChangePasswordGovernmentOfficial ';
-import UploadVehicleDocument from './pages/DocumentUpload';
-import DocumentUpload from './pages/DocumentUpload';
-import PendingRegistrations from './pages/PendingRegistrations';
-import InspectionOfficerDashboard from './pages/InspectionOfficerDashboard';
-import InspectionOfficerRequests from './pages/InspectionOfficerRequests';
-import VehicleDetails from './pages/VehicleDetails';
-import UserMyChallans from './pages/user/MyChallans';
-import PaymentSuccess from './pages/user/PaymentSuccess';
-import PaymentCancelled from './pages/user/PaymentCancelled';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import LandingPage from "./pages/LandingPage"
+import SignupPage from "./pages/SignupPage"
+import SignInPage from "./pages/SignInPage"
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"
+import VerifyOtpPage from "./pages/verifyotp"
+import ResetPassword from "./pages/ResetPassword"
+import UserDashboard from "./pages/user/UserDashboard"
+import GovernmentOfficialDashboard from "./pages/GovernmentOfficialDashboard"
+import OwnershipTransfer from "./pages/OwnershipTransfer"
+import VehicleRegistry from "./pages/VehicleRegistry"
+import AuditLogs from "./pages/AuditLogs"
+import { AuthProvider } from "./context/AuthContext"
+import PrivateRoute from "./components/PrivateRoute"
+import UserVehicleRegister from "./pages/UserVehicleRegister"
+import UserOwnershipTransfer from "./pages/UserOwnershipTransfer"
+import UserMyVehicles from "./pages/UserMyVehicles"
+import UserTransferTo from "./pages/UserTransferTo"
+import ContactForm from "./components/ChatForm"
+import RedesignedUnauthorizedPage from "./pages/UnAuthorised"
+import LoadingPage from "./pages/Loading"
+import LearnMorePage from "./pages/LearnMore"
+import EditProfile from "./pages/EditProfile"
+import UserChangePassword from "./pages/UserChangePassword"
+import EditGovernmentOfficialProfile from "./pages/EditGovernmentOfficialProfile"
+import ChangePasswordGovernmentOfficial from "./pages/ChangePasswordGovernmentOfficial "
+import DocumentUpload from "./pages/DocumentUpload"
+import PendingRegistrations from "./pages/PendingRegistrations"
+import InspectionOfficerDashboard from "./pages/InspectionOfficerDashboard"
+import InspectionOfficerRequests from "./pages/InspectionOfficerRequests"
+import VehicleDetails from "./pages/VehicleDetails"
+import UserMyChallans from "./pages/user/MyChallans"
+import PaymentSuccess from "./pages/user/PaymentSuccess"
+import PaymentCancelled from "./pages/user/PaymentCancelled"
+import PaidTransactions from "./pages/govt-official/PaidTransactions"
+import TransactionDetails from "./pages/govt-official/TransactionDetails"
+import UserVehiclesWithEtag from "./pages/user/UserVehicleswithEtag"
+import BlockchainExplorer from "./pages/govt-official/BlockChainExplorer"
 
 const App = () => {
   return (
     <AuthProvider>
       <Router>
-        <Routes >
+        <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/signup" element={<SignupPage />} />
@@ -63,7 +64,7 @@ const App = () => {
             }
           />
 
-           <Route
+          <Route
             path="/document-upload"
             element={
               <PrivateRoute role="user">
@@ -71,25 +72,23 @@ const App = () => {
               </PrivateRoute>
             }
           />
-         
-          
-          <Route
-          path="/edit-profile"
-          element={
-            <PrivateRoute role="user">
-              <EditProfile/>
-            </PrivateRoute>
-          }
-          />
-           <Route
-          path="/change-password"
-          element={
-            <PrivateRoute role="user">
-              <UserChangePassword/>
-            </PrivateRoute>
-          }
-          />
 
+          <Route
+            path="/edit-profile"
+            element={
+              <PrivateRoute role="user">
+                <EditProfile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/change-password"
+            element={
+              <PrivateRoute role="user">
+                <UserChangePassword />
+              </PrivateRoute>
+            }
+          />
 
           <Route
             path="/user-vehicle-register"
@@ -131,7 +130,7 @@ const App = () => {
               </PrivateRoute>
             }
           />
-          
+
           {/* Payment Routes */}
           <Route
             path="/payment-success"
@@ -149,21 +148,34 @@ const App = () => {
               </PrivateRoute>
             }
           />
+            <Route
+            path="/e-tagcars"
+            element={
+              <PrivateRoute role="user">
+                <UserVehiclesWithEtag />
+              </PrivateRoute>
+            }
+          />
+
+
+
+
+
 
           {/* Admin Dashboard Routes (restricted to role="admin") */}
           <Route
             path="/inspector-dashboard"
             element={
               <PrivateRoute role="InspectionOfficer">
-                < InspectionOfficerDashboard />
+                <InspectionOfficerDashboard />
               </PrivateRoute>
             }
           />
-            <Route
+          <Route
             path="/inspect-request"
             element={
               <PrivateRoute role="InspectionOfficer">
-                < InspectionOfficerRequests />
+                <InspectionOfficerRequests />
               </PrivateRoute>
             }
           />
@@ -172,11 +184,11 @@ const App = () => {
             path="/vehicle-details/:vehicleId"
             element={
               <PrivateRoute role="InspectionOfficer">
-                <VehicleDetails/>
+                <VehicleDetails />
               </PrivateRoute>
             }
           />
-         
+
           {/* Government Official Routes (restricted to role="government official") */}
           <Route
             path="/government-official-dashboard"
@@ -190,19 +202,46 @@ const App = () => {
             path="/pending-registrations"
             element={
               <PrivateRoute role="government official">
-          <PendingRegistrations/>
+                <PendingRegistrations />
               </PrivateRoute>
             }
           />
-           <Route
+          <Route
+            path="/comppleted-payments"
+            element={
+              <PrivateRoute role="government official">
+                <PaidTransactions />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/govt-change-password"
             element={
               <PrivateRoute role="government official">
-                <  ChangePasswordGovernmentOfficial />
+                <ChangePasswordGovernmentOfficial />
               </PrivateRoute>
             }
           />
-        
+
+        <Route
+            path="/explorer"
+            element={
+              <PrivateRoute role="government official">
+                <BlockchainExplorer/>
+              </PrivateRoute>
+            }
+          />
+          
+
+          <Route
+            path="/transaction-details/:transactionId"
+            element={
+              <PrivateRoute role="government official">
+                <TransactionDetails />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/edit-govt"
             element={
@@ -211,7 +250,7 @@ const App = () => {
               </PrivateRoute>
             }
           />
-         
+
           <Route
             path="/ownership-transfers"
             element={
@@ -236,14 +275,14 @@ const App = () => {
               </PrivateRoute>
             }
           />
-      
+         
 
-          {/* Fallback Route */}
+         {/* Fallback Route */}
           <Route path="*" element={<RedesignedUnauthorizedPage />} />
         </Routes>
       </Router>
     </AuthProvider>
-  );
-};
+  )
+}
 
-export default App;
+export default App
