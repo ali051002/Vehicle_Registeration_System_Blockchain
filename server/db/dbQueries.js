@@ -247,18 +247,18 @@ const getTransactions = async (transactionStatus, transactionType) => {
     const pool = await poolPromise;
     const result = await pool.request()
         .input('TransactionStatus', sql.NVarChar(50), transactionStatus)
-        .input('TransactionType', sql.NVarChar(50), transactionType)
+        .input('TransactionType',  sql.NVarChar(50), transactionType)
         .execute('GetTransactions');
 
-        const formattedRecords = result.recordset.map(record => {
-            if (record.FileContent) {
-                record.FileContent = Buffer.from(record.FileContent).toString('base64');
-            }
-            return record;
-        });
-    
-        return formattedRecords;
-};//
+    const formattedRecords = result.recordset.map(record => {
+        if (record.FileContent) {
+            record.FileContent = Buffer.from(record.FileContent).toString('base64');
+        }
+        return record;
+    });
+
+    return formattedRecords;  
+};
 
 const requestVehicleRegistration = async (ownerId, make, model, year, color, chassisNumber, engineNumber) => {
     const pool = await poolPromise;
