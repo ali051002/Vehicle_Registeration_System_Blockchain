@@ -1,33 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaCarAlt, FaUser, FaClock, FaExchangeAlt } from 'react-icons/fa';
-import SideNavBar from '../components/SideNavBar';
-import TopNavBar from '../components/TopNavBar';
+"use client"
+
+import { useState, useEffect, useContext } from "react"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
+import { motion, AnimatePresence } from "framer-motion"
+import { FaCarAlt, FaUser, FaClock, FaSpinner, FaFileAlt, FaSearch } from "react-icons/fa"
+import SideNavBar from "../components/SideNavBar"
+import TopNavBar from "../components/TopNavBar"
+import {AuthContext} from "../context/AuthContext"
+import { jwtDecode } from "jwt-decode"
+import Swal from "sweetalert2"
 
 const TransactionCard = ({ transaction, onPreview }) => {
   return (
     <motion.div
       className="bg-white rounded-lg shadow-lg overflow-hidden h-full"
-      whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(243, 129, 32, 0.3)' }}
+      whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(243, 129, 32, 0.3)" }}
       whileTap={{ scale: 0.98 }}
     >
       <div className="p-6 flex flex-col h-full">
-        <h3 className="text-xl font-bold text-[#4A4D52] mb-4">{transaction.transactionType}</h3>
+        <h3 className="text-xl font-bold text-[#4A4D52] mb-4">
+          {transaction.transactionType || "Vehicle Registration"}
+        </h3>
         <div className="grid grid-cols-2 gap-4 flex-grow">
           <div>
             <h4 className="font-semibold text-[#F38120] mb-1">From</h4>
             <div className="flex items-center">
               <FaUser className="text-[#F38120] mr-2" />
-              <span className="text-gray-600">{transaction.FromUserName}</span>
+              <span className="text-gray-600">{transaction.fromUserName}</span>
             </div>
           </div>
-          {transaction.ToUserName && (
+          {transaction.toUserName && (
             <div>
               <h4 className="font-semibold text-[#F38120] mb-1">To</h4>
               <div className="flex items-center">
                 <FaUser className="text-[#F38120] mr-2" />
-                <span className="text-gray-600">{transaction.ToUserName}</span>
+                <span className="text-gray-600">{transaction.toUserName}</span>
               </div>
             </div>
           )}
@@ -35,7 +43,7 @@ const TransactionCard = ({ transaction, onPreview }) => {
             <h4 className="font-semibold text-[#F38120] mb-1">Vehicle</h4>
             <div className="flex items-center">
               <FaCarAlt className="text-[#F38120] mr-2" />
-              <span className="text-gray-600">{`${transaction.make} ${transaction.model} (${transaction.year})`}</span>
+              <span className="text-gray-600">{`${transaction.make} ${transaction.model} (${transaction.year || "N/A"})`}</span>
             </div>
           </div>
           <div>
@@ -58,72 +66,244 @@ const TransactionCard = ({ transaction, onPreview }) => {
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
 const Transactions = () => {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [previewTransaction, setPreviewTransaction] = useState(null);
-  const [showAllTransactions, setShowAllTransactions] = useState(true); // Toggle state
-  const [isGenerating, setIsGenerating] = useState(false); // For spinner
+  const navigate = useNavigate()
+  const { logout } = useContext(AuthContext)
+  const [transactions, setTransactions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [previewTransaction, setPreviewTransaction] = useState(null)
+  const [showAllTransactions, setShowAllTransactions] = useState(true) // Toggle state
+  const [isGenerating, setIsGenerating] = useState(false) // For spinner
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filteredTransactions, setFilteredTransactions] = useState([])
+  const [pdfBase64, setPdfBase64] = useState(null) // State to store base64 PDF data
+
+  // Get token and decode userId
+  const token = localStorage.getItem("token")
+  let userId = null
+  let isAuthenticated = false
+
+  try {
+    if (token) {
+      const decoded = jwtDecode(token)
+      userId = decoded?.userId
+      isAuthenticated = !!userId
+    } else {
+      console.error("No token found in localStorage")
+      isAuthenticated = false
+    }
+  } catch (error) {
+    console.error("Error decoding token:", error)
+    isAuthenticated = false
+  }
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const response = await axios.get('https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions');
-        setTransactions(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-        setLoading(false);
+    if (!token || !isAuthenticated) {
+      Swal.fire({
+        title: "Authentication Error",
+        text: "Your session has expired or is invalid. Please sign in again.",
+        icon: "error",
+        confirmButtonColor: "#F38120",
+      }).then(() => {
+        logout()
+        navigate("/signin")
+      })
+      return
+    }
+
+    fetchTransactions()
+  }, [])
+
+  useEffect(() => {
+    if (transactions && Array.isArray(transactions)) {
+      setFilteredTransactions(
+        transactions.filter(
+          (transaction) =>
+            transaction.TransactionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            transaction.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            transaction.make?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            transaction.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (transaction.toUserName && transaction.toUserName.toLowerCase().includes(searchTerm.toLowerCase())),
+        ),
+      )
+    }
+  }, [searchTerm, transactions])
+
+  const fetchTransactions = async () => {
+    setLoading(true)
+    try {
+      const response = await axios.get(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+
+      // Ensure response.data is an array
+      if (response.data && Array.isArray(response.data)) {
+        setTransactions(response.data)
+        setFilteredTransactions(response.data)
+      } else {
+        console.error("API did not return an array:", response.data)
+        setTransactions([])
+        setFilteredTransactions([])
+        Swal.fire({
+          title: "Data Error",
+          text: "The server returned an invalid data format. Please try again later.",
+          icon: "error",
+          confirmButtonColor: "#F38120",
+        })
       }
-    };
-    fetchTransactions();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+      setTransactions([])
+      setFilteredTransactions([])
+      Swal.fire({
+        title: "Error",
+        text: "Failed to fetch transactions. Please try again later.",
+        icon: "error",
+        confirmButtonColor: "#F38120",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handlePreviewPDF = (transaction) => {
-    setPreviewTransaction(transaction);
-  };
+    setPreviewTransaction(transaction)
+  }
+
+  // Helper function to convert ArrayBuffer to Base64
+  const arrayBufferToBase64 = (buffer) => {
+    let binary = ""
+    const bytes = new Uint8Array(buffer)
+    const len = bytes.byteLength
+
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+
+    return btoa(binary)
+  }
+
+  // Helper function to download a Base64 string as a PDF file
+  const downloadBase64AsPDF = (base64String, filename) => {
+    const link = document.createElement("a")
+    link.href = `data:application/pdf;base64,${base64String}`
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   const handleDownloadPDF = async (transactionId) => {
-    setIsGenerating(true);
+    setIsGenerating(true)
     try {
+      Swal.fire({
+        title: "Generating PDF",
+        text: "Please wait while we generate your receipt...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading()
+        },
+      })
+
+      // Call the API to generate the transaction PDF
       const response = await axios.post(
-        'https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/generateTransactionPDF',
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/generateTransactionPDF",
         { transactionId },
-        { responseType: 'blob' }
-      );
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `transaction-${transactionId}.pdf`;
-      link.click();
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          responseType: "arraybuffer", // Changed from 'blob' to 'arraybuffer'
+        },
+      )
+
+      // Convert ArrayBuffer to Base64
+      const base64String = arrayBufferToBase64(response.data)
+
+      // Store the base64 string in state if needed
+      setPdfBase64(base64String)
+
+      // Download the PDF using the base64 data
+      downloadBase64AsPDF(base64String, `transaction-${transactionId}.pdf`)
+
+      Swal.fire({
+        icon: "success",
+        title: "PDF Downloaded",
+        text: "The transaction PDF has been downloaded successfully.",
+        confirmButtonColor: "#F38120",
+      })
     } catch (error) {
-      console.error('Error generating transaction PDF:', error);
+      console.error("Error generating transaction PDF:", error)
+      Swal.fire({
+        title: "Error",
+        text: "Failed to generate transaction PDF. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#F38120",
+      })
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
-  };
+  }
 
   const handleDownloadAllPDFs = async () => {
-    setIsGenerating(true);
+    setIsGenerating(true)
     try {
-      const response = await axios.get('https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/generateAllTransactionsPDF', {
-        responseType: 'blob',
-      });
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = 'all-transactions.pdf';
-      link.click();
+      Swal.fire({
+        title: "Generating PDF",
+        text: "Please wait while we generate your report...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading()
+        },
+      })
+
+      const response = await axios.get(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/generateAllTransactionsPDF",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "arraybuffer", // Changed from 'blob' to 'arraybuffer'
+        },
+      )
+
+      // Convert ArrayBuffer to Base64
+      const base64String = arrayBufferToBase64(response.data)
+
+      // Store the base64 string in state if needed
+      setPdfBase64(base64String)
+
+      // Download the PDF using the base64 data
+      downloadBase64AsPDF(base64String, "all-transactions.pdf")
+
+      Swal.fire({
+        icon: "success",
+        title: "PDF Downloaded",
+        text: "All transactions PDF has been downloaded successfully.",
+        confirmButtonColor: "#F38120",
+      })
     } catch (error) {
-      console.error('Error generating all transactions PDF:', error);
+      console.error("Error generating all transactions PDF:", error)
+      Swal.fire({
+        title: "Error",
+        text: "Failed to generate all transactions PDF. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#F38120",
+      })
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
-  };
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
@@ -133,19 +313,32 @@ const Transactions = () => {
         <SideNavBar
           navOpen={sidebarOpen}
           toggleNav={() => setSidebarOpen(!sidebarOpen)}
-          userRole="governmentOfficial"
+          userRole="government official"
+          logout={() => {
+            logout()
+            navigate("/signin")
+          }}
         />
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
           <div className="container mx-auto px-6 py-8">
-            <div className="flex justify-between items-center mb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
               <h1 className="text-4xl font-bold text-[#F38120]">Transactions</h1>
-              <div className="flex items-center">
-                <label className="mr-3 font-semibold">View:</label>
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                <div className="relative w-full md:w-64">
+                  <input
+                    type="text"
+                    placeholder="Search transactions..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-[#F38120] focus:border-[#F38120]"
+                  />
+                  <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                </div>
                 <select
-                  className="bg-white border border-gray-300 rounded px-4 py-2"
-                  value={showAllTransactions ? 'all' : 'pdf'}
-                  onChange={(e) => setShowAllTransactions(e.target.value === 'all')}
+                  className="bg-white border border-gray-300 rounded-lg px-4 py-2 w-full md:w-auto"
+                  value={showAllTransactions ? "all" : "pdf"}
+                  onChange={(e) => setShowAllTransactions(e.target.value === "all")}
                 >
                   <option value="all">All Transactions</option>
                   <option value="pdf">Download All PDFs</option>
@@ -154,35 +347,62 @@ const Transactions = () => {
             </div>
 
             {loading ? (
-              <div className="text-center text-lg text-gray-600">Loading transactions...</div>
+              <div className="flex justify-center items-center h-64">
+                <FaSpinner className="text-[#F38120] text-4xl animate-spin" />
+              </div>
             ) : showAllTransactions ? (
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, staggerChildren: 0.1 }}
-              >
-                <AnimatePresence>
-                  {transactions.map((transaction) => (
-                    <motion.div
-                      key={transaction.TransactionId}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -50 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <TransactionCard transaction={transaction} onPreview={handlePreviewPDF} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </motion.div>
+              filteredTransactions.length > 0 ? (
+                <motion.div
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, staggerChildren: 0.1 }}
+                >
+                  <AnimatePresence>
+                    {filteredTransactions.map((transaction) => (
+                      <motion.div
+                        key={transaction.TransactionId}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <TransactionCard transaction={transaction} onPreview={handlePreviewPDF} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              ) : (
+                <div className="text-center py-16 bg-white rounded-lg shadow-md">
+                  <FaFileAlt className="text-gray-300 text-5xl mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No Transactions Found</h3>
+                  <p className="text-gray-500">
+                    {searchTerm
+                      ? "No transactions match your search criteria."
+                      : "There are no transactions in the system yet."}
+                  </p>
+                </div>
+              )
             ) : (
-              <button
-                className="bg-[#F38120] text-white px-6 py-3 rounded hover:bg-[#DC5F00] transition-all duration-300 mx-auto block"
-                onClick={handleDownloadAllPDFs}
-              >
-                {isGenerating ? 'Generating PDF...' : 'Download All PDFs'}
-              </button>
+              <div className="text-center py-16 bg-white rounded-lg shadow-md">
+                <button
+                  className="bg-[#F38120] text-white px-6 py-3 rounded hover:bg-[#DC5F00] transition-all duration-300 mx-auto flex items-center"
+                  onClick={handleDownloadAllPDFs}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <FaSpinner className="animate-spin mr-2" />
+                      Generating PDF...
+                    </>
+                  ) : (
+                    <>
+                      <FaFileAlt className="mr-2" />
+                      Download All PDFs
+                    </>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </main>
@@ -190,12 +410,25 @@ const Transactions = () => {
 
       {previewTransaction && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-full mx-4">
             <h2 className="text-xl font-bold mb-4">Transaction Preview</h2>
-            <p><strong>From:</strong> {previewTransaction.FromUserName}</p>
-            {previewTransaction.ToUserName && <p><strong>To:</strong> {previewTransaction.ToUserName}</p>}
-            <p><strong>Vehicle:</strong> {`${previewTransaction.make} ${previewTransaction.model}`}</p>
-            <p><strong>Status:</strong> {previewTransaction.transactionStatus}</p>
+            <p className="mb-2">
+              <strong>From:</strong> {previewTransaction.fromUserName}
+            </p>
+            {previewTransaction.toUserName && (
+              <p className="mb-2">
+                <strong>To:</strong> {previewTransaction.toUserName}
+              </p>
+            )}
+            <p className="mb-2">
+              <strong>Vehicle:</strong> {`${previewTransaction.make} ${previewTransaction.model}`}
+            </p>
+            <p className="mb-2">
+              <strong>Status:</strong> {previewTransaction.transactionStatus}
+            </p>
+            <p className="mb-2">
+              <strong>Date:</strong> {new Date(previewTransaction.timestamp).toLocaleString()}
+            </p>
             <div className="flex justify-end mt-4">
               <button
                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded mr-2"
@@ -204,20 +437,31 @@ const Transactions = () => {
                 Close
               </button>
               <button
-                className="bg-[#F38120] text-white px-4 py-2 rounded"
+                className="bg-[#F38120] text-white px-4 py-2 rounded flex items-center"
                 onClick={() => {
-                  setPreviewTransaction(null);
-                  handleDownloadPDF(previewTransaction.TransactionId);
+                  setPreviewTransaction(null)
+                  handleDownloadPDF(previewTransaction.TransactionId)
                 }}
+                disabled={isGenerating}
               >
-                Download PDF
+                {isGenerating ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <FaFileAlt className="mr-2" />
+                    Download PDF
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Transactions;
+export default Transactions
