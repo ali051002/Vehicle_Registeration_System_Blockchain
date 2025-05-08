@@ -362,13 +362,13 @@ const PaidTransactions = () => {
       const term = searchTerm.toLowerCase()
       result = result.filter(
         (transaction) =>
-          transaction.TransactionId?.toLowerCase().includes(term) ||
-          transaction.fromUserName?.toLowerCase().includes(term) ||
-          transaction.make?.toLowerCase().includes(term) ||
-          transaction.model?.toLowerCase().includes(term) ||
-          transaction.chassisNumber?.toLowerCase().includes(term) ||
-          transaction.engineNumber?.toLowerCase().includes(term) ||
-          transaction.approverId?.toLowerCase().includes(term),
+          transaction?.TransactionId?.toLowerCase().includes(term) ||
+          transaction?.fromUserName?.toLowerCase().includes(term) ||
+          transaction?.make?.toLowerCase().includes(term) ||
+          transaction?.model?.toLowerCase().includes(term) ||
+          transaction?.chassisNumber?.toLowerCase().includes(term) ||
+          transaction?.engineNumber?.toLowerCase().includes(term) ||
+          transaction?.approverId?.toLowerCase().includes(term),
       )
     }
 
@@ -387,17 +387,17 @@ const PaidTransactions = () => {
     // Apply vehicle make filter
     if (filters.vehicleMake) {
       const makeFilter = filters.vehicleMake.toLowerCase()
-      result = result.filter((transaction) => transaction.make?.toLowerCase().includes(makeFilter))
+      result = result.filter((transaction) => transaction?.make?.toLowerCase().includes(makeFilter))
     }
 
     // Apply user ID filter
     if (filters.userId) {
-      result = result.filter((transaction) => transaction.fromUserId?.includes(filters.userId))
+      result = result.filter((transaction) => transaction?.fromUserId?.includes(filters.userId))
     }
 
     // Apply approver ID filter
     if (filters.approverId) {
-      result = result.filter((transaction) => transaction.approverId?.includes(filters.approverId))
+      result = result.filter((transaction) => transaction?.approverId?.includes(filters.approverId))
     }
 
     // Apply sorting
@@ -407,8 +407,8 @@ const PaidTransactions = () => {
 
       // Handle date fields
       if (sortField === "timestamp" || sortField === "approvalDate") {
-        valueA = new Date(valueA).getTime()
-        valueB = new Date(valueB).getTime()
+        valueA = valueA ? new Date(valueA).getTime() : 0
+        valueB = valueB ? new Date(valueB).getTime() : 0
       }
 
       // Handle string fields

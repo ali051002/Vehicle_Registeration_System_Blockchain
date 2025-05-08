@@ -21,6 +21,7 @@ import {
   FaSortAmountUp,
   FaEye,
   FaArrowLeft,
+  FaCubes,
 } from "react-icons/fa"
 import axios from "axios"
 import Swal from "sweetalert2"
@@ -32,12 +33,9 @@ const VehicleCard = ({ vehicle, onViewDetails }) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden h-full border border-gray-200 hover:shadow-lg transition-shadow duration-300">
       <div className="p-6 flex flex-col h-full">
-        {/* Vehicle Make and Model */}
         <h3 className="text-xl font-bold text-[#4A4D52] mb-2">
           {vehicle.make} {vehicle.model}
         </h3>
-
-        {/* Registration Status Banner */}
         <div
           className={`mb-4 px-3 py-2 rounded-md border flex items-center justify-between ${
             vehicle.registrationNumber
@@ -59,8 +57,6 @@ const VehicleCard = ({ vehicle, onViewDetails }) => {
             </div>
           )}
         </div>
-
-        {/* Vehicle Details Grid */}
         <div className="grid grid-cols-2 gap-4 flex-grow">
           <div>
             <h4 className="font-semibold text-[#F38120] mb-1">Year</h4>
@@ -94,8 +90,6 @@ const VehicleCard = ({ vehicle, onViewDetails }) => {
             </div>
           </div>
         </div>
-
-        {/* Action Buttons */}
         <div className="mt-4 flex justify-end">
           <button
             onClick={() => onViewDetails(vehicle)}
@@ -117,12 +111,10 @@ const TransactionHistoryItem = ({ transaction, onDownloadPDF }) => {
     setExpanded(!expanded)
   }
 
-  // Format date
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString()
   }
 
-  // Get status color
   const getStatusColor = (status) => {
     switch (status) {
       case "Approved":
@@ -136,7 +128,6 @@ const TransactionHistoryItem = ({ transaction, onDownloadPDF }) => {
     }
   }
 
-  // Get payment status color
   const getPaymentStatusColor = (status) => {
     switch (status) {
       case "Paid":
@@ -267,13 +258,13 @@ const BlockchainExplorer = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null)
   const [transactionHistory, setTransactionHistory] = useState([])
   const [error, setError] = useState(null)
-  const [activeTab, setActiveTab] = useState("details") // details, history
+  const [activeTab, setActiveTab] = useState("details")
   const [showVehicleDetails, setShowVehicleDetails] = useState(false)
-  const [filterStatus, setFilterStatus] = useState("all") // all, registered, pending
+  const [filterStatus, setFilterStatus] = useState("all")
   const [sortField, setSortField] = useState("make")
   const [sortDirection, setSortDirection] = useState("asc")
+  const [blockchainRegisteredNumbers, setBlockchainRegisteredNumbers] = useState([])
 
-  // Get token and decode userId
   const token = localStorage.getItem("token")
   let userId = null
   let isAuthenticated = false
@@ -307,17 +298,16 @@ const BlockchainExplorer = () => {
     }
 
     fetchAllVehicles()
+    fetchBlockchainRegisteredNumbers()
   }, [])
 
   useEffect(() => {
-    // Apply filters and sorting whenever these values change
     applyFiltersAndSort()
   }, [vehicles, searchTerm, filterStatus, sortField, sortDirection])
 
   const fetchAllVehicles = async () => {
     setLoading(true)
     try {
-      // Fetch all vehicles
       const response = await axios.get(
         "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles",
         {
@@ -328,13 +318,12 @@ const BlockchainExplorer = () => {
       )
 
       if (response.data && Array.isArray(response.data)) {
-        // Fetch owner names for each vehicle
         const vehiclesWithOwners = await Promise.all(
           response.data.map(async (vehicle) => {
             if (vehicle.ownerId) {
               try {
                 const userResponse = await axios.get(
-                  `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/users/${vehicle.ownerId}`,
+                  `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/user/${vehicle.ownerId}`,
                   {
                     headers: {
                       Authorization: `Bearer ${token}`,
@@ -365,10 +354,30 @@ const BlockchainExplorer = () => {
     }
   }
 
+  const fetchBlockchainRegisteredNumbers = async () => {
+    try {
+      const response = await axios.get(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/blockchain/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      if (response.data && Array.isArray(response.data.output)) {
+        setBlockchainRegisteredNumbers(response.data.output)
+      } else {
+        setBlockchainRegisteredNumbers([])
+      }
+    } catch (error) {
+      console.error("Error fetching blockchain registered numbers:", error)
+      setBlockchainRegisteredNumbers([])
+    }
+  }
+
   const applyFiltersAndSort = () => {
     let result = [...vehicles]
 
-    // Apply search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       result = result.filter(
@@ -382,7 +391,6 @@ const BlockchainExplorer = () => {
       )
     }
 
-    // Apply status filter
     if (filterStatus !== "all") {
       if (filterStatus === "registered") {
         result = result.filter((vehicle) => !!vehicle.registrationNumber)
@@ -391,12 +399,10 @@ const BlockchainExplorer = () => {
       }
     }
 
-    // Apply sorting
     result.sort((a, b) => {
       let valueA = a[sortField]
       let valueB = b[sortField]
 
-      // Handle string fields
       if (typeof valueA === "string" && typeof valueB === "string") {
         valueA = valueA.toLowerCase()
         valueB = valueB.toLowerCase()
@@ -417,7 +423,6 @@ const BlockchainExplorer = () => {
     setShowVehicleDetails(true)
     setActiveTab("details")
 
-    // Fetch transaction history for this vehicle
     try {
       const transactionsResponse = await axios.get(
         "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions",
@@ -432,7 +437,6 @@ const BlockchainExplorer = () => {
       )
 
       if (transactionsResponse.data && Array.isArray(transactionsResponse.data)) {
-        // Sort transactions by timestamp (newest first)
         const sortedTransactions = [...transactionsResponse.data].sort(
           (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
         )
@@ -472,7 +476,6 @@ const BlockchainExplorer = () => {
         },
       })
 
-      // Call the API to generate the transaction PDF
       const response = await axios.post(
         "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/generateTransactionPDF",
         {
@@ -483,15 +486,13 @@ const BlockchainExplorer = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          responseType: "blob", // Important for handling PDF binary data
+          responseType: "blob",
         },
       )
 
-      // Create a blob URL for the PDF
       const blob = new Blob([response.data], { type: "application/pdf" })
       const url = window.URL.createObjectURL(blob)
 
-      // Create a temporary link and trigger download
       const link = document.createElement("a")
       link.href = url
       link.setAttribute("download", `transaction-${transactionId}.pdf`)
@@ -499,7 +500,6 @@ const BlockchainExplorer = () => {
       link.click()
       document.body.removeChild(link)
 
-      // Clean up the blob URL
       window.URL.revokeObjectURL(url)
 
       Swal.fire({
@@ -524,6 +524,116 @@ const BlockchainExplorer = () => {
     navigate("/signin")
   }
 
+  const registerVehicleOnBlockchain = async (vehicle) => {
+    try {
+      Swal.fire({
+        title: "Registering Vehicle on Blockchain",
+        text: "Please wait while we register this vehicle on the blockchain...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading()
+        },
+      })
+
+      const userResponse = await axios.get(
+        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/user/${vehicle.ownerId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+
+      if (!userResponse.data || !userResponse.data.cnic) {
+        throw new Error("Could not retrieve owner CNIC")
+      }
+
+      const ownerCnic = userResponse.data.cnic
+      console.log("Owner CNIC:", ownerCnic)
+
+      const transactionsResponse = await axios.get(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            vehicleId: vehicle._id || vehicle.id,
+          },
+        },
+      )
+
+      let chassisNo = vehicle.chassisNumber
+      let engineNo = vehicle.engineNumber
+      let paymentIntentId = "unknown"
+
+      if (transactionsResponse.data && Array.isArray(transactionsResponse.data) && transactionsResponse.data.length > 0) {
+        const latestTransaction = transactionsResponse.data[0]
+        chassisNo = latestTransaction.chassisNumber || vehicle.chassisNumber
+        engineNo = latestTransaction.engineNumber || vehicle.engineNumber
+        paymentIntentId = latestTransaction.PaymentIntentId || "unknown"
+      } else {
+        console.warn("No transactions found for this vehicle, using vehicle object data")
+      }
+
+      const registrationNo = vehicle.registrationNumber
+
+      const registrationData = {
+        chassisNo,
+        engineNo,
+        ownerCnic,
+        paymentIntentId,
+        registrationNo,
+      }
+
+      console.log("Data prepared for blockchain/registerBC:", registrationData)
+
+      const response = await axios.post(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/blockchain/registerBC",
+        registrationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      )
+
+      console.log("Response from blockchain/registerBC:", response.data)
+
+      if (response.data && response.data.txHash) {
+        setSelectedVehicle({
+          ...selectedVehicle,
+          blockchainRegistered: true,
+          blockchainTxHash: response.data.txHash,
+        })
+        // Update the blockchain registered numbers to reflect the new registration
+        setBlockchainRegisteredNumbers([...blockchainRegisteredNumbers, registrationNo])
+        Swal.fire({
+          icon: "success",
+          title: "Vehicle Registered on Blockchain",
+          text: "This vehicle has been successfully registered on the blockchain.",
+          confirmButtonColor: "#F38120",
+        })
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Failed to register the vehicle on the blockchain. No transaction hash returned.",
+          icon: "error",
+          confirmButtonColor: "#F38120",
+        })
+      }
+    } catch (error) {
+      console.error("Error registering vehicle on blockchain:", error)
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "Failed to register the vehicle on the blockchain. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#F38120",
+      })
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#f5f7fa]">
       <TopNavBar toggleNav={() => setSidebarOpen(!sidebarOpen)} />
@@ -538,7 +648,6 @@ const BlockchainExplorer = () => {
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <div className="container mx-auto">
-            {/* Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-800 mb-2">Blockchain Explorer</h1>
               <p className="text-gray-600">
@@ -550,7 +659,6 @@ const BlockchainExplorer = () => {
 
             {showVehicleDetails && selectedVehicle ? (
               <>
-                {/* Back button */}
                 <button
                   onClick={handleBackToList}
                   className="mb-6 flex items-center text-[#F38120] hover:text-[#e67818] transition-colors"
@@ -559,9 +667,7 @@ const BlockchainExplorer = () => {
                   Back to All Vehicles
                 </button>
 
-                {/* Vehicle Details View */}
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  {/* Vehicle Header */}
                   <div className="bg-gradient-to-r from-[#F38120] to-[#e67818] p-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
                       <div className="flex items-center mb-4 md:mb-0">
@@ -586,7 +692,6 @@ const BlockchainExplorer = () => {
                     </div>
                   </div>
 
-                  {/* Tabs */}
                   <div className="border-b border-gray-200">
                     <nav className="flex -mb-px">
                       <button
@@ -619,11 +724,9 @@ const BlockchainExplorer = () => {
                     </nav>
                   </div>
 
-                  {/* Tab Content */}
                   <div className="p-6">
                     {activeTab === "details" ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Vehicle Details */}
                         <div>
                           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                             <FaCar className="text-[#F38120] mr-2" /> Vehicle Information
@@ -684,7 +787,6 @@ const BlockchainExplorer = () => {
                           </div>
                         </div>
 
-                        {/* Owner Details */}
                         <div>
                           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                             <FaUserAlt className="text-[#F38120] mr-2" /> Current Owner
@@ -762,6 +864,53 @@ const BlockchainExplorer = () => {
                               </div>
                             </div>
                           </div>
+
+                          <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-4 flex items-center">
+                            <FaCubes className="text-[#F38120] mr-2" /> Blockchain Status
+                          </h3>
+                          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-sm text-gray-500">Blockchain Registration</p>
+                                <p className="font-medium flex items-center">
+                                  {selectedVehicle.blockchainRegistered || blockchainRegisteredNumbers.includes(selectedVehicle.registrationNumber) ? (
+                                    <>
+                                      <FaCheckCircle className="text-green-500 mr-2" /> Registered
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaExclamationTriangle className="text-yellow-500 mr-2" /> Not Registered
+                                    </>
+                                  )}
+                                </p>
+                              </div>
+                              {selectedVehicle.blockchainTxHash && (
+                                <div>
+                                  <p className="text-sm text-gray-500">Transaction Hash</p>
+                                  <p className="font-medium font-mono text-xs break-all">
+                                    {selectedVehicle.blockchainTxHash}
+                                  </p>
+                                </div>
+                              )}
+                              <div className="mt-4">
+                                {selectedVehicle.blockchainRegistered || blockchainRegisteredNumbers.includes(selectedVehicle.registrationNumber) ? (
+                                  <p className="text-sm text-green-600 font-medium">Already registered on blockchain</p>
+                                ) : !selectedVehicle.registrationNumber ? (
+                                  <p className="text-sm text-red-600 font-medium">
+                                    E-Tag is required before registration on blockchain
+                                  </p>
+                                ) : (
+                                  <button
+                                    onClick={() => registerVehicleOnBlockchain(selectedVehicle)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+                                  >
+                                    <FaCubes className="mr-2" />
+                                    Register on Blockchain
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -796,7 +945,6 @@ const BlockchainExplorer = () => {
               </>
             ) : (
               <>
-                {/* Search and Filter Controls */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                   <div className="flex flex-col md:flex-row gap-4 mb-4">
                     <div className="flex-grow">
@@ -893,7 +1041,6 @@ const BlockchainExplorer = () => {
                   </div>
                 </div>
 
-                {/* Vehicles Grid */}
                 {loading ? (
                   <div className="flex justify-center items-center h-64">
                     <div className="w-16 h-16 border-4 border-[#F38120] border-t-transparent rounded-full animate-spin"></div>
