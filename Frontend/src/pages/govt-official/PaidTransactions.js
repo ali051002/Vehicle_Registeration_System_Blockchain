@@ -478,6 +478,50 @@ const PaidTransactions = () => {
 
       // Show success message with the generated E-Tag
       if (response.data && response.data.registrationNumber) {
+        // Send email notification about E-Tag generation
+        try {
+          // Get user email from the backend
+          const userResponse = await axios.get(
+            `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/user/${transaction.fromUserId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          )
+
+          const userEmail = userResponse.data.email
+          const userName = userResponse.data.name || transaction.fromUserName || "User"
+
+          // Send email notification
+          const emailData = {
+            to: userEmail,
+            subject: "Vehicle E-Tag Generated Successfully",
+            data: {
+              user: userName,
+              action: "received an E-Tag for your vehicle",
+              vehicle: `${transaction.make} ${transaction.model} (${transaction.year || "N/A"})`,
+              status: `Your vehicle has been registered successfully with E-Tag: ${response.data.registrationNumber}`,
+            },
+          }
+
+          await axios.post(
+            "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-email",
+            emailData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          )
+
+          console.log("E-Tag generation email notification sent successfully")
+        } catch (emailError) {
+          console.error("Failed to send email notification:", emailError)
+          // We don't want to block the E-Tag generation process if email fails
+        }
+
         Swal.fire({
           title: "E-Tag Generated Successfully",
           html: `
@@ -486,6 +530,7 @@ const PaidTransactions = () => {
             <div class="bg-gray-100 p-4 rounded-lg inline-block">
               <span class="font-bold text-xl">${response.data.registrationNumber}</span>
             </div>
+            <p class="mt-4">A confirmation email has been sent to the vehicle owner.</p>
           </div>
         `,
           icon: "success",
@@ -775,7 +820,7 @@ const PaidTransactions = () => {
                                 <button
                                   key={pageNum}
                                   onClick={() => paginate(pageNum)}
-                                  className={`relative inline-flex items-center px-4 py-2 border ${
+                                  className={`relative inline-flex items-center px-4 py-2 ${
                                     currentPage === pageNum
                                       ? "bg-[#F38120] text-white border-[#F38120]"
                                       : "bg-[#1f2937] text-gray-400 border-[#374151] hover:bg-[#374151]"

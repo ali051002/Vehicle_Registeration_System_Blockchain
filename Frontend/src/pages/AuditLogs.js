@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect, useContext } from "react"
-import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaCarAlt, FaUser, FaClock, FaSpinner, FaFileAlt, FaSearch } from "react-icons/fa"
+import { FaCarAlt, FaUser, FaClock, FaSpinner, FaFileAlt } from "react-icons/fa"
 import SideNavBar from "../components/SideNavBar"
 import TopNavBar from "../components/TopNavBar"
-import { AuthContext } from "../context/AuthContext"
-import { jwtDecode } from "jwt-decode"
 import Swal from "sweetalert2"
+import { AuthContext } from "../context/AuthContext"
+import { useNavigate } from "react-router-dom"
+import { jwtDecode } from "jwt-decode"
 
 const TransactionCard = ({ transaction, onPreview }) => {
   return (
@@ -27,15 +27,15 @@ const TransactionCard = ({ transaction, onPreview }) => {
             <h4 className="font-semibold text-[#F38120] mb-1">From</h4>
             <div className="flex items-center">
               <FaUser className="text-[#F38120] mr-2" />
-              <span className="text-gray-600">{transaction.fromUserName}</span>
+              <span className="text-gray-600">{transaction.fromUserName || transaction.FromUserName}</span>
             </div>
           </div>
-          {transaction.toUserName && (
+          {(transaction.toUserName || transaction.ToUserName) && (
             <div>
               <h4 className="font-semibold text-[#F38120] mb-1">To</h4>
               <div className="flex items-center">
                 <FaUser className="text-[#F38120] mr-2" />
-                <span className="text-gray-600">{transaction.toUserName}</span>
+                <span className="text-gray-600">{transaction.toUserName || transaction.ToUserName}</span>
               </div>
             </div>
           )}
@@ -71,16 +71,13 @@ const TransactionCard = ({ transaction, onPreview }) => {
 
 const Transactions = () => {
   const navigate = useNavigate()
-  const { logout } = useContext(AuthContext)
+  const { logout } = useContext(AuthContext) || { logout: () => {} }
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [previewTransaction, setPreviewTransaction] = useState(null)
   const [showAllTransactions, setShowAllTransactions] = useState(true) // Toggle state
   const [isGenerating, setIsGenerating] = useState(false) // For spinner
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filteredTransactions, setFilteredTransactions] = useState([])
-  const [pdfBase64, setPdfBase64] = useState(null) // State to store base64 PDF data
 
   // Get token and decode userId
   const token = localStorage.getItem("token")
@@ -109,7 +106,7 @@ const Transactions = () => {
         icon: "error",
         confirmButtonColor: "#F38120",
       }).then(() => {
-        logout()
+        if (logout) logout()
         navigate("/signin")
       })
       return
@@ -117,21 +114,6 @@ const Transactions = () => {
 
     fetchTransactions()
   }, [])
-
-  useEffect(() => {
-    if (transactions && Array.isArray(transactions)) {
-      setFilteredTransactions(
-        transactions.filter(
-          (transaction) =>
-            transaction.TransactionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            transaction.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            transaction.make?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            transaction.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (transaction.toUserName && transaction.toUserName.toLowerCase().includes(searchTerm.toLowerCase())),
-        ),
-      )
-    }
-  }, [searchTerm, transactions])
 
   const fetchTransactions = async () => {
     setLoading(true)
@@ -145,14 +127,11 @@ const Transactions = () => {
         },
       )
 
-      // Ensure response.data is an array
       if (response.data && Array.isArray(response.data)) {
         setTransactions(response.data)
-        setFilteredTransactions(response.data)
       } else {
         console.error("API did not return an array:", response.data)
         setTransactions([])
-        setFilteredTransactions([])
         Swal.fire({
           title: "Data Error",
           text: "The server returned an invalid data format. Please try again later.",
@@ -162,8 +141,6 @@ const Transactions = () => {
       }
     } catch (error) {
       console.error("Error fetching transactions:", error)
-      setTransactions([])
-      setFilteredTransactions([])
       Swal.fire({
         title: "Error",
         text: "Failed to fetch transactions. Please try again later.",
@@ -191,7 +168,6 @@ const Transactions = () => {
         },
       })
 
-      // Call the API to generate the transaction PDF
       const response = await axios.post(
         "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/generateTransactionPDF",
         { transactionId },
@@ -200,16 +176,15 @@ const Transactions = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          responseType: "blob", // Use blob for binary data like PDFs
+          responseType: "blob",
         },
       )
 
-      // Create a blob URL and trigger download
       const blob = new Blob([response.data], { type: "application/pdf" })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.setAttribute("download", `transaction-${transactionId}.pdf`)
+      link.download = `transaction-${transactionId}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -252,16 +227,15 @@ const Transactions = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          responseType: "blob", // Use blob for binary data like PDFs
+          responseType: "blob",
         },
       )
 
-      // Create a blob URL and trigger download
       const blob = new Blob([response.data], { type: "application/pdf" })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.setAttribute("download", "all-transactions.pdf")
+      link.download = "all-transactions.pdf"
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -296,28 +270,19 @@ const Transactions = () => {
           toggleNav={() => setSidebarOpen(!sidebarOpen)}
           userRole="government official"
           logout={() => {
-            logout()
+            if (logout) logout()
             navigate("/signin")
           }}
         />
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
           <div className="container mx-auto px-6 py-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+            <div className="flex justify-between items-center mb-10">
               <h1 className="text-4xl font-bold text-[#F38120]">Transactions</h1>
-              <div className="flex flex-col md:flex-row items-center gap-4">
-                <div className="relative w-full md:w-64">
-                  <input
-                    type="text"
-                    placeholder="Search transactions..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-[#F38120] focus:border-[#F38120]"
-                  />
-                  <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                </div>
+              <div className="flex items-center">
+                <label className="mr-3 font-semibold">View:</label>
                 <select
-                  className="bg-white border border-gray-300 rounded-lg px-4 py-2 w-full md:w-auto"
+                  className="bg-white border border-gray-300 rounded px-4 py-2"
                   value={showAllTransactions ? "all" : "pdf"}
                   onChange={(e) => setShowAllTransactions(e.target.value === "all")}
                 >
@@ -332,7 +297,7 @@ const Transactions = () => {
                 <FaSpinner className="text-[#F38120] text-4xl animate-spin" />
               </div>
             ) : showAllTransactions ? (
-              filteredTransactions.length > 0 ? (
+              transactions.length > 0 ? (
                 <motion.div
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   initial={{ opacity: 0 }}
@@ -340,7 +305,7 @@ const Transactions = () => {
                   transition={{ duration: 0.5, staggerChildren: 0.1 }}
                 >
                   <AnimatePresence>
-                    {filteredTransactions.map((transaction) => (
+                    {transactions.map((transaction) => (
                       <motion.div
                         key={transaction.TransactionId}
                         initial={{ opacity: 0, y: 50 }}
@@ -357,11 +322,7 @@ const Transactions = () => {
                 <div className="text-center py-16 bg-white rounded-lg shadow-md">
                   <FaFileAlt className="text-gray-300 text-5xl mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-700 mb-2">No Transactions Found</h3>
-                  <p className="text-gray-500">
-                    {searchTerm
-                      ? "No transactions match your search criteria."
-                      : "There are no transactions in the system yet."}
-                  </p>
+                  <p className="text-gray-500">There are no transactions in the system yet.</p>
                 </div>
               )
             ) : (
@@ -394,11 +355,11 @@ const Transactions = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-full mx-4">
             <h2 className="text-xl font-bold mb-4">Transaction Preview</h2>
             <p className="mb-2">
-              <strong>From:</strong> {previewTransaction.fromUserName}
+              <strong>From:</strong> {previewTransaction.fromUserName || previewTransaction.FromUserName}
             </p>
-            {previewTransaction.toUserName && (
+            {(previewTransaction.toUserName || previewTransaction.ToUserName) && (
               <p className="mb-2">
-                <strong>To:</strong> {previewTransaction.toUserName}
+                <strong>To:</strong> {previewTransaction.toUserName || previewTransaction.ToUserName}
               </p>
             )}
             <p className="mb-2">

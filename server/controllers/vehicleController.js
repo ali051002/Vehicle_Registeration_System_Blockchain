@@ -216,77 +216,94 @@ const registerVehicle = async (req, res) => {
 };
 
 // Approve vehicle registration with email notification
+const { approveVehicleRegistration, getTransactionDetailsById, getUserById } = require("../db/dbQueries")
+const { sendEmail } = require("./emailNotificationController")
+
 const approveRegistration = async (req, res) => {
-    const { transactionId, approvedBy } = req.body;
+  const { transactionId, approvedBy } = req.body
 
-    if (!transactionId || !approvedBy) {
-        return res.status(400).json({ msg: "Transaction ID and Approver must be provided" });
+  if (!transactionId || !approvedBy) {
+    return res.status(400).json({ msg: "Transaction ID and Approver ID are required" })
+  }
+
+  try {
+    // Generate a random registration number (E-Tag)
+    const registrationNumber = generateRegistrationNumber()
+
+    // Approve the vehicle registration
+    const result = await approveVehicleRegistration(transactionId, approvedBy, registrationNumber)
+
+    // Get transaction details to get vehicle and user information
+    const transactionDetails = await getTransactionDetailsById(transactionId)
+
+    if (!transactionDetails || transactionDetails.length === 0) {
+      return res.status(404).json({ msg: "Transaction details not found" })
     }
 
-    try {
-        // Fetch transaction details to get the ownerId and vehicle details
-        const transactionDetails = await getTransactionDetailsById(transactionId);
-        if (!transactionDetails || transactionDetails.length === 0) {
-            return res.status(404).json({ msg: "Transaction not found" });
+    const transaction = transactionDetails[0]
+
+    // Get user details to get email
+    const userResult = await getUserById(transaction.fromUserId)
+
+    if (!userResult || !userResult.recordset || userResult.recordset.length === 0) {
+      console.warn("User details not found for sending email notification")
+    } else {
+      const user = userResult.recordset[0]
+
+      // Send email notification
+      try {
+        const emailData = {
+          to: user.email,
+          subject: "Vehicle E-Tag Generated Successfully",
+          data: {
+            user: user.name || "Vehicle Owner",
+            action: "received an E-Tag for your vehicle",
+            vehicle: `${transaction.make} ${transaction.model} (${transaction.year || "N/A"})`,
+            status: `Your vehicle has been registered successfully with E-Tag: ${registrationNumber}`,
+          },
         }
 
-        const { OwnerId, Make, Model } = transactionDetails[0];
-
-        // Generate a unique registration number
-        const year = new Date().getFullYear().toString().slice(-2);
-        const generateCode = () => {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < 4; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        };
-
-        let registrationNumber;
-        let isUnique = false;
-
-        while (!isUnique) {
-            const code = generateCode();
-            registrationNumber = `ETG-${year}-${code}`;
-            const exists = await checkRegistrationNumberExists(registrationNumber);
-            if (!exists) isUnique = true;
-        }
-
-        // Approve the vehicle registration
-        await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
-
-        // Fetch owner details to get the email
-        const owner = await getUserById(OwnerId);
-        if (owner && owner.email) {
-            const emailData = {
-                to: owner.email,
-                subject: 'E-Tag Assigned to Your Vehicle',
-                data: {
-                    user: owner.name || 'User',
-                    action: 'E-Tag Assignment',
-                    vehicle: `${Make} ${Model} (${registrationNumber})`,
-                    status: 'Assigned'
-                }
-            };
-
-            // Send email notification
-            await sendEmail({ body: emailData });
-            console.log(`Email sent to ${owner.email} for E-Tag assignment`);
-        } else {
-            console.warn('No user found or email missing for OwnerId:', OwnerId);
-        }
-
-        res.status(200).json({
-            msg: "Vehicle registration approved successfully.",
-            registrationNumber
-        });
-    } catch (err) {
-        console.error('Error in approveRegistration:', err.message);
-        res.status(500).json({ msg: err.message });
+        await sendEmail({ body: emailData }, { status: () => ({ json: () => {} }) })
+        console.log("E-Tag generation email notification sent successfully")
+      } catch (emailError) {
+        console.error("Failed to send email notification:", emailError)
+        // Continue with the response even if email fails
+      }
     }
-};
 
+    // Return success response with registration number
+    return res.status(200).json({
+      msg: "Vehicle registration approved successfully",
+      registrationNumber: registrationNumber,
+    })
+  } catch (error) {
+    console.error("Error approving registration:", error)
+    return res.status(500).json({ msg: "Server error", error: error.message })
+  }
+}
+
+// Function to generate a random registration number (E-Tag)
+const generateRegistrationNumber = () => {
+  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ" // Excluding I and O to avoid confusion
+  const numbers = "0123456789"
+
+  // Format: ABC-123
+  let regNumber = ""
+
+  // Add 3 random letters
+  for (let i = 0; i < 3; i++) {
+    regNumber += letters.charAt(Math.floor(Math.random() * letters.length))
+  }
+
+  regNumber += "-"
+
+  // Add 3 random numbers
+  for (let i = 0; i < 3; i++) {
+    regNumber += numbers.charAt(Math.floor(Math.random() * numbers.length))
+  }
+
+  return regNumber
+}
 // Update vehicle status (Approve or Reject)
 const updateVehicleStatusController = async (req, res) => {
     const { vehicleId, status } = req.body;
