@@ -1,29 +1,22 @@
-const express = require("express")
-const router = express.Router()
-const {
-  fetchTransactions,
-  fetchPendingTransactions,
-  fetchPendingTransfers,
-  GenerateTransactionPDFbyId,
-  GenerateAllTransactionsPDF,
-  fetchPaidTransactions,
-} = require("../controllers/transactionController")
-const { approveRegistration } = require("../controllers/approveRegistrationController")
-const { authenticateToken } = require("../middleware/auth")
+const express = require('express');
+const transactionController = require('../controllers/transactionController');
+const router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(authenticateToken)
 
-// Transaction routes
-router.get("/transactions", fetchTransactions)
-router.post("/transactions", fetchTransactions)
-router.get("/transactions/pending", fetchPendingTransactions)
-router.get("/transactions/pending-transfers", fetchPendingTransfers)
-router.post("/generateTransactionPDF", GenerateTransactionPDFbyId)
-router.get("/generateAllTransactionsPDF", GenerateAllTransactionsPDF)
-router.get("/transactions/paid", fetchPaidTransactions)
 
-// Approve registration route
-router.post("/approveRegistration", approveRegistration)
+/* Get transactions with optional filters for status and type(use) 
+{
+    "transactionStatus": "Pending/Approved",
+    "transactionType": "Registration/Ownership transfer"
+}
+*/    
+router.get('/transactions', transactionController.fetchTransactions);
+router.get('/transactions/pending', transactionController.fetchPendingTransactions);//
+router.get('/transactions/pendingtransfers', transactionController.fetchPendingTransfers);
+router.get('/transactions/paid', transactionController.fetchPaidTransactions);
+// get transaction pdf donload 
+router.post('/generateTransactionPDF', transactionController.GenerateTransactionPDFbyId);
+//get all transactions
+router.get('/generateAllTransactionsPDF', transactionController.GenerateAllTransactionsPDF);
 
-module.exports = router
+module.exports = router; 
