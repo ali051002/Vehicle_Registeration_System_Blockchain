@@ -14,8 +14,10 @@ const {
     updateVehicleStatus,
     rejectVehicleRequest,
     insertVehicleDocument,
-    getVehiclesByUserId,// Add the update vehicle status function
-    getVehicleDocumentsByVehicleId
+    getVehiclesByUserId,
+    getVehicleDocumentsByVehicleId,
+    getUserById, // Add this import to fetch user details
+    sendEmail,   // Add this import to send email
 } = require('../db/dbQueries');
 
 // Get All Vehicles
@@ -27,6 +29,7 @@ const fetchAllVehicles = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
+
 const fetchPendingVehicles = async (req, res) => {
     try {
         const allVehicles = await getAllVehicles();
@@ -36,7 +39,6 @@ const fetchPendingVehicles = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
-
 
 // Get Vehicle by ID
 const fetchVehicleById = async (req, res) => {
@@ -58,7 +60,6 @@ const fetchVehicleById = async (req, res) => {
             return res.status(404).json({ msg: "Vehicle not found" });
         }
 
-        // Returning the first object from `recordset` instead of an array
         res.status(200).json(result.recordset[0]);
     } catch (err) {
         console.error("❌ Error fetching vehicle:", err.message);
@@ -112,7 +113,6 @@ const addVehicle = async (req, res) => {
         inspectionReports
     } = req.body;
 
-    // Required fields validation based on the database schema
     if (!registrationNumber || !ownerId || !make || !model || !year || !chassisNumber || !engineNumber || !registrationDate || !status) {
         return res.status(400).json({ msg: "All required fields must be provided" });
     }
@@ -124,14 +124,14 @@ const addVehicle = async (req, res) => {
             make,
             model,
             year,
-            color, // Optional field
+            color,
             chassisNumber,
             engineNumber,
             registrationDate,
-            blockchainTransactionId, // Optional field
+            blockchainTransactionId,
             status,
-            insuranceDetails, // Optional field
-            inspectionReports // Optional field
+            insuranceDetails,
+            inspectionReports
         });
         res.status(201).json({ msg: "Vehicle created successfully" });
     } catch (err) {
@@ -165,21 +165,19 @@ const modifyVehicle = async (req, res) => {
     try {
         await updateVehicle(
             vehicleId,
-            {
-                registrationNumber,
-                ownerId,
-                make,
-                model,
-                year,
-                color,
-                chassisNumber,
-                engineNumber,
-                registrationDate,
-                blockchainTransactionId,
-                status,
-                insuranceDetails,
-                inspectionReports
-            }
+            registrationNumber,
+            ownerId,
+            make,
+            model,
+            year,
+            color,
+            chassisNumber,
+            engineNumber,
+            registrationDate,
+            blockchainTransactionId,
+            status,
+            insuranceDetails,
+            inspectionReports
         );
         res.status(200).json({ msg: "Vehicle updated successfully" });
     } catch (err) {
@@ -217,24 +215,7 @@ const registerVehicle = async (req, res) => {
     }
 };
 
-// Approve vehicle registration
-// const approveRegistration = async (req, res) => {
-//     const { transactionId, approvedBy, registrationNumber } = req.body;
-
-//     // Check if all required fields are provided
-//     if (!transactionId || !approvedBy || !registrationNumber) {
-//         return res.status(400).json({ msg: "All required fields must be provided" });
-//     }
-
-//     try {
-//         // Call the function to approve the vehicle registration
-//         await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
-//         res.status(200).json({ msg: "Vehicle registration approved successfully." });
-//     } catch (err) {
-//         res.status(500).json({ msg: err.message });
-//     }
-// };
-
+// Approve vehicle registration with email notification
 const approveRegistration = async (req, res) => {
     const { transactionId, approvedBy } = req.body;
 
@@ -243,6 +224,15 @@ const approveRegistration = async (req, res) => {
     }
 
     try {
+        // Fetch transaction details to get the ownerId and vehicle details
+        const transactionDetails = await getTransactionDetailsById(transactionId);
+        if (!transactionDetails || transactionDetails.length === 0) {
+            return res.status(404).json({ msg: "Transaction not found" });
+        }
+
+        const { OwnerId, Make, Model } = transactionDetails[0];
+
+        // Generate a unique registration number
         const year = new Date().getFullYear().toString().slice(-2);
         const generateCode = () => {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -263,32 +253,50 @@ const approveRegistration = async (req, res) => {
             if (!exists) isUnique = true;
         }
 
+        // Approve the vehicle registration
         await approveVehicleRegistration(transactionId, approvedBy, registrationNumber);
+
+        // Fetch owner details to get the email
+        const owner = await getUserById(OwnerId);
+        if (owner && owner.email) {
+            const emailData = {
+                to: owner.email,
+                subject: 'E-Tag Assigned to Your Vehicle',
+                data: {
+                    user: owner.name || 'User',
+                    action: 'E-Tag Assignment',
+                    vehicle: `${Make} ${Model} (${registrationNumber})`,
+                    status: 'Assigned'
+                }
+            };
+
+            // Send email notification
+            await sendEmail({ body: emailData });
+            console.log(`Email sent to ${owner.email} for E-Tag assignment`);
+        } else {
+            console.warn('No user found or email missing for OwnerId:', OwnerId);
+        }
 
         res.status(200).json({
             msg: "Vehicle registration approved successfully.",
             registrationNumber
         });
     } catch (err) {
+        console.error('Error in approveRegistration:', err.message);
         res.status(500).json({ msg: err.message });
     }
 };
-
-
-
 
 // Update vehicle status (Approve or Reject)
 const updateVehicleStatusController = async (req, res) => {
     const { vehicleId, status } = req.body;
 
-    // Ensure both vehicleId and status are provided
     if (!vehicleId || !status) {
         return res.status(400).json({ msg: "Vehicle ID and Status are required" });
     }
 
     try {
-        // Call the function to update the vehicle status in the database
-        await updateVehicleStatus(vehicleId, status); // Assuming this updates the status
+        await updateVehicleStatus(vehicleId, status);
         res.status(200).json({ msg: `Vehicle status updated to ${status}` });
     } catch (error) {
         console.error('Error updating vehicle status:', error.message);
@@ -298,9 +306,9 @@ const updateVehicleStatusController = async (req, res) => {
 
 const getRegisteredVehicles = async (req, res) => {
     try {
-        const vehicles = await getAllVehicles(); // Fetch all vehicles
-        const registeredOrApprovedVehicles = vehicles.filter(vehicle => vehicle.status === 'Registered' || vehicle.status === 'Approved'); // Filter both registered and approved vehicles
-        res.status(200).json(registeredOrApprovedVehicles); // Return vehicles with either status
+        const vehicles = await getAllVehicles();
+        const registeredOrApprovedVehicles = vehicles.filter(vehicle => vehicle.status === 'Registered' || vehicle.status === 'Approved');
+        res.status(200).json(registeredOrApprovedVehicles);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
@@ -308,16 +316,14 @@ const getRegisteredVehicles = async (req, res) => {
 
 const getUserVehiclesController = async (req, res) => {
     try {
-        const userId = req.params.id; // Get the user ID from the request parameters
-        const vehicles = await getVehiclesByUserId(userId); // Fetch vehicles by user ID
-        res.status(200).json(vehicles); // Respond with the vehicles
+        const userId = req.params.id;
+        const vehicles = await getVehiclesByUserId(userId);
+        res.status(200).json(vehicles);
     } catch (error) {
         console.error('Error fetching vehicles for user:', error);
         res.status(500).json({ message: 'Error fetching vehicles for user', error: error.message });
     }
 };
-
-
 
 // Request ownership transfer
 const transferOwnership = async (req, res) => {
@@ -382,13 +388,12 @@ const uploadVehicleDocument = async (req, res) => {
     const file = req.files.file;
 
     try {
-        // Insert file data into the database
         const result = await insertVehicleDocument(
             vehicleId,
             documentType,
             file.name,
             file.mimetype,
-            file.data // file.data contains the buffer
+            file.data
         );
 
         res.status(201).json({
@@ -401,10 +406,9 @@ const uploadVehicleDocument = async (req, res) => {
     }
 };
 
-
 // Fetch Documents by Vehicle ID from Body
 const fetchDocumentsByVehicleId = async (req, res) => {
-    const { vehicleId } = req.body; // Now reading from the body
+    const { vehicleId } = req.body;
 
     if (!vehicleId) {
         return res.status(400).json({ error: 'Vehicle ID is required in the request body.' });
@@ -417,14 +421,13 @@ const fetchDocumentsByVehicleId = async (req, res) => {
             return res.status(404).json({ error: 'No documents found for the provided Vehicle ID.' });
         }
 
-        // Convert file content to Base64 for front-end rendering
         const documentsForFrontend = documents.map(doc => ({
             DocumentId: doc.DocumentId,
             DocumentType: doc.DocumentType,
             FileName: doc.FileName,
             FileType: doc.FileType,
             UploadedAt: doc.UploadedAt,
-            FileContent: doc.FileContent.toString('base64') // Convert binary to Base64
+            FileContent: doc.FileContent.toString('base64')
         }));
 
         return res.status(200).json({ message: 'Documents retrieved successfully.', documents: documentsForFrontend });
@@ -433,7 +436,6 @@ const fetchDocumentsByVehicleId = async (req, res) => {
         res.status(500).json({ error: 'Failed to retrieve documents', details: error.message });
     }
 };
-
 
 module.exports = {
     fetchAllVehicles,
@@ -446,14 +448,12 @@ module.exports = {
     registerVehicle,
     approveRegistration,
     rejectRequest,
-    updateVehicleStatusController, // Added vehicle status update controller
+    updateVehicleStatusController,
     transferOwnership,
     approveTransfer,
     fetchPendingVehicles,
     getRegisteredVehicles,
     getUserVehiclesController,
-    rejectRequest,
     uploadVehicleDocument,
     fetchDocumentsByVehicleId
 };
-
