@@ -33,9 +33,8 @@ const fetchPendingTransfers = async (req, res) => {
     const transactionType = 'Ownership Transfer'; // Hardcoded for vehicle registrations
 
     try {
-        const result = await getTransactions(transactionStatus, transactionType);
-        console.log(result.recordset);
-        res.status(200).json(result.recordset); // Assuming recordset contains the transaction data
+        const transactions = await getTransactions(transactionStatus, transactionType);
+        res.status(200).json(transactions); // Assuming recordset contains the transaction data
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }
