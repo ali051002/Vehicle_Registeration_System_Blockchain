@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { FaCarAlt, FaUser, FaClock, FaSpinner, FaFileAlt, FaSearch } from "react-icons/fa"
 import SideNavBar from "../components/SideNavBar"
 import TopNavBar from "../components/TopNavBar"
-import {AuthContext} from "../context/AuthContext"
+import { AuthContext } from "../context/AuthContext"
 import { jwtDecode } from "jwt-decode"
 import Swal from "sweetalert2"
 
@@ -179,29 +179,6 @@ const Transactions = () => {
     setPreviewTransaction(transaction)
   }
 
-  // Helper function to convert ArrayBuffer to Base64
-  const arrayBufferToBase64 = (buffer) => {
-    let binary = ""
-    const bytes = new Uint8Array(buffer)
-    const len = bytes.byteLength
-
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i])
-    }
-
-    return btoa(binary)
-  }
-
-  // Helper function to download a Base64 string as a PDF file
-  const downloadBase64AsPDF = (base64String, filename) => {
-    const link = document.createElement("a")
-    link.href = `data:application/pdf;base64,${base64String}`
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   const handleDownloadPDF = async (transactionId) => {
     setIsGenerating(true)
     try {
@@ -223,18 +200,20 @@ const Transactions = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          responseType: "arraybuffer", // Changed from 'blob' to 'arraybuffer'
+          responseType: "blob", // Use blob for binary data like PDFs
         },
       )
 
-      // Convert ArrayBuffer to Base64
-      const base64String = arrayBufferToBase64(response.data)
-
-      // Store the base64 string in state if needed
-      setPdfBase64(base64String)
-
-      // Download the PDF using the base64 data
-      downloadBase64AsPDF(base64String, `transaction-${transactionId}.pdf`)
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], { type: "application/pdf" })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", `transaction-${transactionId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
 
       Swal.fire({
         icon: "success",
@@ -273,18 +252,20 @@ const Transactions = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          responseType: "arraybuffer", // Changed from 'blob' to 'arraybuffer'
+          responseType: "blob", // Use blob for binary data like PDFs
         },
       )
 
-      // Convert ArrayBuffer to Base64
-      const base64String = arrayBufferToBase64(response.data)
-
-      // Store the base64 string in state if needed
-      setPdfBase64(base64String)
-
-      // Download the PDF using the base64 data
-      downloadBase64AsPDF(base64String, "all-transactions.pdf")
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], { type: "application/pdf" })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", "all-transactions.pdf")
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
 
       Swal.fire({
         icon: "success",

@@ -210,7 +210,7 @@ const App = () => {
             path="/comppleted-payments"
             element={
               <PrivateRoute role="government official">
-                <PaidTransactions />
+                <PaidTransactions/>
               </PrivateRoute>
             }
           />
