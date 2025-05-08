@@ -505,6 +505,7 @@ const PaidTransactions = () => {
             },
           }
 
+          // Send the email notification
           await axios.post(
             "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-email",
             emailData,
@@ -517,25 +518,40 @@ const PaidTransactions = () => {
           )
 
           console.log("E-Tag generation email notification sent successfully")
+
+          Swal.fire({
+            title: "E-Tag Generated Successfully",
+            html: `
+            <div class="text-center">
+              <p class="mb-4">The E-Tag has been generated and assigned to the vehicle.</p>
+              <div class="bg-gray-100 p-4 rounded-lg inline-block">
+                <span class="font-bold text-xl">${response.data.registrationNumber}</span>
+              </div>
+              <p class="mt-4">A confirmation email has been sent to ${userEmail}</p>
+            </div>
+          `,
+            icon: "success",
+            confirmButtonColor: "#F38120",
+          })
         } catch (emailError) {
           console.error("Failed to send email notification:", emailError)
-          // We don't want to block the E-Tag generation process if email fails
-        }
 
-        Swal.fire({
-          title: "E-Tag Generated Successfully",
-          html: `
-          <div class="text-center">
-            <p class="mb-4">The E-Tag has been generated and assigned to the vehicle.</p>
-            <div class="bg-gray-100 p-4 rounded-lg inline-block">
-              <span class="font-bold text-xl">${response.data.registrationNumber}</span>
+          // Show success message but mention email failure
+          Swal.fire({
+            title: "E-Tag Generated Successfully",
+            html: `
+            <div class="text-center">
+              <p class="mb-4">The E-Tag has been generated and assigned to the vehicle.</p>
+              <div class="bg-gray-100 p-4 rounded-lg inline-block">
+                <span class="font-bold text-xl">${response.data.registrationNumber}</span>
+              </div>
+              <p class="mt-4 text-orange-500">Note: Could not send email notification. Please inform the vehicle owner manually.</p>
             </div>
-            <p class="mt-4">A confirmation email has been sent to the vehicle owner.</p>
-          </div>
-        `,
-          icon: "success",
-          confirmButtonColor: "#F38120",
-        })
+          `,
+            icon: "success",
+            confirmButtonColor: "#F38120",
+          })
+        }
 
         // Refresh the transactions list to show updated status
         fetchPaidTransactions()
