@@ -607,7 +607,6 @@ const BlockchainExplorer = () => {
           blockchainRegistered: true,
           blockchainTxHash: response.data.txHash,
         })
-        // Update the blockchain registered numbers to reflect the new registration
         setBlockchainRegisteredNumbers([...blockchainRegisteredNumbers, registrationNo])
         Swal.fire({
           icon: "success",
@@ -628,6 +627,71 @@ const BlockchainExplorer = () => {
       Swal.fire({
         title: "Error",
         text: error.response?.data?.message || "Failed to register the vehicle on the blockchain. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#F38120",
+      })
+    }
+  }
+
+  // Function to handle approving vehicle registration with UI feedback
+  const handleApproveRegistration = async (transactionId, approvedBy) => {
+    try {
+      Swal.fire({
+        title: "Approving Registration",
+        text: "Please wait while we approve the vehicle registration...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading()
+        },
+      })
+
+      const response = await axios.post(
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/approveRegistration",
+        {
+          transactionId,
+          approvedBy,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      )
+
+      if (response.data && response.data.registrationNumber) {
+        // Update the vehicle list to reflect the new registration number
+        setVehicles((prevVehicles) =>
+          prevVehicles.map((vehicle) =>
+            vehicle.id === selectedVehicle.id
+              ? { ...vehicle, registrationNumber: response.data.registrationNumber }
+              : vehicle
+          )
+        )
+        setFilteredVehicles((prevVehicles) =>
+          prevVehicles.map((vehicle) =>
+            vehicle.id === selectedVehicle.id
+              ? { ...vehicle, registrationNumber: response.data.registrationNumber }
+              : vehicle
+          )
+        )
+        setSelectedVehicle((prev) => ({
+          ...prev,
+          registrationNumber: response.data.registrationNumber,
+        }))
+
+        Swal.fire({
+          icon: "success",
+          title: "Registration Approved",
+          html: `Vehicle registration approved successfully. E-Tag: <strong>${response.data.registrationNumber}</strong><br>Email notification has been sent to the owner.`,
+          confirmButtonColor: "#F38120",
+        })
+      }
+    } catch (error) {
+      console.error("Error approving registration:", error)
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.msg || "Failed to approve the vehicle registration. Please try again.",
         icon: "error",
         confirmButtonColor: "#F38120",
       })
@@ -863,6 +927,18 @@ const BlockchainExplorer = () => {
                                 </p>
                               </div>
                             </div>
+                            {/* Add Approve Button if the vehicle is not yet registered */}
+                            {!selectedVehicle.registrationNumber && (
+                              <div className="mt-4">
+                                <button
+                                  onClick={() => handleApproveRegistration(selectedVehicle.transactionId, userId)}
+                                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+                                >
+                                  <FaCheckCircle className="mr-2" />
+                                  Approve Registration
+                                </button>
+                              </div>
+                            )}
                           </div>
 
                           <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-4 flex items-center">
