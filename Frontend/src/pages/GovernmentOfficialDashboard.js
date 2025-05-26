@@ -1,6 +1,7 @@
-"use client"
+
 
 import React, { useState, useContext } from "react"
+import UserProfile from "../components/UserProfile"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   FaClipboardList,
@@ -16,26 +17,27 @@ import { useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import SideNavBar from "../components/SideNavBar"
 import TopNavBar from "../components/TopNavBar"
+
 const FeatureCard = ({ icon, title, description, onClick }) => {
   return (
     <motion.div
-      className="bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg overflow-hidden cursor-pointer"
+      className="bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-lg overflow-hidden cursor-pointer h-48 flex flex-col"
       whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(243, 129, 32, 0.3)" }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
     >
-      <div className="p-6">
+      <div className="p-6 flex-1 flex flex-col">
         <div className="flex items-center mb-4">
           <motion.div
-            className="w-12 h-12 bg-gradient-to-r from-[#F38120] to-[#F3A620] rounded-full flex items-center justify-center mr-4"
+            className="w-12 h-12 bg-gradient-to-r from-[#F38120] to-[#F3A620] rounded-full flex items-center justify-center mr-4 flex-shrink-0"
             whileHover={{ rotate: 360, scale: 1.1 }}
             transition={{ duration: 0.5 }}
           >
             {React.cloneElement(icon, { className: "text-white w-6 h-6" })}
           </motion.div>
-          <h3 className="text-xl font-bold text-[#4A4D52]">{title}</h3>
+          <h3 className="text-xl font-bold text-[#4A4D52] leading-tight">{title}</h3>
         </div>
-        <p className="text-gray-600">{description}</p>
+        <p className="text-gray-600 flex-1 text-sm leading-relaxed">{description}</p>
         <motion.div
           className="mt-4 flex justify-end"
           whileHover={{ x: 5 }}
@@ -188,7 +190,7 @@ const GovernmentOfficialDashboard = () => {
           </motion.div>
         </main>
       </div>
-      <AnimatePresence></AnimatePresence>
+      <AnimatePresence>{profileOpen && <UserProfile user={user} onClose={toggleProfile} />}</AnimatePresence>
     </div>
   )
 }
