@@ -35,12 +35,12 @@ const EtagTransfer = () => {
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-10">
           <motion.h1
-            className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620] mb-8"
+            className="text-4xl font-bold text-[#F38120] text-center"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            🚩 E-Tag Transfer
+             E-Tag Transfer
           </motion.h1>
 
           {/* TODO: build out your E-Tag transfer UI here */}

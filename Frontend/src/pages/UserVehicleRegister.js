@@ -223,7 +223,7 @@ export default function UserVehicleRegister() {
             transition={{ duration: 0.5 }}
             className="mb-6"
           >
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620] text-center">
+            <h1 className="text-4xl font-bold text-[#F38120] text-center">
               Vehicle Registration
             </h1>
           </motion.div>
