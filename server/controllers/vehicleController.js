@@ -354,14 +354,14 @@ const {
   
   // Request ownership transfer
   const transferOwnership = async (req, res) => {
-    const { vehicleId, currentOwnerId, newOwnerCnic, transferFee } = req.body
+    const { vehicleId, currentOwnerId, newOwnerCnic} = req.body
   
-    if (!vehicleId || !currentOwnerId || !newOwnerCnic || !transferFee) {
+    if (!vehicleId || !currentOwnerId || !newOwnerCnic) {
       return res.status(400).json({ msg: "All required fields must be provided" })
     }
   
     try {
-      await requestOwnershipTransfer(vehicleId, currentOwnerId, newOwnerCnic, transferFee)
+      await requestOwnershipTransfer(vehicleId, currentOwnerId, newOwnerCnic)
       res.status(200).json({ msg: "Ownership transfer requested successfully." })
     } catch (err) {
       res.status(500).json({ msg: err.message })

@@ -299,13 +299,12 @@ const rejectVehicleRequest = async (transactionId) => {
         .execute('RejectVehicleRequest');
 };
 
-const requestOwnershipTransfer = async (vehicleId, currentOwnerId, newOwnerCnic, transferFee) => {
+const requestOwnershipTransfer = async (vehicleId, currentOwnerId, newOwnerCnic) => {
     const pool = await poolPromise;
     return pool.request()
         .input('VehicleId', sql.UniqueIdentifier, vehicleId)
         .input('CurrentOwnerId', sql.UniqueIdentifier, currentOwnerId)
         .input('NewOwnerCnic', sql.NVarChar(15), newOwnerCnic)
-        .input('TransferFee', sql.Decimal(18, 2), transferFee)
         .execute('RequestOwnershipTransfer');
 };
 
