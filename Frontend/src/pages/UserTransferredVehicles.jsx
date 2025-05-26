@@ -147,7 +147,7 @@ const UserTransferredVehicles = () => {
 
         // Fetch all approved ownership transfer transactions
         const response = await axios.get(
-          "http://localhost:8085/api/getTransactions?transactionStatus=Approved&transactionType=OwnershipTransfer",
+          "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/getTransactions?transactionStatus=Approved&transactionType=OwnershipTransfer",
         )
 
         // Filter transactions where the current user was the previous owner (transferred by user)
