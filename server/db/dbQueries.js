@@ -675,9 +675,73 @@ const createChallan = async (vehicleId, amount, type) => {
 };
 
 
-  
-  
-  
+const getRegisteredVehiclesByUserId = async (userId) => {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('UserId', sql.UniqueIdentifier, userId)
+            .execute('sp_GetRegisteredVehiclesByUserId');
+        return result.recordset;
+    } catch (err) {
+        console.error('getRegisteredVehiclesByUserId:', err);
+        throw new Error('Failed to fetch registered vehicles');
+    }
+};
+
+
+const getUnregisteredVehiclesByUserId = async (userId) => {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('UserId', sql.UniqueIdentifier, userId)
+            .execute('sp_GetUnregisteredVehiclesByUserId');
+        return result.recordset;
+    } catch (err) {
+        console.error('getUnregisteredVehiclesByUserId:', err);
+        throw new Error('Failed to fetch unregistered vehicles');
+    }
+};
+
+const createEtagTransferRequest = async (OldVehicleId, NewVehicleId, AmountIfCharged) => {
+    try {
+        const pool = await poolPromise;
+        const request = pool.request()
+            .input('OldVehicleId', sql.UniqueIdentifier, OldVehicleId)
+            .input('NewVehicleId', sql.UniqueIdentifier, NewVehicleId)
+            .input('AmountIfCharged', sql.Decimal(10, 2), AmountIfCharged)
+            .output('OutTransactionId', sql.UniqueIdentifier)
+            .output('OutFeeRequired', sql.Bit)
+            .output('OutAmount', sql.Decimal(10, 2));
+
+
+        const result = await request.execute('sp_CreateEtagTransferRequest');
+
+        return {
+            transactionId: result.output.OutTransactionId,
+            feeRequired: result.output.OutFeeRequired,
+            amount: result.output.OutAmount
+        };
+    } catch (err) {
+        console.error('createEtagTransferRequest error:', err);
+        throw new Error('Failed to create E-Tag transfer request');
+    }
+};
+
+
+
+const finalizeEtagTransfer = async (TransactionId) => {
+    try {
+        const pool = await poolPromise;
+        await pool.request()
+            .input('TransactionId', sql.UniqueIdentifier, TransactionId)
+            .execute('sp_FinalizeEtagTransfer');
+    } catch (err) {
+        console.error('finalizeEtagTransfer:', err);
+        throw new Error('Failed to finalize E-Tag transfer');
+    }
+};
+
+ 
 module.exports = {
     createUser,
     getUserByEmail,
@@ -722,5 +786,9 @@ module.exports = {
     updateChallanPayment,
     getChallanDetailsByUserId,
     getChallanDetailsByChallanId,
-    getPaidTransactions
+    getPaidTransactions,
+    getRegisteredVehiclesByUserId,
+    getUnregisteredVehiclesByUserId,
+    createEtagTransferRequest,
+    finalizeEtagTransfer
 }

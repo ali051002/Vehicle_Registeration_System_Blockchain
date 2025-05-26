@@ -10,6 +10,7 @@ const transactionRoute = require('./routes/transactionRoutes');
 const inspectionRoutes = require('./routes/inspectionRoutes');
 const challanRoutes = require('./routes/challanRoutes');
 const blockchainRoutes = require('./routes/blockchainRoutes');
+const etagRoutes = require('./routes/eTagTransferRoutes');
 const { stripeWebhook } = require('./controllers/challanController');
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api', emailRoutes);
 app.use('/api', otpRoutes);
 app.use('/api', inspectionRoutes);
 app.use('/api', challanRoutes);
+app.use('/api', etagRoutes);
 app.use('/api/blockchain', blockchainRoutes);
 
 
