@@ -79,14 +79,14 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
       ],
     },
     {
-      role: 'InspectionOfficer',
-      links: [
-        { path: '/inspector-dashboard', label: 'Dashboard', icon: <FaWrench /> },
-        { path: '/inspect-request', label: 'request', icon: <FaTools /> },
-       
-        
-      ],
-    },
+  role: 'InspectionOfficer',
+  links: [
+    { path: '/inspector-dashboard', label: 'Dashboard',       icon: <FaWrench /> },
+    { path: '/inspect-request',     label: 'Requests',        icon: <FaTools />  },
+    { path: '/etag-transfer',       label: 'E-Tag Transfer',  icon: <FaTag />    },  // ← NEW
+  ],
+},
+
   ];
 
   // Filter links for the current userRole
