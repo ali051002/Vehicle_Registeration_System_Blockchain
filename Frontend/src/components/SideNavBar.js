@@ -71,7 +71,7 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
         { path: '/govt-change-password', label: 'Change Password', icon: <FaKey /> },
         { path: '/vehicle-registry', label: 'Vehicle Registry', icon: <FaCarAlt /> },
         { path: '/edit-govt', label: 'Edit Profile', icon: <FaEdit /> },
-        { path: '/comppleted-payments', label: 'E-Tage', icon: <FaTag/> },
+        { path: '/comppleted-payments', label: 'E-Tag', icon: <FaTag/> },
         
 
        
@@ -83,7 +83,7 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
       links: [
         { path: '/inspector-dashboard', label: 'Dashboard', icon: <FaWrench /> },
         { path: '/inspect-request', label: 'request', icon: <FaTools /> },
-        {path: '/vehicle-details/:vehicleId', label: 'Vehicle Details', icon: <FaCarAlt />},
+       
         
       ],
     },
