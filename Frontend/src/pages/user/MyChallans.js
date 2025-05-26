@@ -15,6 +15,7 @@ import {
   FaBarcode,
   FaPhone,
   FaCreditCard,
+  FaFilter,
 } from "react-icons/fa"
 import { AuthContext } from "../../context/AuthContext"
 import SideNavBar from "../../components/SideNavBar"
@@ -45,12 +46,22 @@ const Row = ({ label, icon: Icon, value, isDate }) => {
 /* -------------------------------------------------------------------------- */
 const ChallanCard = ({ challan, onPayNow }) => (
   <motion.div
-    className="bg-white rounded-lg shadow-lg overflow-hidden h-full"
+    className="bg-white rounded-lg shadow-lg overflow-hidden h-full border-l-4 border-[#F38120]"
     whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(243, 129, 32, 0.3)" }}
     whileTap={{ scale: 0.98 }}
   >
     <div className="p-6 flex flex-col h-full">
-      <h3 className="text-xl font-bold text-[#4A4D52] mb-4">{challan.ChallanId}</h3>
+      {/* Challan Header with Type Badge */}
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-xl font-bold text-[#4A4D52]">{challan.ChallanId}</h3>
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            challan.Type === "OwnershipTransfer" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
+          }`}
+        >
+          {challan.Type}
+        </span>
+      </div>
 
       <div className="grid grid-cols-2 gap-4 flex-grow">
         <Row label="Amount" icon={FaMoneyBillWave} value={`$ ${challan.Amount}`} />
@@ -179,10 +190,12 @@ const UserMyChallans = () => {
   const { logout } = useContext(AuthContext)
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [challans, setChallans] = useState([])
+  const [allChallans, setAllChallans] = useState([]) // Store all challans
+  const [filteredChallans, setFilteredChallans] = useState([]) // Store filtered challans
   const [selectedChallan, setSelectedChallan] = useState(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [selectedFilter, setSelectedFilter] = useState("All") // "All", "OwnershipTransfer", "Registration"
 
   /* ── get userId from stored JWT ────────────────────────────────────────── */
   const token = localStorage.getItem("token")
@@ -207,7 +220,9 @@ const UserMyChallans = () => {
             headers: { Authorization: `Bearer ${token}` },
           },
         )
-        setChallans(Array.isArray(data) ? data : [])
+        const challansData = Array.isArray(data) ? data : []
+        setAllChallans(challansData)
+        setFilteredChallans(challansData) // Initially show all
       } catch (err) {
         console.error(err)
         Swal.fire("Error", "Failed to fetch challans", "error")
@@ -215,6 +230,15 @@ const UserMyChallans = () => {
     }
     fetchChallans()
   }, [userId, token])
+
+  /* ── Filter challans based on selected type ──────────────────────────── */
+  useEffect(() => {
+    if (selectedFilter === "All") {
+      setFilteredChallans(allChallans)
+    } else {
+      setFilteredChallans(allChallans.filter((challan) => challan.Type === selectedFilter))
+    }
+  }, [selectedFilter, allChallans])
 
   const handleLogout = () => {
     logout()
@@ -298,6 +322,11 @@ const UserMyChallans = () => {
     }
   }
 
+  // Calculate counts for each type
+  const allCount = allChallans.length
+  const ownershipTransferCount = allChallans.filter((c) => c.Type === "OwnershipTransfer").length
+  const registrationCount = allChallans.filter((c) => c.Type === "Registration").length
+
   /* ── UI ──────────────────────────────────────────────────────────────── */
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
@@ -320,36 +349,128 @@ const UserMyChallans = () => {
               className="mb-10"
             >
               <h1 className="text-4xl font-bold text-[#F38120] text-center">My Challans</h1>
+              <p className="text-center text-gray-600 mt-2">View and manage your vehicle challans</p>
             </motion.div>
 
-            <AnimatePresence>
+            {/* ✅ Filter Toggle Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="flex justify-center mb-8"
+            >
+              <div className="bg-white rounded-lg shadow-lg p-1 flex">
+                <button
+                  onClick={() => setSelectedFilter("All")}
+                  className={`px-6 py-3 rounded-md font-semibold transition-all duration-300 flex items-center ${
+                    selectedFilter === "All"
+                      ? "bg-[#F38120] text-white shadow-md"
+                      : "text-gray-600 hover:text-[#F38120]"
+                  }`}
+                >
+                  <FaFilter className="mr-2" />
+                  All Challans ({allCount})
+                </button>
+                <button
+                  onClick={() => setSelectedFilter("OwnershipTransfer")}
+                  className={`px-6 py-3 rounded-md font-semibold transition-all duration-300 flex items-center ${
+                    selectedFilter === "OwnershipTransfer"
+                      ? "bg-[#F38120] text-white shadow-md"
+                      : "text-gray-600 hover:text-[#F38120]"
+                  }`}
+                >
+                  <FaIdCard className="mr-2" />
+                  Ownership Transfer ({ownershipTransferCount})
+                </button>
+                <button
+                  onClick={() => setSelectedFilter("Registration")}
+                  className={`px-6 py-3 rounded-md font-semibold transition-all duration-300 flex items-center ${
+                    selectedFilter === "Registration"
+                      ? "bg-[#F38120] text-white shadow-md"
+                      : "text-gray-600 hover:text-[#F38120]"
+                  }`}
+                >
+                  <FaCar className="mr-2" />
+                  Registration ({registrationCount})
+                </button>
+              </div>
+            </motion.div>
+
+            {/* ✅ Stats Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-gradient-to-r from-[#F38120] to-[#DC5F00] rounded-lg shadow-lg p-6 mb-8"
+            >
+              <div className="flex items-center justify-between text-white">
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {selectedFilter === "All"
+                      ? "Total Challans"
+                      : selectedFilter === "OwnershipTransfer"
+                        ? "Ownership Transfer Challans"
+                        : "Registration Challans"}
+                  </h3>
+                  <p className="text-3xl font-bold">{filteredChallans.length}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm opacity-90">
+                    Pending: {filteredChallans.filter((c) => c.PaymentStatus === "Pending").length}
+                  </p>
+                  <p className="text-sm opacity-90">
+                    Paid: {filteredChallans.filter((c) => c.PaymentStatus === "Paid").length}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            <AnimatePresence mode="wait">
               <motion.div
+                key={selectedFilter}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, staggerChildren: 0.1 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, staggerChildren: 0.1 }}
               >
-                {challans.length ? (
-                  challans.map((c) => (
+                {filteredChallans.length ? (
+                  filteredChallans.map((c, index) => (
                     <motion.div
                       key={c.ChallanId}
                       initial={{ opacity: 0, y: 50 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -50 }}
-                      transition={{ duration: 0.5 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
                       <ChallanCard challan={c} onPayNow={handlePayNow} />
                     </motion.div>
                   ))
                 ) : (
-                  <motion.p
-                    className="text-[#373A40] text-center col-span-full text-xl"
+                  <motion.div
+                    className="col-span-full text-center py-12"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.3 }}
                   >
-                    You do not have any challans.
-                  </motion.p>
+                    <div className="text-6xl text-gray-300 mb-4">
+                      {selectedFilter === "OwnershipTransfer" ? (
+                        <FaIdCard className="mx-auto" />
+                      ) : selectedFilter === "Registration" ? (
+                        <FaCar className="mx-auto" />
+                      ) : (
+                        <FaFilter className="mx-auto" />
+                      )}
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-500 mb-2">
+                      No {selectedFilter === "All" ? "" : selectedFilter} Challans Found
+                    </h3>
+                    <p className="text-gray-400">
+                      {selectedFilter === "All"
+                        ? "You don't have any challans yet."
+                        : `You don't have any ${selectedFilter.toLowerCase()} challans.`}
+                    </p>
+                  </motion.div>
                 )}
               </motion.div>
             </AnimatePresence>
@@ -369,4 +490,4 @@ const UserMyChallans = () => {
   )
 }
 
-export default UserMyChallans;
+export default UserMyChallans

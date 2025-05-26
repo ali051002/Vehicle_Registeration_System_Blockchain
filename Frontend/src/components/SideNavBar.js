@@ -72,6 +72,7 @@ const SideNavBar = ({ logout, navOpen, userRole }) => {
         { path: '/vehicle-registry', label: 'Vehicle Registry', icon: <FaCarAlt /> },
         { path: '/edit-govt', label: 'Edit Profile', icon: <FaEdit /> },
         { path: '/comppleted-payments', label: 'E-Tag', icon: <FaTag/> },
+        { path: '/pending-ownership', label: 'E-Tag', icon: <FaTag/> }
         
 
        

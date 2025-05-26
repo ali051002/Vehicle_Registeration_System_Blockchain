@@ -37,6 +37,7 @@ import TransactionDetails from "./pages/govt-official/TransactionDetails"
 import UserVehiclesWithEtag from "./pages/user/UserVehicleswithEtag"
 import BlockchainExplorer from "./pages/govt-official/BlockChainExplorer"
 import EtagTransfer from "./pages/EtagTransfer"
+import PendingTransfersManagement from "./pages/govt-official/PendingTransferManagement"
 
 const App = () => {
   return (
@@ -285,8 +286,15 @@ const App = () => {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/pending-ownership"
+            element={
+              <PrivateRoute role="government official">
+                <PendingTransfersManagement />
+              </PrivateRoute>
+            }
 
-
+          />
           {/* Fallback Route */}
           <Route path="*" element={<RedesignedUnauthorizedPage />} />
         </Routes>
