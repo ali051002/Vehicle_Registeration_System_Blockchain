@@ -223,12 +223,13 @@ const InspectionOfficerRequests = () => {
         <SideNavBar navOpen={sidebarOpen} toggleNav={() => setSidebarOpen(!sidebarOpen)} userRole="InspectionOfficer" />
         <main className="flex-1 overflow-y-auto p-6 lg:p-10">
           <motion.h1
-            className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620] mb-8 text-center"
+            className="text-4xl font-bold text-[#F38120] bg-clip-text bg-gradient-to-r from-[#F38120] to-[#F3A620] mb-8 text-center"
+            // text-4xl font-bold text-[#F38120] text-center
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            🚗 Inspection Requests
+             Inspection Requests
           </motion.h1>
 
           {/* Two Column Layout */}

@@ -36,6 +36,7 @@ import PaidTransactions from "./pages/govt-official/PaidTransactions"
 import TransactionDetails from "./pages/govt-official/TransactionDetails"
 import UserVehiclesWithEtag from "./pages/user/UserVehicleswithEtag"
 import BlockchainExplorer from "./pages/govt-official/BlockChainExplorer"
+import EtagTransfer from "./pages/EtagTransfer"
 
 const App = () => {
   return (
@@ -148,7 +149,7 @@ const App = () => {
               </PrivateRoute>
             }
           />
-            <Route
+          <Route
             path="/e-tagcars"
             element={
               <PrivateRoute role="user">
@@ -188,6 +189,15 @@ const App = () => {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/etag-transfer"
+            element={
+              <PrivateRoute role="InspectionOfficer">
+                <EtagTransfer />
+              </PrivateRoute>
+            }
+          />
+
 
           {/* Government Official Routes (restricted to role="government official") */}
           <Route
@@ -210,7 +220,7 @@ const App = () => {
             path="/comppleted-payments"
             element={
               <PrivateRoute role="government official">
-                <PaidTransactions/>
+                <PaidTransactions />
               </PrivateRoute>
             }
           />
@@ -223,15 +233,15 @@ const App = () => {
             }
           />
 
-        <Route
+          <Route
             path="/explorer"
             element={
               <PrivateRoute role="government official">
-                <BlockchainExplorer/>
+                <BlockchainExplorer />
               </PrivateRoute>
             }
           />
-          
+
 
           <Route
             path="/transaction-details/:transactionId"
@@ -275,9 +285,9 @@ const App = () => {
               </PrivateRoute>
             }
           />
-         
 
-         {/* Fallback Route */}
+
+          {/* Fallback Route */}
           <Route path="*" element={<RedesignedUnauthorizedPage />} />
         </Routes>
       </Router>
