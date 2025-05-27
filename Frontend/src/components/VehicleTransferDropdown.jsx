@@ -38,7 +38,7 @@ const VehicleTransferDropdown = ({ onTransferInitiated }) => {
     try {
       // Fetch registered vehicles for "From" dropdown (vehicles with E-Tags)
       const fromResponse = await axios.get(
-        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles/registered/${userId}`,
+        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/etag/vehicles/registered/${userId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -46,7 +46,7 @@ const VehicleTransferDropdown = ({ onTransferInitiated }) => {
 
       // Fetch unregistered vehicles for "To" dropdown (vehicles without E-Tags)
       const toResponse = await axios.get(
-        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles/unregistered/${userId}`,
+        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/etag/vehicles/unregistered/${userId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
