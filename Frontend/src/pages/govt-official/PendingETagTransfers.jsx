@@ -16,8 +16,8 @@ import {
   FaCalendarAlt,
   FaClipboardCheck,
 } from "react-icons/fa"
-import SideNavBar from "../components/SideNavBar"
-import TopNavBar from "../components/TopNavBar"
+import SideNavBar from "../../components/SideNavBar"
+import TopNavBar from "../../components/TopNavBar"
 import { jwtDecode } from "jwt-decode"
 
 const PendingEtagTransfers = () => {
@@ -105,7 +105,7 @@ const PendingEtagTransfers = () => {
       console.log("Fetching pending E-Tag transfers for user:", currentUser?.userId)
 
       // Fetch pending E-Tag transfers with JWT token
-      const response = await axios.get("http://localhost:8085/api/transactions", {
+      const response = await axios.get("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions", {
         params: {
           transactionStatus: "PendingApproval",
           transactionType: "EtagTransfer",
@@ -180,7 +180,7 @@ const PendingEtagTransfers = () => {
 
       // Call the send-inspection-request API with proper headers
       const response = await axios.post(
-        "http://localhost:8085/api/send-inspection-request",
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-inspection-request",
         {
           transactionId: transferId,
           requestType: "EtagTransfer",

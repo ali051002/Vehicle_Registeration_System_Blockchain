@@ -173,7 +173,7 @@ const VehicleTransferDropdown = ({ onTransferInitiated }) => {
 
       // Call your E-Tag transfer request API
       const transferResponse = await axios.post(
-        "http://localhost:8085/api/etag/request-transfer",
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/etag/request-transfer",
         {
           oldVehicleId: selectedFromVehicle,
           newVehicleId: selectedToVehicle,
