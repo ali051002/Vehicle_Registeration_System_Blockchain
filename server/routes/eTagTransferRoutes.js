@@ -8,8 +8,8 @@ const {
 } = require('../controllers/eTagTransferController');
 
 
-router.get('/vehicles/registered/:userId', getRegisteredVehiclesController);
-router.get('/vehicles/unregistered/:userId', getUnregisteredVehiclesController);
+router.get('/etag/vehicles/registered/:userId', getRegisteredVehiclesController);
+router.get('/etag/vehicles/unregistered/:userId', getUnregisteredVehiclesController);
 
 
 router.post('/etag/request-transfer', requestEtagTransferController);

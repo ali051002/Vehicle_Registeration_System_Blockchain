@@ -38,7 +38,7 @@ import UserVehiclesWithEtag from "./pages/user/UserVehicleswithEtag"
 import BlockchainExplorer from "./pages/govt-official/BlockChainExplorer"
 import EtagTransfer from "./pages/EtagTransfer"
 import PendingTransfersManagement from "./pages/govt-official/PendingTransferManagement"
-
+import PendingEtagTransfers from "./pages/govt-official/PendingETagTransfers"
 const App = () => {
   return (
     <AuthProvider>
@@ -295,6 +295,18 @@ const App = () => {
             }
 
           />
+
+   <Route
+            path="/pending-etag-transfers"
+            element={
+              <PrivateRoute role="government official">
+                <PendingEtagTransfers />
+              </PrivateRoute>
+            }
+
+          />
+
+
           {/* Fallback Route */}
           <Route path="*" element={<RedesignedUnauthorizedPage />} />
         </Routes>
