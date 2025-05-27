@@ -32,7 +32,7 @@ const VehicleTransferDropdown = ({ onTransferInitiated }) => {
       fetchVehicleData()
     }
   }, [userId])
-
+   console.log(userId)
   const fetchVehicleData = async () => {
     setLoading(true)
     try {
