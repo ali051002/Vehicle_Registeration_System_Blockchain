@@ -15,10 +15,8 @@ import {
   FaSearch,
   FaFilter,
   FaSyncAlt,
-  FaDownload,
   FaFileAlt,
   FaCubes,
-  FaSpinner,
 } from "react-icons/fa"
 import { AuthContext } from "../../context/AuthContext"
 import SideNavBar from "../../components/SideNavBar"
@@ -26,6 +24,7 @@ import TopNavBar from "../../components/TopNavBar"
 import axios from "axios"
 import { jwtDecode } from "jwt-decode"
 import Swal from "sweetalert2"
+import VehicleTransferDropdown from "../../components/VehicleTransferDropdown"
 
 const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockchain, isRegistering }) => {
   // Determine if this vehicle has an E-Tag
@@ -179,7 +178,6 @@ const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockc
 
         {/* Action Buttons */}
         <div className="mt-4 flex flex-wrap justify-end gap-2">
-
           {hasEtag && (
             <button
               className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md flex items-center text-sm transition-colors"
@@ -204,7 +202,6 @@ const VehicleCard = ({ vehicle, transactionData, onDownloadPDF, onRegisterBlockc
               View E-Tag
             </button>
           )}
-         
         </div>
       </div>
     </motion.div>
@@ -680,6 +677,16 @@ const UserVehiclesWithEtag = () => {
                   </div>
                 </div>
               </div>
+            </motion.div>
+
+            {/* E-Tag Transfer Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="mb-8"
+            >
+              <VehicleTransferDropdown onTransferInitiated={refreshData} />
             </motion.div>
 
             {/* Vehicles Grid */}
