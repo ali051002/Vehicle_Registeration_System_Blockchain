@@ -32,35 +32,70 @@ const VehicleTransferDropdown = ({ onTransferInitiated }) => {
       fetchVehicleData()
     }
   }, [userId])
-   console.log(userId)
+
   const fetchVehicleData = async () => {
     setLoading(true)
     try {
       // Fetch registered vehicles for "From" dropdown (vehicles with E-Tags)
-      const fromResponse = await axios.get(`http://localhost:8085/api/vehicles/registered/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const fromResponse = await axios.get(
+        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles/registered/${userId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
 
       // Fetch unregistered vehicles for "To" dropdown (vehicles without E-Tags)
-      const toResponse = await axios.get(`http://localhost:8085/api/vehicles/unregistered/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const toResponse = await axios.get(
+        `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicles/unregistered/${userId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
 
       console.log("From vehicles response:", fromResponse.data)
       console.log("To vehicles response:", toResponse.data)
 
-      // Your controller returns the vehicles directly as an array
-      const registeredVehicles = fromResponse.data || []
-      const unregisteredVehicles = toResponse.data || []
+      // Handle different possible response formats
+      let registeredVehicles = []
+      let unregisteredVehicles = []
 
-      console.log("Registered vehicles:", registeredVehicles)
-      console.log("Unregistered vehicles:", unregisteredVehicles)
+      // Check if response.data is an array or has a data property
+      if (Array.isArray(fromResponse.data)) {
+        registeredVehicles = fromResponse.data
+      } else if (fromResponse.data && Array.isArray(fromResponse.data.data)) {
+        registeredVehicles = fromResponse.data.data
+      } else if (fromResponse.data && typeof fromResponse.data === "object") {
+        // If it's an object but not an array, try to extract vehicles
+        registeredVehicles = Object.values(fromResponse.data).filter(
+          (item) => item && typeof item === "object" && item.value && item.label,
+        )
+      }
 
-      // Set the vehicles directly since your controller already formats them for dropdown
-      setFromVehicles(registeredVehicles)
-      setToVehicles(unregisteredVehicles)
+      if (Array.isArray(toResponse.data)) {
+        unregisteredVehicles = toResponse.data
+      } else if (toResponse.data && Array.isArray(toResponse.data.data)) {
+        unregisteredVehicles = toResponse.data.data
+      } else if (toResponse.data && typeof toResponse.data === "object") {
+        // If it's an object but not an array, try to extract vehicles
+        unregisteredVehicles = Object.values(toResponse.data).filter(
+          (item) => item && typeof item === "object" && item.value && item.label,
+        )
+      }
+
+      console.log("Processed registered vehicles:", registeredVehicles)
+      console.log("Processed unregistered vehicles:", unregisteredVehicles)
+
+      // Ensure we always set arrays (even if empty)
+      setFromVehicles(Array.isArray(registeredVehicles) ? registeredVehicles : [])
+      setToVehicles(Array.isArray(unregisteredVehicles) ? unregisteredVehicles : [])
     } catch (error) {
       console.error("Error fetching vehicle data:", error)
+      console.error("Error details:", error.response?.data)
+
+      // Set empty arrays on error to prevent map errors
+      setFromVehicles([])
+      setToVehicles([])
+
       Swal.fire({
         title: "Error",
         text: "Failed to load vehicle data for transfer",
@@ -235,13 +270,16 @@ const VehicleTransferDropdown = ({ onTransferInitiated }) => {
             disabled={transferring}
           >
             <option value="">Select source vehicle...</option>
-            {fromVehicles.map((vehicle) => (
-              <option key={vehicle.value} value={vehicle.value}>
-                {vehicle.label}
-              </option>
-            ))}
+            {Array.isArray(fromVehicles) &&
+              fromVehicles.map((vehicle) => (
+                <option key={vehicle.value || vehicle.id} value={vehicle.value || vehicle.id}>
+                  {vehicle.label || `${vehicle.make} ${vehicle.model}`}
+                </option>
+              ))}
           </select>
-          {fromVehicles.length === 0 && <p className="text-sm text-gray-500 mt-1">No vehicles with E-Tags available</p>}
+          {(!Array.isArray(fromVehicles) || fromVehicles.length === 0) && (
+            <p className="text-sm text-gray-500 mt-1">No vehicles with E-Tags available</p>
+          )}
         </div>
 
         {/* To Vehicle Dropdown */}
@@ -257,13 +295,14 @@ const VehicleTransferDropdown = ({ onTransferInitiated }) => {
             disabled={transferring}
           >
             <option value="">Select destination vehicle...</option>
-            {toVehicles.map((vehicle) => (
-              <option key={vehicle.value} value={vehicle.value}>
-                {vehicle.label}
-              </option>
-            ))}
+            {Array.isArray(toVehicles) &&
+              toVehicles.map((vehicle) => (
+                <option key={vehicle.value || vehicle.id} value={vehicle.value || vehicle.id}>
+                  {vehicle.label || `${vehicle.make} ${vehicle.model}`}
+                </option>
+              ))}
           </select>
-          {toVehicles.length === 0 && (
+          {(!Array.isArray(toVehicles) || toVehicles.length === 0) && (
             <p className="text-sm text-gray-500 mt-1">No vehicles without E-Tags available</p>
           )}
         </div>

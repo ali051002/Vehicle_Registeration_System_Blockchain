@@ -39,7 +39,7 @@ const PendingTransfersManagement = () => {
     const fetchPendingTransfers = async () => {
       try {
         setLoading(true)
-        const response = await axios.get("http://localhost:8085/api/transactions/pendingtransfers")
+        const response = await axios.get("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transactions/pendingtransfers")
         const pendingTransfers = response.data
 
         // Enrich each transfer with user details and vehicle details
@@ -51,7 +51,7 @@ const PendingTransfersManagement = () => {
               transfer.blockchainRegistered = false
 
               // Fetch from-user details
-              const fromUserRes = await axios.get(`http://localhost:8085/api/user/${transfer.FromUserId}`)
+              const fromUserRes = await axios.get(`https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/user/${transfer.FromUserId}`)
               const fromUserData = fromUserRes.data
               transfer.FromUserCnic = fromUserData.cnic
               transfer.FromUserName = fromUserData.name
@@ -65,7 +65,7 @@ const PendingTransfersManagement = () => {
 
               // If ToUserId exists, fetch their details as well
               if (transfer.ToUserId) {
-                const toUserRes = await axios.get(`http://localhost:8085/api/user/${transfer.ToUserId}`)
+                const toUserRes = await axios.get(`https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/user/${transfer.ToUserId}`)
                 const toUserData = toUserRes.data
                 transfer.ToUserCnic = toUserData.cnic
                 transfer.ToUserName = toUserData.name
@@ -85,7 +85,7 @@ const PendingTransfersManagement = () => {
               // Fetch vehicle details to get E-Tag registration number
               try {
                 const vehicleRes = await axios.get(
-                  `http://localhost:8085/api/vehicleById?vehicleId=${transfer.VehicleId}`,
+                  `https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicleById?vehicleId=${transfer.VehicleId}`,
                 )
                 const vehicleData = vehicleRes.data
 
@@ -176,7 +176,7 @@ const PendingTransfersManagement = () => {
     try {
       // Database approval
       const response = await axios.post(
-        "http://localhost:8085/api/approveTransfer",
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/approveTransfer",
         { transactionId },
         {
           headers: {
@@ -206,7 +206,7 @@ const PendingTransfersManagement = () => {
       // Send email notifications
       if (transfer) {
         try {
-          await axios.post("http://localhost:8085/api/send-email", {
+          await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-email", {
             to: transfer.FromUserEmail,
             subject: "Ownership Transfer Approved",
             data: {
@@ -218,7 +218,7 @@ const PendingTransfersManagement = () => {
           })
 
           if (transfer.ToUserEmail && transfer.ToUserEmail !== "Pending") {
-            await axios.post("http://localhost:8085/api/send-email", {
+            await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-email", {
               to: transfer.ToUserEmail,
               subject: "Ownership Transfer Approved",
               data: {
@@ -298,7 +298,7 @@ const PendingTransfersManagement = () => {
       })
 
       const blockchainResponse = await axios.post(
-        "http://localhost:8085/api/blockchain/transfer-ownership",
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/blockchain/transfer-ownership",
         blockchainData,
         {
           headers: {
@@ -372,7 +372,7 @@ const PendingTransfersManagement = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8085/api/rejectTransfer",
+        "https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/rejectTransfer",
         { transactionId },
         {
           headers: {
@@ -398,7 +398,7 @@ const PendingTransfersManagement = () => {
       const rejectedTransfer = pendingTransfers.find((t) => t.TransactionId === transactionId)
       if (rejectedTransfer) {
         try {
-          await axios.post("http://localhost:8085/api/send-email", {
+          await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-email", {
             to: rejectedTransfer.FromUserEmail,
             subject: "Ownership Transfer Rejected",
             data: {
@@ -410,7 +410,7 @@ const PendingTransfersManagement = () => {
           })
 
           if (rejectedTransfer.ToUserEmail && rejectedTransfer.ToUserEmail !== "Pending") {
-            await axios.post("http://localhost:8085/api/send-email", {
+            await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/send-email", {
               to: rejectedTransfer.ToUserEmail,
               subject: "Ownership Transfer Rejected",
               data: {

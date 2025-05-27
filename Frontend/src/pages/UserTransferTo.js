@@ -37,7 +37,7 @@ const UserTransferTo = () => {
   useEffect(() => {
     const fetchVehicleDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:8085/api/vehicleById?vehicleId=${vehicleId}`)
+        const response = await axios.get(`https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/vehicleById?vehicleId=${vehicleId}`)
         setVehicle(response.data)
       } catch (error) {
         console.error("Error fetching vehicle details:", error)
@@ -106,7 +106,7 @@ const UserTransferTo = () => {
 
       console.log("Sending transfer data:", transferData)
 
-      const response = await axios.post("http://localhost:8085/api/transferOwnership", transferData)
+      const response = await axios.post("https://api-securechain-fcf7cnfkcebug3em.westindia-01.azurewebsites.net/api/transferOwnership", transferData)
 
       if (response.status === 200) {
         alert("Ownership transfer request submitted successfully!")
